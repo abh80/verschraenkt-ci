@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ScalaCompilerConfiguration">
+    <option name="separateProdTestSources" value="true" />
+    <profile name="sbt 1" modules="VerschraenktCI,VerschraenktCI.main,VerschraenktCI.test,verschraenkt-ci,verschraenkt-ci.verschraenkt-ci-api,verschraenkt-ci.verschraenkt-ci-cli,verschraenkt-ci.verschraenkt-ci-core,verschraenkt-ci.verschraenkt-ci-executor,verschraenkt-ci.verschraenkt-ci-observability,verschraenkt-ci.verschraenkt-ci-plugin,verschraenkt-ci.verschraenkt-ci-security,verschraenkt-ci.verschraenkt-ci-server,verschraenkt-ci.verschraenkt-ci-storage,verschraenktci" />
+    <profile name="sbt 2" modules="verschraenkt-ci.main,verschraenkt-ci.test,verschraenkt-ci.verschraenkt-ci-api.main,verschraenkt-ci.verschraenkt-ci-api.test,verschraenkt-ci.verschraenkt-ci-cli.main,verschraenkt-ci.verschraenkt-ci-cli.test,verschraenkt-ci.verschraenkt-ci-core.main,verschraenkt-ci.verschraenkt-ci-core.test,verschraenkt-ci.verschraenkt-ci-executor.main,verschraenkt-ci.verschraenkt-ci-executor.test,verschraenkt-ci.verschraenkt-ci-observability.main,verschraenkt-ci.verschraenkt-ci-observability.test,verschraenkt-ci.verschraenkt-ci-plugin.main,verschraenkt-ci.verschraenkt-ci-plugin.test,verschraenkt-ci.verschraenkt-ci-security.main,verschraenkt-ci.verschraenkt-ci-security.test,verschraenkt-ci.verschraenkt-ci-server.main,verschraenkt-ci.verschraenkt-ci-server.test,verschraenkt-ci.verschraenkt-ci-storage.main,verschraenkt-ci.verschraenkt-ci-storage.test">
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-encoding" />
+        <parameter value="UTF-8" />
+        <parameter value="-Xfatal-warnings" />
+        <parameter value="-source:3.3" />
+        <parameter value="-rewrite" />
+      </parameters>
+    </profile>
+  </component>
+</project>

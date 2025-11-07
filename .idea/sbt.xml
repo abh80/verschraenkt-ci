@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ScalaSbtSettings">
+    <option name="linkedExternalProjectsSettings">
+      <SbtProjectSettings>
+        <option name="converterVersion" value="2" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/modules/api" />
+            <option value="$PROJECT_DIR$/modules/cli" />
+            <option value="$PROJECT_DIR$/modules/core" />
+            <option value="$PROJECT_DIR$/modules/executor" />
+            <option value="$PROJECT_DIR$/modules/observability" />
+            <option value="$PROJECT_DIR$/modules/plugin" />
+            <option value="$PROJECT_DIR$/modules/security" />
+            <option value="$PROJECT_DIR$/modules/server" />
+            <option value="$PROJECT_DIR$/modules/storage" />
+            <option value="$PROJECT_DIR$/project" />
+          </set>
+        </option>
+        <option name="resolveSbtClassifiers" value="true" />
+        <option name="sbtVersion" value="1.11.3" />
+        <option name="separateProdAndTestSourcesIsExplicit" value="true" />
+      </SbtProjectSettings>
+    </option>
+  </component>
+</project>
