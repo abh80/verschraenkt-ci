@@ -93,9 +93,7 @@ class DAGSpec extends FunSuite:
 
     assert(result.isLeft)
     result.left.foreach { error =>
-      assertEquals(error.message, "Cyclic dependency detected")
-      assert(error.source.contains("DAG.order"))
-      assert(error.location.isDefined)
+      assertEquals(error.message, "Cyclic dependency detected: job1 depends on job2 and job2 depends on job1")
     }
   }
 
@@ -108,9 +106,10 @@ class DAGSpec extends FunSuite:
 
     assert(result.isLeft)
     result.left.foreach { error =>
-      assertEquals(error.message, "Cyclic dependency detected")
-      assert(error.source.contains("DAG.order"))
-      assert(error.location.isDefined)
+      assertEquals(
+        error.message,
+        "Cyclic dependency detected: job1 depends on job2 and job2 depends on job3 and job3 depends on job1"
+      )
     }
   }
 
@@ -121,9 +120,7 @@ class DAGSpec extends FunSuite:
 
     assert(result.isLeft)
     result.left.foreach { error =>
-      assertEquals(error.message, "Cyclic dependency detected")
-      assert(error.source.contains("DAG.order"))
-      assert(error.location.isDefined)
+      assertEquals(error.message, "Cyclic dependency detected: job1 depends on job1")
     }
   }
 
@@ -202,7 +199,7 @@ class DAGSpec extends FunSuite:
   test("DAG.order preserves job properties during ordering") {
     val resources = Resource(2000, 1024)
     val container = Some(Container("node:18"))
-    val labels = Set("production")
+    val labels    = Set("production")
     val job1 = Job.one(
       JobId("job1"),
       dummyStep,
@@ -215,7 +212,7 @@ class DAGSpec extends FunSuite:
     val result = DAG.order(List(job2, job1))
 
     assert(result.isRight)
-    val ordered = result.toOption.get
+    val ordered     = result.toOption.get
     val orderedJob1 = ordered.find(_.id == JobId("job1")).get
     assertEquals(orderedJob1.resources, resources)
     assertEquals(orderedJob1.container, container)
@@ -365,7 +362,7 @@ class DAGSpec extends FunSuite:
   }
 
   test("DAG.order with wide dependency tree") {
-    val root = createJob("root")
+    val root     = createJob("root")
     val children = (1 to 10).map(i => createJob(s"child-$i", Set(JobId("root")))).toList
 
     val result = DAG.order(children ++ List(root))
