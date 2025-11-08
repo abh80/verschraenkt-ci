@@ -54,7 +54,7 @@ enum Command extends CommandLike:
   override def asCommand: Command = this
 
   /** A composite command made up of multiple commands executed sequentially */
-  case Composite(steps: NonEmptyVector[Command])
+  case Composite(steps: NonEmptyVector[Command]) extends Command
 
 /** Supported shell types */
 enum ShellKind:
@@ -126,3 +126,14 @@ extension (c: CommandLike)
   infix def ~>(commands: Tuple): Composite =
     val allCommands = c +: commands.toList.asInstanceOf[List[CommandLike]]
     Composite(NonEmptyVector.fromVectorUnsafe(allCommands.toVector.map(_.asCommand)))
+
+extension (left: Step)
+  infix def ~>(right: Step): Step.Composite = (left, right) match
+    case (Step.Composite(leftSteps), Step.Composite(rightSteps)) =>
+      Step.Composite(leftSteps ++ rightSteps.toVector)
+    case (Step.Composite(leftSteps), _) =>
+      Step.Composite(leftSteps :+ right)
+    case (_, Step.Composite(rightSteps)) =>
+      Step.Composite(left +: rightSteps)
+    case _ =>
+      Step.Composite(NonEmptyVector.of(left, right))

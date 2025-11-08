@@ -6,7 +6,7 @@ import java.security.MessageDigest
 import java.nio.charset.StandardCharsets.UTF_8
 
 /** Defines different scoping levels for caches */
-enum CacheScope(intVal: Int):
+enum CacheScope(val intVal: Int):
   /** Global cache scope, available to all workflows */
   case Global extends CacheScope(0)
 
@@ -67,7 +67,7 @@ object CacheKey:
     val trimmed = s.trim
     val mapped = trimmed.map { ch =>
       if ch.isLetterOrDigit || ch == '.' || ch == '_' || ch == '-' || ch == '|' || ch == ':' then ch else '_'
-    }
+    }.mkString
     val compact = mapped.replaceAll("_+", "_")
     val v =
       if compact.length <= MaxLen then compact
