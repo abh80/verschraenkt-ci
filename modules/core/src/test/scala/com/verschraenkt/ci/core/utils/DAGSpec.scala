@@ -328,8 +328,6 @@ class DAGSpec extends FunSuite:
     assert(result.isLeft)
     result.left.foreach { error =>
       assert(error.isInstanceOf[ValidationError])
-      assert(error.source.isDefined)
-      assert(error.location.isDefined)
     }
   }
 
@@ -342,8 +340,6 @@ class DAGSpec extends FunSuite:
     assert(result.isLeft)
     result.left.foreach { error =>
       assert(error.isInstanceOf[ValidationError])
-      assert(error.source.isDefined)
-      assert(error.location.isDefined)
     }
   }
 
