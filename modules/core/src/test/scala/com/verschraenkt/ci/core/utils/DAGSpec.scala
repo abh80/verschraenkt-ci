@@ -3,12 +3,14 @@ package com.verschraenkt.ci.core.utils
 import com.verschraenkt.ci.core.model.*
 import com.verschraenkt.ci.core.errors.*
 import cats.data.NonEmptyVector
+import com.verschraenkt.ci.core.context.ApplicationContext
 import munit.FunSuite
 
 import scala.concurrent.duration.*
 
 class DAGSpec extends FunSuite:
-
+  given ctx: ApplicationContext = new ApplicationContext("test.ci")
+  
   val dummyStep: Step = Step.Checkout()(using StepMeta())
 
   def createJob(id: String, deps: Set[JobId] = Set.empty): Job =
@@ -134,8 +136,7 @@ class DAGSpec extends FunSuite:
     result.left.foreach { error =>
       assert(error.message.contains("Duplicate job ids"))
       assert(error.message.contains("duplicate"))
-      assert(error.source.contains("DAG.order"))
-      assert(error.location.isDefined)
+      assert(error.source.contains("test.ci"))
     }
   }
 
@@ -316,7 +317,6 @@ class DAGSpec extends FunSuite:
     result.left.foreach { error =>
       assert(error.isInstanceOf[ValidationError])
       assert(error.source.isDefined)
-      assert(error.location.isDefined)
     }
   }
 

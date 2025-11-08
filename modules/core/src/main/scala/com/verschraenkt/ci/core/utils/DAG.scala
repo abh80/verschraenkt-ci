@@ -7,16 +7,13 @@ import scala.annotation.tailrec
 import scala.collection.immutable.ListMap
 
 object DAG:
-  private given ctx: ApplicationContext = ApplicationContext("DAG.order")
-  def order(jobs: List[Job]): Either[DomainError, List[Job]] =
+  def order(jobs: List[Job])(using ctx: ApplicationContext): Either[DomainError, List[Job]] =
     val byId = ListMap.from(jobs.map(j => j.id -> j))
     if byId.size != jobs.size then
       val dupes = jobs.groupBy(_.id).collect { case (k, v) if v.size > 1 => k.value }.toList.sorted
       Left(
-        ctx.validationErrorAt(
-          s"Duplicate job ids: ${dupes.mkString(", ")}",
-          "DAG.scala",
-          13
+        ctx.validation(
+          s"Duplicate job ids: ${dupes.mkString(", ")}"
         )
       )
     else
@@ -24,7 +21,7 @@ object DAG:
       val unknown = jobs.flatMap(_.dependencies).filterNot(allIds.contains).map(_.value).distinct.sorted
       if unknown.nonEmpty then
         Left(
-          ctx.validationError(
+          ctx.validation(
             s"Unknown dependencies: ${unknown.mkString(", ")}"
           )
         )
@@ -39,7 +36,7 @@ object DAG:
                 .flatMap(job => job.dependencies.map(dep => s"${job.id.value} depends on ${dep.value}"))
                 .mkString(" and ")
               Left(
-                ctx.validationError(
+                ctx.validation(
                   s"Cyclic dependency detected: $cycles"
                 )
               )
