@@ -2,7 +2,6 @@ ThisBuild / version      := "1.0.0-SNAPSHOT"
 ThisBuild / organization := "com.verschraenkt.ci"
 ThisBuild / scalaVersion := "3.3.7"
 
-// Common settings
 lazy val commonSettings = Seq(
   scalacOptions ++= Seq(
     "-encoding",
@@ -17,7 +16,6 @@ lazy val commonSettings = Seq(
   resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 )
 
-// Dependency versions
 lazy val V = new {
   val pekko          = "1.2.1"
   val pekkoHttp      = "1.3.0"
@@ -43,7 +41,6 @@ lazy val V = new {
   val munit          = "2.1.0"
 }
 
-// Dependency groups
 lazy val pekkoDeps = Seq(
   "org.apache.pekko" %% "pekko-actor-typed"            % V.pekko,
   "org.apache.pekko" %% "pekko-cluster-typed"          % V.pekko,
@@ -153,25 +150,26 @@ lazy val testDeps = Seq(
   "com.dimafeng"     %% "testcontainers-scala-core"       % V.testcontainers % Test
 )
 
-// ============================================================================
-// Core Module - Domain models, actors, and business logic
-// ============================================================================
 lazy val core = (project in file("modules/core"))
   .settings(commonSettings)
   .settings(
     name := "verschraenkt-ci-core",
     libraryDependencies ++=
-      pekkoDeps ++
-        catsEffectDeps ++
-        jsonDeps ++
+      jsonDeps ++
         configDeps ++
-        loggingDeps ++
         testDeps
   )
 
-// ============================================================================
-// Storage Module - Database, cache, and object storage
-// ============================================================================
+lazy val dsl = (project in file("modules/dsl"))
+  .dependsOn(core % "compile->compile;test->test")
+  .settings(commonSettings)
+  .settings(
+    name := "verschraenkt-ci-dsl",
+    libraryDependencies ++=
+      jsonDeps ++
+        testDeps
+  )
+
 lazy val storage = (project in file("modules/storage"))
   .dependsOn(core % "compile->compile;test->test")
   .settings(commonSettings)
@@ -184,9 +182,6 @@ lazy val storage = (project in file("modules/storage"))
         testDeps
   )
 
-// ============================================================================
-// Executor Module - Container and Kubernetes orchestration
-// ============================================================================
 lazy val executor = (project in file("modules/executor"))
   .dependsOn(core % "compile->compile;test->test", storage)
   .settings(commonSettings)
@@ -198,9 +193,17 @@ lazy val executor = (project in file("modules/executor"))
         testDeps
   )
 
-// ============================================================================
-// Plugin Module - gRPC and WebAssembly plugin system
-// ============================================================================
+lazy val engine = (project in file("modules/engine"))
+  .dependsOn(core % "compile->compile;test->test", executor, storage)
+  .settings(commonSettings)
+  .settings(
+    name := "verschraenkt-ci-engine",
+    libraryDependencies ++=
+      pekkoDeps ++
+        loggingDeps ++
+        testDeps
+  )
+
 lazy val plugin = (project in file("modules/plugin"))
   .dependsOn(core % "compile->compile;test->test")
   .settings(commonSettings)
@@ -215,9 +218,6 @@ lazy val plugin = (project in file("modules/plugin"))
     )
   )
 
-// ============================================================================
-// Security Module - Authentication, authorization, signing
-// ============================================================================
 lazy val security = (project in file("modules/security"))
   .dependsOn(core % "compile->compile;test->test")
   .settings(commonSettings)
@@ -229,9 +229,6 @@ lazy val security = (project in file("modules/security"))
         testDeps
   )
 
-// ============================================================================
-// Observability Module - Metrics, tracing, logging
-// ============================================================================
 lazy val observability = (project in file("modules/observability"))
   .dependsOn(core % "compile->compile;test->test")
   .settings(commonSettings)
@@ -242,15 +239,14 @@ lazy val observability = (project in file("modules/observability"))
         testDeps
   )
 
-// ============================================================================
-// API Module - GraphQL API and HTTP endpoints
-// ============================================================================
 lazy val api = (project in file("modules/api"))
   .dependsOn(
     core % "compile->compile;test->test",
+    engine,
     storage,
     security,
-    observability
+    observability,
+    dsl
   )
   .settings(commonSettings)
   .settings(
@@ -261,18 +257,13 @@ lazy val api = (project in file("modules/api"))
         testDeps
   )
 
-// ============================================================================
-// Server Module - Main application assembly
-// ============================================================================
 lazy val server = (project in file("modules/server"))
   .dependsOn(
-    core % "compile->compile;test->test",
-    storage,
-    executor,
+    engine,
+    api,
     plugin,
     security,
-    observability,
-    api
+    observability
   )
   .settings(commonSettings)
   .settings(
@@ -298,9 +289,6 @@ lazy val server = (project in file("modules/server"))
   )
   .enablePlugins(JavaAppPackaging, DockerPlugin)
 
-// ============================================================================
-// CLI Module - Command-line interface
-// ============================================================================
 lazy val cli = (project in file("modules/cli"))
   .dependsOn(core % "compile->compile;test->test", api)
   .settings(commonSettings)
@@ -313,14 +301,13 @@ lazy val cli = (project in file("modules/cli"))
     assembly / mainClass := Some("org.verschraenkt.ci.cli.Main")
   )
 
-// ============================================================================
-// Root Project - Aggregates all modules
-// ============================================================================
 lazy val root = (project in file("."))
   .aggregate(
     core,
+    dsl,
     storage,
     executor,
+    engine,
     plugin,
     security,
     observability,

@@ -1,0 +1,128 @@
+package com.verschraenkt.ci.core.model
+
+import cats.Semigroup
+import cats.data.NonEmptyVector
+import cats.implicits.catsSyntaxSemigroup
+
+/** Represents a command that can be executed */
+sealed trait CommandLike:
+  /** Converts this CommandLike into a Command */
+  def asCommand: Command
+
+/** Represents different types of executable commands */
+enum Command extends CommandLike:
+  /** Execute a program with arguments and environment variables
+    * @param program
+    *   The program to execute
+    * @param args
+    *   Command line arguments
+    * @param env
+    *   Environment variables to set
+    * @param cwd
+    *   Working directory for execution
+    * @param timeoutSec
+    *   Timeout in seconds
+    */
+  case Exec(
+      program: String,
+      args: List[String] = Nil,
+      env: Map[String, String] = Map.empty,
+      cwd: Option[String] = None,
+      timeoutSec: Option[Int] = None
+  ) extends Command
+
+  /** Execute a shell script
+    * @param script
+    *   The script to execute
+    * @param shell
+    *   The shell to use
+    * @param env
+    *   Environment variables to set
+    * @param cwd
+    *   Working directory for execution
+    * @param timeoutSec
+    *   Timeout in seconds
+    */
+  case Shell(
+      script: String,
+      shell: ShellKind = ShellKind.Bash,
+      env: Map[String, String] = Map.empty,
+      cwd: Option[String] = None,
+      timeoutSec: Option[Int] = None
+  ) extends Command
+
+  override def asCommand: Command = this
+
+  /** A composite command made up of multiple commands executed sequentially */
+  case Composite(steps: NonEmptyVector[Command])
+
+/** Supported shell types */
+enum ShellKind:
+  case Bash, Sh, Pwsh, Cmd
+
+/** Execution policy for commands
+  * @param allowShell
+  *   Whether shell commands are allowed
+  * @param maxTimeoutSec
+  *   Maximum allowed timeout in seconds
+  * @param denyPatterns
+  *   List of denied command patterns
+  */
+final case class Policy(allowShell: Boolean, maxTimeoutSec: Int, denyPatterns: List[String])
+
+/** Result of executing a command
+  * @param exitCode
+  *   Process exit code
+  * @param stdout
+  *   Standard output lines
+  * @param stderr
+  *   Standard error lines
+  * @param startedAt
+  *   Timestamp when command started
+  * @param endedAt
+  *   Timestamp when command completed
+  */
+final case class CommandResult(
+    exitCode: Int,
+    stdout: Vector[String],
+    stderr: Vector[String],
+    startedAt: Long,
+    endedAt: Long
+)
+
+/** Composite command that runs multiple commands sequentially */
+final case class Composite(steps: NonEmptyVector[Command]) extends CommandLike:
+  def asCommand: Command = Command.Composite(steps)
+
+/** Factory methods for creating composite commands */
+object Composite:
+  /** Create a composite of a single command */
+  def one(c: CommandLike): Composite = Composite(NonEmptyVector.one(c.asCommand))
+
+  /** Create a composite of two commands */
+  def two(c1: CommandLike, c2: CommandLike): Composite = Composite(
+    NonEmptyVector.of(c1.asCommand, c2.asCommand)
+  )
+
+/** Semigroup instance for combining composite commands */
+given Semigroup[Composite] with
+  override def combine(x: Composite, y: Composite): Composite = Composite(
+    NonEmptyVector.fromVectorUnsafe(x.steps.toVector ++ y.steps.toVector)
+  )
+
+/** Extension methods for chaining commands */
+extension (c: CommandLike)
+  /** Chain two commands together */
+  infix def ~>(next: CommandLike): Composite = (c, next) match
+    case (comp: Composite, n) => comp |+| Composite.one(n)
+    case (cmd, n)             => Composite.two(cmd, n)
+
+  /** Chain a command with a composite */
+  infix def ~>(next: Composite): Composite = c match
+    case comp: Composite => comp |+| next
+    case cmd             => Composite.one(cmd) |+| next
+
+  /** Chain multiple commands together using tuple syntax */
+  infix def ~>(commands: Tuple): Composite =
+    val allCommands = c +: commands.toList.asInstanceOf[List[CommandLike]]
+    Composite(NonEmptyVector.fromVectorUnsafe(allCommands.toVector.map(_.asCommand)))
