@@ -11,6 +11,8 @@
             <option value="$PROJECT_DIR$/modules/api" />
             <option value="$PROJECT_DIR$/modules/cli" />
             <option value="$PROJECT_DIR$/modules/core" />
+            <option value="$PROJECT_DIR$/modules/dsl" />
+            <option value="$PROJECT_DIR$/modules/engine" />
             <option value="$PROJECT_DIR$/modules/executor" />
             <option value="$PROJECT_DIR$/modules/observability" />
             <option value="$PROJECT_DIR$/modules/plugin" />
