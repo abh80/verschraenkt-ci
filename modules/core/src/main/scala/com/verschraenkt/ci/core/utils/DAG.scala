@@ -10,18 +10,30 @@ object DAG:
     val byId = ListMap.from(jobs.map(j => j.id -> j))
     if byId.size != jobs.size then
       val dupes = jobs.groupBy(_.id).collect { case (k, v) if v.size > 1 => k.value }.toList.sorted
-      Left(ValidationError(s"Duplicate job ids: ${dupes.mkString(", ")}"))
+      Left(ValidationError(
+        s"Duplicate job ids: ${dupes.mkString(", ")}",
+        Some("DAG.order"),
+        Some(("DAG.scala", 13))
+      ))
     else
       val allIds  = byId.keySet
       val unknown = jobs.flatMap(_.dependencies).filterNot(allIds.contains).map(_.value).distinct.sorted
-      if unknown.nonEmpty then Left(ValidationError(s"Unknown dependencies: ${unknown.mkString(", ")}"))
+      if unknown.nonEmpty then Left(ValidationError(
+        s"Unknown dependencies: ${unknown.mkString(", ")}",
+        Some("DAG.order"),
+        Some(("DAG.scala", 17))
+      ))
       else
         @tailrec
         def loop(remaining: List[Job], doneIds: Set[JobId], acc: List[Job]): Either[DomainError, List[Job]] =
           if remaining.isEmpty then Right(acc)
           else
             val (ready, blocked) = remaining.partition(j => j.dependencies.subsetOf(doneIds))
-            if ready.isEmpty then Left(ValidationError("Cyclic dependency detected"))
+            if ready.isEmpty then Left(ValidationError(
+              "Cyclic dependency detected",
+              Some("DAG.order"),
+              Some(("DAG.scala", 24))
+            ))
             else
               val nextDone = doneIds ++ ready.iterator.map(_.id)
               loop(blocked, nextDone, acc ++ ready)
