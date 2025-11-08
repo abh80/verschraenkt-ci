@@ -101,7 +101,7 @@ object Resource:
 
   /** Creates a Resource instance without validation Only for internal use within model package
     */
-  private[model] def unsafe(cpuMilli: Int, memoryMiB: Int, gpu: Int, diskMiB: Int): Resource =
+  private[core] def unsafe(cpuMilli: Int, memoryMiB: Int, gpu: Int, diskMiB: Int): Resource =
     new Resource(cpuMilli, memoryMiB, gpu, diskMiB)
 
   /** A Resource instance with all zero values */
