@@ -2,6 +2,7 @@ package com.verschraenkt.ci.core.model
 
 import cats.data.{ NonEmptyList, NonEmptyVector }
 import munit.FunSuite
+import scala.concurrent.duration.DurationInt
 
 class StepSpec extends FunSuite:
 
@@ -9,8 +10,8 @@ class StepSpec extends FunSuite:
   test("StepMeta creation with default values") {
     val meta = StepMeta()
     assertEquals(meta.id, None)
-    assertEquals(meta.when, None)
-    assertEquals(meta.timeoutSec, None)
+    assertEquals(meta.when, When.Always)
+    assertEquals(meta.timeout, None)
     assertEquals(meta.continueOnError, false)
     assertEquals(meta.retry, None)
     assertEquals(meta.env, Map.empty)
@@ -20,18 +21,18 @@ class StepSpec extends FunSuite:
   test("StepMeta creation with all parameters") {
     val meta = StepMeta(
       id = Some("step-1"),
-      when = Some("always"),
-      timeoutSec = Some(300),
+      when = When.Always,
+      timeout = Some(3.minutes),
       continueOnError = true,
-      retry = Some(3),
+      retry = Some(Retry(3, 3.minutes, RetryMode.Linear)),
       env = Map("NODE_ENV" -> "production", "DEBUG" -> "true"),
       workingDirectory = Some("/app")
     )
     assertEquals(meta.id, Some("step-1"))
-    assertEquals(meta.when, Some("always"))
-    assertEquals(meta.timeoutSec, Some(300))
+    assertEquals(meta.when, When.Always)
+    assertEquals(meta.timeout, Some(3.minutes))
     assertEquals(meta.continueOnError, true)
-    assertEquals(meta.retry, Some(3))
+    assertEquals(meta.retry, Some(Retry(3, 3.minutes, RetryMode.Linear)))
     assertEquals(meta.env.size, 2)
     assertEquals(meta.workingDirectory, Some("/app"))
   }
@@ -48,11 +49,11 @@ class StepSpec extends FunSuite:
   test("Checkout step with custom meta") {
     given StepMeta = StepMeta(
       id = Some("checkout-code"),
-      timeoutSec = Some(60)
+      timeout = Some(60.minutes)
     )
     val checkout = Step.Checkout()
     assertEquals(checkout.meta.id, Some("checkout-code"))
-    assertEquals(checkout.meta.timeoutSec, Some(60))
+    assertEquals(checkout.meta.timeout, Some(60.minutes))
   }
 
   // Step.Run tests
@@ -121,14 +122,14 @@ class StepSpec extends FunSuite:
   }
 
   test("SaveCache step with branch scope") {
-    given StepMeta = StepMeta(when = Some("success"))
+    given StepMeta = StepMeta(when = When.OnSuccess)
     val key        = CacheKey.literal("build")
     val cache      = Cache.SaveCache(key, NonEmptyList.of("target"), CacheScope.Branch)
     val paths      = NonEmptyList.of("target")
     val save       = Step.SaveCache(cache, paths)
 
     assertEquals(save.cache.scope, CacheScope.Branch)
-    assertEquals(save.meta.when, Some("success"))
+    assertEquals(save.meta.when, When.OnSuccess)
   }
 
   // Step.Composite tests
@@ -171,17 +172,17 @@ class StepSpec extends FunSuite:
   }
 
   test("getMeta returns metadata for Run step") {
-    given StepMeta = StepMeta(retry = Some(2))
+    given StepMeta = StepMeta(retry = Some(Retry(3, 3.minutes, RetryMode.Linear)))
     val run        = Step.Run(Command.Exec("echo"))
-    assertEquals(run.getMeta.get.retry, Some(2))
+    assertEquals(run.getMeta.get.retry, Some(Retry(3, 3.minutes, RetryMode.Linear)))
   }
 
   test("getMeta returns metadata for RestoreCache step") {
-    given StepMeta = StepMeta(timeoutSec = Some(120))
+    given StepMeta = StepMeta(timeout = Some(120.minutes))
     val key        = CacheKey.literal("test")
     val cache      = Cache.RestoreCache(key, NonEmptyList.of("/cache"))
     val restore    = Step.RestoreCache(cache, NonEmptyList.of("/cache"))
-    assertEquals(restore.getMeta.get.timeoutSec, Some(120))
+    assertEquals(restore.getMeta.get.timeout, Some(120.minutes))
   }
 
   test("getMeta returns metadata for SaveCache step") {
@@ -204,24 +205,24 @@ class StepSpec extends FunSuite:
   }
 
   test("withMeta modifies Run step metadata") {
-    given StepMeta = StepMeta(timeoutSec = Some(60))
+    given StepMeta = StepMeta(timeout = Some(60.minutes))
     val run        = Step.Run(Command.Exec("echo"))
-    val modified   = run.withMeta(m => m.copy(timeoutSec = Some(120)))
+    val modified   = run.withMeta(m => m.copy(timeout = Some(120.minutes)))
 
     modified match
-      case r: Step.Run => assertEquals(r.meta.timeoutSec, Some(120))
+      case r: Step.Run => assertEquals(r.meta.timeout, Some(120.minutes))
       case _           => fail("Expected Run step")
   }
 
   test("withMeta modifies RestoreCache step metadata") {
-    given StepMeta = StepMeta(retry = Some(1))
+    given StepMeta = StepMeta(retry = Some(Retry(3, 3.minutes, RetryMode.Linear)))
     val key        = CacheKey.literal("test")
     val cache      = Cache.RestoreCache(key, NonEmptyList.of("/cache"))
     val restore    = Step.RestoreCache(cache, NonEmptyList.of("/cache"))
-    val modified   = restore.withMeta(m => m.copy(retry = Some(3)))
+    val modified   = restore.withMeta(m => m.copy(retry = Some(Retry(3, 3.minutes, RetryMode.Linear))))
 
     modified match
-      case rc: Step.RestoreCache => assertEquals(rc.meta.retry, Some(3))
+      case rc: Step.RestoreCache => assertEquals(rc.meta.retry, Some(Retry(3, 3.minutes, RetryMode.Linear)))
       case _                     => fail("Expected RestoreCache step")
   }
 
@@ -248,23 +249,23 @@ class StepSpec extends FunSuite:
   }
 
   test("withMeta can modify multiple metadata fields") {
-    given StepMeta = StepMeta(id = Some("original"), timeoutSec = Some(60))
+    given StepMeta = StepMeta(id = Some("original"), timeout = Some(60.minutes))
     val checkout   = Step.Checkout()
     val modified = checkout.withMeta(m =>
       m.copy(
         id = Some("updated"),
-        timeoutSec = Some(120),
+        timeout = Some(120.minutes),
         continueOnError = true,
-        retry = Some(2)
+        retry = Some(Retry(3, 3.minutes, RetryMode.Linear))
       )
     )
 
     modified match
       case c: Step.Checkout =>
         assertEquals(c.meta.id, Some("updated"))
-        assertEquals(c.meta.timeoutSec, Some(120))
+        assertEquals(c.meta.timeout, Some(120.minutes))
         assertEquals(c.meta.continueOnError, true)
-        assertEquals(c.meta.retry, Some(2))
+        assertEquals(c.meta.retry, Some(Retry(3, 3.minutes, RetryMode.Linear)))
       case _ => fail("Expected Checkout step")
   }
 
@@ -362,8 +363,8 @@ class StepSpec extends FunSuite:
     val save              = Step.SaveCache(saveCache, NonEmptyList.of("node_modules"))(using meta5)
 
     val pipeline: Step.Composite = checkout ~> restore ~> install ~> test ~> save
-    val steps = pipeline.steps.toVector
-    
+    val steps                    = pipeline.steps.toVector
+
     assertEquals(pipeline.steps.length, 5)
     assertEquals(steps(0), checkout)
     assertEquals(steps(1), restore)
@@ -373,10 +374,10 @@ class StepSpec extends FunSuite:
   }
 
   test("~> operator preserves step metadata in chain") {
-    given meta1: StepMeta = StepMeta(id = Some("step1"), retry = Some(1))
+    given meta1: StepMeta = StepMeta(id = Some("step1"), retry = Some(Retry(3, 3.minutes, RetryMode.Linear)))
     val step1             = Step.Checkout()(using meta1)
 
-    given meta2: StepMeta = StepMeta(id = Some("step2"), timeoutSec = Some(300))
+    given meta2: StepMeta = StepMeta(id = Some("step2"), timeout = Some(300.minutes))
     val step2             = Step.Run(Command.Exec("echo"))(using meta2)
 
     val composite = step1 ~> step2
@@ -384,19 +385,19 @@ class StepSpec extends FunSuite:
     composite.steps.head match
       case c: Step.Checkout =>
         assertEquals(c.meta.id, Some("step1"))
-        assertEquals(c.meta.retry, Some(1))
+        assertEquals(c.meta.retry, Some(Retry(3, 3.minutes, RetryMode.Linear)))
       case _ => fail("Expected Checkout step")
 
     composite.steps.tail.head match
       case r: Step.Run =>
         assertEquals(r.meta.id, Some("step2"))
-        assertEquals(r.meta.timeoutSec, Some(300))
+        assertEquals(r.meta.timeout, Some(300.minutes))
       case _ => fail("Expected Run step")
   }
 
   // Integration tests
   test("complete CI pipeline with all step types") {
-    given checkoutMeta: StepMeta = StepMeta(id = Some("checkout"), timeoutSec = Some(60))
+    given checkoutMeta: StepMeta = StepMeta(id = Some("checkout"), timeout = Some(60.minutes))
     val checkout                 = Step.Checkout()(using checkoutMeta)
 
     given restoreMeta: StepMeta = StepMeta(id = Some("restore-cache"))
@@ -407,23 +408,23 @@ class StepSpec extends FunSuite:
     given compileMeta: StepMeta = StepMeta(
       id = Some("compile"),
       env = Map("SBT_OPTS" -> "-Xmx2G"),
-      timeoutSec = Some(600)
+      timeout = Some(600.minutes)
     )
     val compile = Step.Run(Command.Exec("sbt", List("compile")))(using compileMeta)
 
     given testMeta: StepMeta = StepMeta(
       id = Some("test"),
       continueOnError = true,
-      retry = Some(2)
+      retry = Some(Retry(3, 3.minutes, RetryMode.Linear))
     )
     val test = Step.Run(Command.Shell("sbt test"))(using testMeta)
 
-    given saveMeta: StepMeta = StepMeta(id = Some("save-cache"), when = Some("success"))
+    given saveMeta: StepMeta = StepMeta(id = Some("save-cache"), when = When.OnSuccess)
     val saveCache            = Cache.saveForBranch(key, NonEmptyList.of("target", ".ivy2"), "main")
     val save                 = Step.SaveCache(saveCache, NonEmptyList.of("target", ".ivy2"))(using saveMeta)
 
     val pipeline: Step.Composite = checkout ~> restore ~> compile ~> test ~> save
-    val steps = pipeline.steps.toVector
+    val steps                    = pipeline.steps.toVector
     assertEquals(pipeline.steps.length, 5)
 
     // Verify each step maintains its properties
@@ -436,8 +437,8 @@ class StepSpec extends FunSuite:
       case _                               => fail("Compile env not preserved")
 
     steps(3).getMeta.get.retry match
-      case Some(2) => ()
-      case _       => fail("Test retry not preserved")
+      case Some(Retry(3, _, RetryMode.Linear)) => ()
+      case _                                   => fail("Test retry not preserved")
   }
 
   test("nested composite steps") {

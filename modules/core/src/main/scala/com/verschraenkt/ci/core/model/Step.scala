@@ -2,12 +2,14 @@ package com.verschraenkt.ci.core.model
 
 import cats.data.{ NonEmptyList, NonEmptyVector }
 
+import scala.concurrent.duration.FiniteDuration
+
 /** Metadata configuration for pipeline steps
   * @param id
   *   Optional identifier for the step
   * @param when
   *   Optional condition for when this step should run
-  * @param timeoutSec
+  * @param timeout
   *   Optional timeout in seconds for the step execution
   * @param continueOnError
   *   Whether to continue pipeline execution if this step fails
@@ -20,10 +22,10 @@ import cats.data.{ NonEmptyList, NonEmptyVector }
   */
 final case class StepMeta(
     id: Option[String] = None,
-    when: Option[String] = None,
-    timeoutSec: Option[Int] = None,
+    when: When = When.Always,
+    timeout: Option[FiniteDuration] = None,
     continueOnError: Boolean = false,
-    retry: Option[Int] = None,
+    retry: Option[Retry] = None,
     env: Map[String, String] = Map.empty,
     workingDirectory: Option[String] = None
 )
@@ -68,3 +70,11 @@ extension (step: Step)
         case rc: Step.RestoreCache => rc.copy()(using f(rc.meta))
         case sc: Step.SaveCache    => sc.copy()(using f(sc.meta))
     case c: Step.Composite => c
+
+enum When:
+  case Always, OnSuccess, OnFailure
+
+enum RetryMode:
+  case Linear, Exponential
+
+final case class Retry(maxAttempts: Int, delay: FiniteDuration, mode: RetryMode = RetryMode.Exponential)
