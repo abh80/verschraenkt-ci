@@ -276,12 +276,11 @@ object ValidationService:
   private def validateCondition(condition: Condition, depth: Int = 0)(using
       ctx: ApplicationContext
   ): ValidationResult[Unit] =
-    if depth > 50 then
-      return ctx.validation("Condition nesting depth exceeds maximum of 50").invalidNel
+    if depth > 50 then return ctx.validation("Condition nesting depth exceeds maximum of 50").invalidNel
 
     condition match
-      case Condition.Always | Condition.Never | Condition.OnSuccess | Condition.OnFailure | 
-           Condition.OnManualTrigger | Condition.OnDraft | Condition.NotOnDraft =>
+      case Condition.Always | Condition.Never | Condition.OnSuccess | Condition.OnFailure |
+          Condition.OnManualTrigger | Condition.OnDraft | Condition.NotOnDraft =>
         ().validNel
 
       case Condition.OnBranch(pattern, _) =>
@@ -329,7 +328,8 @@ object ValidationService:
 
       case Condition.OnSchedule(cron) =>
         if cron.trim.isEmpty then ctx.validation("Cron expression cannot be empty").invalidNel
-        else if cron.length > 256 then ctx.validation("Cron expression cannot exceed 256 characters").invalidNel
+        else if cron.length > 256 then
+          ctx.validation("Cron expression cannot exceed 256 characters").invalidNel
         else ().validNel
 
       case Condition.OnAuthor(author) =>
@@ -344,12 +344,13 @@ object ValidationService:
 
       case Condition.OnRepository(repo) =>
         if repo.trim.isEmpty then ctx.validation("Repository name cannot be empty").invalidNel
-        else if repo.length > 256 then ctx.validation("Repository name cannot exceed 256 characters").invalidNel
+        else if repo.length > 256 then
+          ctx.validation("Repository name cannot exceed 256 characters").invalidNel
         else ().validNel
 
       case Condition.OnPullRequest | Condition.OnManualTrigger | Condition.OnWorkflowDispatch |
-           Condition.OnWorkflowCall | Condition.IsFork | Condition.IsNotFork | Condition.OnCancelled |
-           Condition.IsPrivate | Condition.IsPublic =>
+          Condition.OnWorkflowCall | Condition.IsFork | Condition.IsNotFork | Condition.OnCancelled |
+          Condition.IsPrivate | Condition.IsPublic =>
         ().validNel
 
       case Condition.Expression(expr) =>
@@ -407,7 +408,8 @@ object ValidationService:
 
       case Condition.HasPermission(permission) =>
         if permission.trim.isEmpty then ctx.validation("Permission name cannot be empty").invalidNel
-        else if permission.length > 256 then ctx.validation("Permission name cannot exceed 256 characters").invalidNel
+        else if permission.length > 256 then
+          ctx.validation("Permission name cannot exceed 256 characters").invalidNel
         else ().validNel
 
   private def validatePattern(pattern: String, context: String)(using
@@ -425,7 +427,8 @@ object ValidationService:
 
   private def validateEnvKey(key: String)(using ctx: ApplicationContext): ValidationResult[Unit] =
     if key.trim.isEmpty then ctx.validation("Environment variable key cannot be empty").invalidNel
-    else if key.length > 256 then ctx.validation("Environment variable key cannot exceed 256 characters").invalidNel
+    else if key.length > 256 then
+      ctx.validation("Environment variable key cannot exceed 256 characters").invalidNel
     else if !key.matches("^[A-Za-z_][A-Za-z0-9_]*$") then
       ctx.validation("Environment variable key must match pattern [A-Za-z_][A-Za-z0-9_]*").invalidNel
     else ().validNel

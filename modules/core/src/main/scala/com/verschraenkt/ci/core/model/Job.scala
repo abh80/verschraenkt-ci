@@ -91,7 +91,18 @@ object Job:
       concurrencyGroup: Option[String] = None,
       condition: Condition = Condition.Always
   ): Job =
-    Job(id, NonEmptyVector.one(step), needs, resources, timeout, matrix, container, labels, concurrencyGroup, condition)
+    Job(
+      id,
+      NonEmptyVector.one(step),
+      needs,
+      resources,
+      timeout,
+      matrix,
+      container,
+      labels,
+      concurrencyGroup,
+      condition
+    )
 
   /** Creates a Job with multiple steps
     *
