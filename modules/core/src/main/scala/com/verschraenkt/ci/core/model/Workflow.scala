@@ -7,7 +7,8 @@ final case class Workflow(
     jobs: NonEmptyVector[Job],
     defaultContainer: Option[Container] = None,
     concurrencyGroup: Option[String] = None,
-    labels: Set[String] = Set.empty
+    labels: Set[String] = Set.empty,
+    condition: Condition = Condition.Always
 )
 
 object Workflow:
@@ -16,9 +17,10 @@ object Workflow:
       job: Job,
       defaultContainer: Option[Container] = None,
       concurrencyGroup: Option[String] = None,
-      labels: Set[String] = Set.empty
+      labels: Set[String] = Set.empty,
+      condition: Condition = Condition.Always
   ): Workflow =
-    Workflow(name, NonEmptyVector.one(job), defaultContainer, concurrencyGroup, labels)
+    Workflow(name, NonEmptyVector.one(job), defaultContainer, concurrencyGroup, labels, condition)
 
   def of(name: String, first: Job, rest: Job*): Workflow =
     Workflow(name, NonEmptyVector(first, rest.toVector))

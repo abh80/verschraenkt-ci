@@ -42,7 +42,8 @@ final case class Job(
     matrix: Map[String, NonEmptyVector[String]] = Map.empty,
     container: Option[Container],
     labels: Set[String] = Set.empty,
-    concurrencyGroup: Option[String] = None
+    concurrencyGroup: Option[String] = None,
+    condition: Condition = Condition.Always
 ):
   def ~>(step: Step): Job =
     this.copy(steps = NonEmptyVector.fromVectorUnsafe(this.steps.toVector :+ step))
@@ -87,9 +88,10 @@ object Job:
       matrix: Map[String, NonEmptyVector[String]] = Map.empty,
       container: Option[Container] = None,
       labels: Set[String] = Set.empty,
-      concurrencyGroup: Option[String] = None
+      concurrencyGroup: Option[String] = None,
+      condition: Condition = Condition.Always
   ): Job =
-    Job(id, NonEmptyVector.one(step), needs, resources, timeout, matrix, container, labels, concurrencyGroup)
+    Job(id, NonEmptyVector.one(step), needs, resources, timeout, matrix, container, labels, concurrencyGroup, condition)
 
   /** Creates a Job with multiple steps
     *
@@ -112,10 +114,12 @@ object Job:
       rest: Step*
   )(
       timeout: FiniteDuration = 30.minutes,
-      container: Option[Container] = None
+      container: Option[Container] = None,
+      condition: Condition = Condition.Always
   ): Job = Job(
     id,
     NonEmptyVector(first, rest.toVector),
     timeout = timeout,
-    container = container
+    container = container,
+    condition = condition
   )
