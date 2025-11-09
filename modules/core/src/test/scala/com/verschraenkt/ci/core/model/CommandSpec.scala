@@ -1,7 +1,7 @@
 package com.verschraenkt.ci.core.model
 
 import cats.data.NonEmptyVector
-import cats.implicits._
+import cats.implicits.*
 import munit.FunSuite
 
 class CommandSpec extends FunSuite:
@@ -62,15 +62,15 @@ class CommandSpec extends FunSuite:
   }
 
   test("Composite.one creates single command composite") {
-    val cmd = Command.Exec("echo")
+    val cmd       = Command.Exec("echo")
     val composite = Composite.one(cmd)
     assertEquals(composite.steps.length, 1)
     assertEquals(composite.steps.head, cmd)
   }
 
   test("Composite.two creates two command composite") {
-    val cmd1 = Command.Exec("echo", List("hello"))
-    val cmd2 = Command.Exec("echo", List("world"))
+    val cmd1      = Command.Exec("echo", List("hello"))
+    val cmd2      = Command.Exec("echo", List("world"))
     val composite = Composite.two(cmd1, cmd2)
     assertEquals(composite.steps.length, 2)
     assertEquals(composite.steps.head, cmd1)
@@ -78,72 +78,72 @@ class CommandSpec extends FunSuite:
   }
 
   test("Composite asCommand converts to Command.Composite") {
-    val cmd1 = Command.Exec("echo")
+    val cmd1      = Command.Exec("echo")
     val composite = Composite.one(cmd1)
-    val command = composite.asCommand
+    val command   = composite.asCommand
     assert(command.isInstanceOf[Command.Composite])
     command match
       case Command.Composite(steps) => assertEquals(steps.length, 1)
-      case _ => fail("Expected Command.Composite")
+      case _                        => fail("Expected Command.Composite")
   }
 
   test("~> operator chains two commands") {
-    val cmd1 = Command.Exec("npm", List("install"))
-    val cmd2 = Command.Exec("npm", List("test"))
+    val cmd1      = Command.Exec("npm", List("install"))
+    val cmd2      = Command.Exec("npm", List("test"))
     val composite = cmd1 ~> cmd2
     assertEquals(composite.steps.length, 2)
     assertEquals(composite.steps.toVector, Vector(cmd1, cmd2))
   }
 
   test("~> operator chains command with composite") {
-    val cmd1 = Command.Exec("npm", List("install"))
-    val cmd2 = Command.Exec("npm", List("test"))
-    val cmd3 = Command.Exec("npm", List("build"))
+    val cmd1       = Command.Exec("npm", List("install"))
+    val cmd2       = Command.Exec("npm", List("test"))
+    val cmd3       = Command.Exec("npm", List("build"))
     val composite1 = cmd2 ~> cmd3
-    val result = cmd1 ~> composite1
+    val result     = cmd1 ~> composite1
     assertEquals(result.steps.length, 3)
     assertEquals(result.steps.toVector, Vector(cmd1, cmd2, cmd3))
   }
 
   test("~> operator chains composite with command") {
-    val cmd1 = Command.Exec("npm", List("install"))
-    val cmd2 = Command.Exec("npm", List("test"))
-    val cmd3 = Command.Exec("npm", List("build"))
+    val cmd1      = Command.Exec("npm", List("install"))
+    val cmd2      = Command.Exec("npm", List("test"))
+    val cmd3      = Command.Exec("npm", List("build"))
     val composite = cmd1 ~> cmd2
-    val result = composite ~> cmd3
+    val result    = composite ~> cmd3
     assertEquals(result.steps.length, 3)
     assertEquals(result.steps.toVector, Vector(cmd1, cmd2, cmd3))
   }
 
   test("~> operator chains two composites") {
-    val cmd1 = Command.Exec("npm", List("install"))
-    val cmd2 = Command.Exec("npm", List("test"))
-    val cmd3 = Command.Exec("npm", List("build"))
-    val cmd4 = Command.Exec("npm", List("deploy"))
+    val cmd1       = Command.Exec("npm", List("install"))
+    val cmd2       = Command.Exec("npm", List("test"))
+    val cmd3       = Command.Exec("npm", List("build"))
+    val cmd4       = Command.Exec("npm", List("deploy"))
     val composite1 = cmd1 ~> cmd2
     val composite2 = cmd3 ~> cmd4
-    val result = composite1 ~> composite2
+    val result     = composite1 ~> composite2
     assertEquals(result.steps.length, 4)
     assertEquals(result.steps.toVector, Vector(cmd1, cmd2, cmd3, cmd4))
   }
 
   test("~> operator chains multiple commands at once") {
-    val cmd1 = Command.Exec("echo", List("1"))
-    val cmd2 = Command.Exec("echo", List("2"))
-    val cmd3 = Command.Exec("echo", List("3"))
-    val cmd4 = Command.Exec("echo", List("4"))
+    val cmd1      = Command.Exec("echo", List("1"))
+    val cmd2      = Command.Exec("echo", List("2"))
+    val cmd3      = Command.Exec("echo", List("3"))
+    val cmd4      = Command.Exec("echo", List("4"))
     val composite = cmd1 ~> (cmd2, cmd3, cmd4)
     assertEquals(composite.steps.length, 4)
     assertEquals(composite.steps.toVector, Vector(cmd1, cmd2, cmd3, cmd4))
   }
 
   test("Semigroup combine concatenates composite steps") {
-    val cmd1 = Command.Exec("echo", List("1"))
-    val cmd2 = Command.Exec("echo", List("2"))
-    val cmd3 = Command.Exec("echo", List("3"))
+    val cmd1       = Command.Exec("echo", List("1"))
+    val cmd2       = Command.Exec("echo", List("2"))
+    val cmd3       = Command.Exec("echo", List("3"))
     val composite1 = Composite.one(cmd1)
     val composite2 = Composite.two(cmd2, cmd3)
-    val result = composite1 |+| composite2
+    val result     = composite1 |+| composite2
     assertEquals(result.steps.length, 3)
     assertEquals(result.steps.toVector, Vector(cmd1, cmd2, cmd3))
   }
@@ -152,11 +152,11 @@ class CommandSpec extends FunSuite:
     val cmd1 = Command.Exec("echo", List("1"))
     val cmd2 = Command.Exec("echo", List("2"))
     val cmd3 = Command.Exec("echo", List("3"))
-    val c1 = Composite.one(cmd1)
-    val c2 = Composite.one(cmd2)
-    val c3 = Composite.one(cmd3)
+    val c1   = Composite.one(cmd1)
+    val c2   = Composite.one(cmd2)
+    val c3   = Composite.one(cmd3)
 
-    val left = (c1 |+| c2) |+| c3
+    val left  = (c1 |+| c2) |+| c3
     val right = c1 |+| (c2 |+| c3)
 
     assertEquals(left.steps.toVector, right.steps.toVector)
@@ -164,9 +164,9 @@ class CommandSpec extends FunSuite:
 
   test("complex command chain with mixed operators") {
     val install = Command.Exec("npm", List("install"))
-    val test = Command.Shell("npm test && npm run coverage")
-    val build = Command.Exec("npm", List("run", "build"))
-    val deploy = Command.Shell("./deploy.sh", ShellKind.Bash)
+    val test    = Command.Shell("npm test && npm run coverage")
+    val build   = Command.Exec("npm", List("run", "build"))
+    val deploy  = Command.Shell("./deploy.sh", ShellKind.Bash)
 
     val pipeline = install ~> test ~> build ~> deploy
     assertEquals(pipeline.steps.length, 4)
@@ -211,10 +211,10 @@ class CommandSpec extends FunSuite:
   }
 
   test("Composite can be converted to Command.Composite") {
-    val cmd1 = Command.Exec("echo")
-    val cmd2 = Command.Shell("pwd")
+    val cmd1      = Command.Exec("echo")
+    val cmd2      = Command.Shell("pwd")
     val composite = cmd1 ~> cmd2
-    val command = composite.asCommand
+    val command   = composite.asCommand
 
     command match
       case Command.Composite(steps) =>
@@ -225,7 +225,7 @@ class CommandSpec extends FunSuite:
   }
 
   test("empty environment map for commands") {
-    val exec: Command.Exec = Command.Exec("ls")
+    val exec: Command.Exec   = Command.Exec("ls")
     val shell: Command.Shell = Command.Shell("ls")
     assert(exec.env.isEmpty)
     assert(shell.env.isEmpty)
@@ -234,8 +234,8 @@ class CommandSpec extends FunSuite:
   test("command with environment variables") {
     val env = Map(
       "NODE_ENV" -> "production",
-      "PORT" -> "3000",
-      "DEBUG" -> "true"
+      "PORT"     -> "3000",
+      "DEBUG"    -> "true"
     )
     val cmd: Command.Exec = Command.Exec("node", List("server.js"), env = env)
     assertEquals(cmd.env.size, 3)
@@ -252,7 +252,7 @@ class CommandSpec extends FunSuite:
       cwd = Some("/app"),
       timeoutSec = Some(300)
     )
-    val cmd2 = Command.Exec("npm", List("test"))
+    val cmd2      = Command.Exec("npm", List("test"))
     val composite = cmd1 ~> cmd2
 
     val first = composite.steps.head

@@ -7,7 +7,7 @@ import scala.concurrent.duration.*
 
 class WorkflowSpec extends FunSuite:
 
-  val dummyStep: Step = Step.Checkout()(using StepMeta())
+  val dummyStep: Step  = Step.Checkout()(using StepMeta())
   val dummyStep2: Step = Step.Run(Command.Exec("echo", List("test")))(using StepMeta())
   val dummyStep3: Step = Step.Run(Command.Shell("ls -la"))(using StepMeta())
 
@@ -81,7 +81,8 @@ class WorkflowSpec extends FunSuite:
     val workflow = Workflow.of(
       name = "multi-job-workflow",
       first = job1,
-      rest = job2, job3
+      rest = job2,
+      job3
     )
 
     assertEquals(workflow.name, "multi-job-workflow")
@@ -102,7 +103,7 @@ class WorkflowSpec extends FunSuite:
 
   test("add method adds single job to workflow") {
     val workflow = Workflow.one("workflow", job1)
-    val extended = workflow.add(job2)
+    val extended = workflow.addJob(job2)
 
     assertEquals(extended.jobs.length, 2)
     assertEquals(extended.jobs.toVector, Vector(job1, job2))
@@ -111,7 +112,7 @@ class WorkflowSpec extends FunSuite:
 
   test("add method chains multiple jobs") {
     val workflow = Workflow.one("workflow", job1)
-    val result = workflow.add(job2).add(job3)
+    val result   = workflow.addJob(job2).addJob(job3)
 
     assertEquals(result.jobs.length, 3)
     assertEquals(result.jobs.toVector, Vector(job1, job2, job3))
@@ -120,7 +121,7 @@ class WorkflowSpec extends FunSuite:
   test("++ operator adds multiple jobs to workflow") {
     val workflow = Workflow.one("workflow", job1)
     val moreJobs = NonEmptyVector.of(job2, job3)
-    val extended = workflow ++ moreJobs
+    val extended = workflow.addJobs(moreJobs)
 
     assertEquals(extended.jobs.length, 3)
     assertEquals(extended.jobs.toVector, Vector(job1, job2, job3))
@@ -137,7 +138,7 @@ class WorkflowSpec extends FunSuite:
       labels = Set("test")
     )
     val moreJobs = NonEmptyVector.of(job2, job3)
-    val extended = workflow ++ moreJobs
+    val extended = workflow.addJobs(moreJobs)
 
     assertEquals(extended.name, workflow.name)
     assertEquals(extended.defaultContainer, container)
@@ -147,8 +148,8 @@ class WorkflowSpec extends FunSuite:
   }
 
   test("Workflow.materialize applies default container to jobs without container") {
-    val defaultContainer = Some(Container("node:16"))
-    val jobWithContainer = job1.copy(container = Some(Container("python:3.9")))
+    val defaultContainer    = Some(Container("node:16"))
+    val jobWithContainer    = job1.copy(container = Some(Container("python:3.9")))
     val jobWithoutContainer = job2.copy(container = None)
 
     val workflow = Workflow(
@@ -165,7 +166,7 @@ class WorkflowSpec extends FunSuite:
   }
 
   test("Workflow.materialize merges workflow labels with job labels") {
-    val jobWithLabels = job1.copy(labels = Set("fast"))
+    val jobWithLabels    = job1.copy(labels = Set("fast"))
     val jobWithoutLabels = job2.copy(labels = Set.empty)
 
     val workflow = Workflow(
@@ -182,11 +183,11 @@ class WorkflowSpec extends FunSuite:
   }
 
   test("Workflow.materialize preserves job properties") {
-    val workflow = Workflow.one("test", job1, labels = Set("workflow-label"))
+    val workflow     = Workflow.one("test", job1, labels = Set("workflow-label"))
     val materialized = Workflow.materialize(workflow)
 
     val original = workflow.jobs.head
-    val result = materialized.head
+    val result   = materialized.head
 
     assertEquals(result.id, original.id)
     assertEquals(result.steps, original.steps)
@@ -214,14 +215,15 @@ class WorkflowSpec extends FunSuite:
   }
 
   test("complex workflow with multiple jobs and dependencies") {
-    val buildJob = Job.one(JobId("build"), dummyStep)
-    val testJob = Job.one(JobId("test"), dummyStep2).needs(JobId("build"))
+    val buildJob  = Job.one(JobId("build"), dummyStep)
+    val testJob   = Job.one(JobId("test"), dummyStep2).needs(JobId("build"))
     val deployJob = Job.one(JobId("deploy"), dummyStep3).needs(JobId("test"))
 
     val workflow = Workflow.of(
       name = "ci-cd-pipeline",
       first = buildJob,
-      rest = testJob, deployJob
+      rest = testJob,
+      deployJob
     )
 
     assertEquals(workflow.jobs.length, 3)
@@ -235,7 +237,7 @@ class WorkflowSpec extends FunSuite:
       JobId("matrix-build"),
       dummyStep,
       matrix = Map(
-        "os" -> NonEmptyVector.of("linux", "windows", "macos"),
+        "os"      -> NonEmptyVector.of("linux", "windows", "macos"),
         "version" -> NonEmptyVector.of("14", "16", "18")
       )
     )
@@ -268,7 +270,7 @@ class WorkflowSpec extends FunSuite:
   }
 
   test("workflow labels can contain multiple values") {
-    val labels = Set("linux", "docker", "fast", "production")
+    val labels   = Set("linux", "docker", "fast", "production")
     val workflow = Workflow.one("labeled", job1, labels = labels)
     assertEquals(workflow.labels, labels)
   }
@@ -282,7 +284,7 @@ class WorkflowSpec extends FunSuite:
       concurrencyGroup = Some("ci"),
       labels = Set("test", "linux")
     )
-    val extended = workflow.add(job2)
+    val extended = workflow.addJob(job2)
 
     assertEquals(extended.name, workflow.name)
     assertEquals(extended.defaultContainer, container)
@@ -292,14 +294,14 @@ class WorkflowSpec extends FunSuite:
 
   test("materialize handles workflow without default container") {
     val jobWithContainer = job1.copy(container = Some(Container("alpine")))
-    val workflow = Workflow.one("no-default", jobWithContainer, defaultContainer = None)
+    val workflow         = Workflow.one("no-default", jobWithContainer, defaultContainer = None)
 
     val materialized = Workflow.materialize(workflow)
     assertEquals(materialized.head.container, Some(Container("alpine")))
   }
 
   test("materialize handles workflow without labels") {
-    val workflow = Workflow.one("no-labels", job1, labels = Set.empty)
+    val workflow     = Workflow.one("no-labels", job1, labels = Set.empty)
     val materialized = Workflow.materialize(workflow)
 
     assertEquals(materialized.head.labels, Set.empty)
@@ -338,14 +340,15 @@ class WorkflowSpec extends FunSuite:
 
   test("build complete workflow using fluent API") {
     val checkout = Step.Checkout()(using StepMeta())
-    val build = Step.Run(Command.Exec("npm", List("run", "build")))(using StepMeta())
-    val test = Step.Run(Command.Exec("npm", List("test")))(using StepMeta())
+    val build    = Step.Run(Command.Exec("npm", List("run", "build")))(using StepMeta())
+    val test     = Step.Run(Command.Exec("npm", List("test")))(using StepMeta())
 
     val buildJob = Job.one(JobId("build"), checkout).~>(build)
-    val testJob = Job.one(JobId("test"), test).needs(JobId("build"))
+    val testJob  = Job.one(JobId("test"), test).needs(JobId("build"))
 
-    val workflow = Workflow.one("ci-pipeline", buildJob)
-      .add(testJob)
+    val workflow = Workflow
+      .one("ci-pipeline", buildJob)
+      .addJob(testJob)
 
     assertEquals(workflow.jobs.length, 2)
     assertEquals(workflow.jobs.head.steps.length, 2)
@@ -353,23 +356,24 @@ class WorkflowSpec extends FunSuite:
   }
 
   test("empty labels set does not affect materialization") {
-    val workflow = Workflow.one("test", job1)
+    val workflow     = Workflow.one("test", job1)
     val materialized = workflow.materialized
 
     assertEquals(materialized.head.labels, job1.labels)
   }
 
   test("workflow can be built incrementally") {
-    val workflow = Workflow.one("incremental", job1)
-      .add(job2)
-      .add(job3)
+    val workflow = Workflow
+      .one("incremental", job1)
+      .addJob(job2)
+      .addJob(job3)
 
     assertEquals(workflow.jobs.length, 3)
     assertEquals(workflow.jobs.toVector, Vector(job1, job2, job3))
   }
 
   test("materialized creates new NonEmptyVector") {
-    val workflow = Workflow.one("test", job1, labels = Set("new-label"))
+    val workflow      = Workflow.one("test", job1, labels = Set("new-label"))
     val materialized1 = workflow.materialized
     val materialized2 = workflow.materialized
 
@@ -381,7 +385,8 @@ class WorkflowSpec extends FunSuite:
     val multiStepJob = Job.of(
       JobId("multi-step"),
       dummyStep,
-      dummyStep2, dummyStep3
+      dummyStep2,
+      dummyStep3
     )()
 
     val workflow = Workflow.one("workflow", multiStepJob)

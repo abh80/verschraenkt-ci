@@ -7,7 +7,7 @@ import scala.concurrent.duration.*
 
 class PipelineSpec extends FunSuite:
 
-  val dummyStep: Step = Step.Checkout()(using StepMeta())
+  val dummyStep: Step  = Step.Checkout()(using StepMeta())
   val dummyStep2: Step = Step.Run(Command.Exec("echo", List("test")))(using StepMeta())
   val dummyStep3: Step = Step.Run(Command.Shell("ls -la"))(using StepMeta())
 
@@ -96,7 +96,8 @@ class PipelineSpec extends FunSuite:
     val pipeline = Pipeline.of(
       id = PipelineId("multi-workflow"),
       first = workflow1,
-      rest = workflow2, workflow3
+      rest = workflow2,
+      workflow3
     )
 
     assertEquals(pipeline.id, PipelineId("multi-workflow"))
@@ -126,16 +127,16 @@ class PipelineSpec extends FunSuite:
 
   test("add method chains multiple workflows") {
     val pipeline = Pipeline.one(PipelineId("pipeline"), workflow1)
-    val result = pipeline.add(workflow2).add(workflow3)
+    val result   = pipeline.add(workflow2).add(workflow3)
 
     assertEquals(result.workflows.length, 3)
     assertEquals(result.workflows.toVector, Vector(workflow1, workflow2, workflow3))
   }
 
   test("++ operator adds multiple workflows to pipeline") {
-    val pipeline = Pipeline.one(PipelineId("pipeline"), workflow1)
+    val pipeline      = Pipeline.one(PipelineId("pipeline"), workflow1)
     val moreWorkflows = NonEmptyVector.of(workflow2, workflow3)
-    val extended = pipeline ++ moreWorkflows
+    val extended      = pipeline ++ moreWorkflows
 
     assertEquals(extended.workflows.length, 3)
     assertEquals(extended.workflows.toVector, Vector(workflow1, workflow2, workflow3))
@@ -151,7 +152,7 @@ class PipelineSpec extends FunSuite:
       timeout = Some(30.minutes)
     )
     val moreWorkflows = NonEmptyVector.of(workflow2, workflow3)
-    val extended = pipeline ++ moreWorkflows
+    val extended      = pipeline ++ moreWorkflows
 
     assertEquals(extended.id, pipeline.id)
     assertEquals(extended.concurrencyGroup, Some("ci"))
@@ -193,7 +194,7 @@ class PipelineSpec extends FunSuite:
   }
 
   test("pipeline with multiple labels") {
-    val labels = Set("linux", "docker", "kubernetes", "production")
+    val labels   = Set("linux", "docker", "kubernetes", "production")
     val pipeline = Pipeline.one(PipelineId("labeled"), workflow1, labels = labels)
     assertEquals(pipeline.labels, labels)
   }
@@ -223,8 +224,8 @@ class PipelineSpec extends FunSuite:
   }
 
   test("complex pipeline with multiple workflows and dependencies") {
-    val buildJob = Job.one(JobId("build"), dummyStep)
-    val testJob = Job.one(JobId("test"), dummyStep2).needs(JobId("build"))
+    val buildJob  = Job.one(JobId("build"), dummyStep)
+    val testJob   = Job.one(JobId("test"), dummyStep2).needs(JobId("build"))
     val deployJob = Job.one(JobId("deploy"), dummyStep3).needs(JobId("test"))
 
     val ciWorkflow = Workflow.of("ci", buildJob, testJob)
@@ -242,7 +243,8 @@ class PipelineSpec extends FunSuite:
   }
 
   test("pipeline can be built incrementally") {
-    val pipeline = Pipeline.one(PipelineId("incremental"), workflow1)
+    val pipeline = Pipeline
+      .one(PipelineId("incremental"), workflow1)
       .add(workflow2)
       .add(workflow3)
 
@@ -255,12 +257,12 @@ class PipelineSpec extends FunSuite:
       JobId("matrix-build"),
       dummyStep,
       matrix = Map(
-        "os" -> NonEmptyVector.of("linux", "windows", "macos"),
+        "os"      -> NonEmptyVector.of("linux", "windows", "macos"),
         "version" -> NonEmptyVector.of("14", "16", "18")
       )
     )
     val matrixWorkflow = Workflow.one("matrix-workflow", matrixJob)
-    val pipeline = Pipeline.one(PipelineId("matrix-pipeline"), matrixWorkflow)
+    val pipeline       = Pipeline.one(PipelineId("matrix-pipeline"), matrixWorkflow)
 
     assertEquals(pipeline.workflows.length, 1)
     assertEquals(pipeline.workflows.head.jobs.head.matrix.size, 2)
@@ -301,18 +303,19 @@ class PipelineSpec extends FunSuite:
 
   test("build complete pipeline using fluent API") {
     val checkout = Step.Checkout()(using StepMeta())
-    val build = Step.Run(Command.Exec("npm", List("run", "build")))(using StepMeta())
-    val test = Step.Run(Command.Exec("npm", List("test")))(using StepMeta())
-    val deploy = Step.Run(Command.Exec("kubectl", List("apply", "-f", "k8s/")))(using StepMeta())
+    val build    = Step.Run(Command.Exec("npm", List("run", "build")))(using StepMeta())
+    val test     = Step.Run(Command.Exec("npm", List("test")))(using StepMeta())
+    val deploy   = Step.Run(Command.Exec("kubectl", List("apply", "-f", "k8s/")))(using StepMeta())
 
-    val buildJob = Job.one(JobId("build"), checkout).~>(build)
-    val testJob = Job.one(JobId("test"), test).needs(JobId("build"))
+    val buildJob  = Job.one(JobId("build"), checkout).~>(build)
+    val testJob   = Job.one(JobId("test"), test).needs(JobId("build"))
     val deployJob = Job.one(JobId("deploy"), deploy).needs(JobId("test"))
 
     val ciWorkflow = Workflow.of("ci", buildJob, testJob)
     val cdWorkflow = Workflow.one("cd", deployJob)
 
-    val pipeline = Pipeline.one(PipelineId("cicd"), ciWorkflow)
+    val pipeline = Pipeline
+      .one(PipelineId("cicd"), ciWorkflow)
       .add(cdWorkflow)
 
     assertEquals(pipeline.workflows.length, 2)
@@ -339,9 +342,9 @@ class PipelineSpec extends FunSuite:
   }
 
   test("++ operator with empty first pipeline should still work") {
-    val pipeline = Pipeline.one(PipelineId("base"), workflow1)
+    val pipeline      = Pipeline.one(PipelineId("base"), workflow1)
     val moreWorkflows = NonEmptyVector.of(workflow2)
-    val result = pipeline ++ moreWorkflows
+    val result        = pipeline ++ moreWorkflows
 
     assertEquals(result.workflows.length, 2)
   }
@@ -349,7 +352,7 @@ class PipelineSpec extends FunSuite:
   test("add method on large pipeline") {
     var pipeline = Pipeline.one(PipelineId("large"), workflow1)
     (1 to 10).foreach { i =>
-      val newJob = Job.one(JobId(s"job-$i"), dummyStep)
+      val newJob      = Job.one(JobId(s"job-$i"), dummyStep)
       val newWorkflow = Workflow.one(s"workflow-$i", newJob)
       pipeline = pipeline.add(newWorkflow)
     }
@@ -378,7 +381,7 @@ class PipelineSpec extends FunSuite:
 
   test("pipeline with workflows containing different job counts") {
     val singleJobWorkflow = Workflow.one("single", job1)
-    val multiJobWorkflow = Workflow.of("multi", job1, job2, job3)
+    val multiJobWorkflow  = Workflow.of("multi", job1, job2, job3)
 
     val pipeline = Pipeline.of(
       PipelineId("varied"),
@@ -392,7 +395,7 @@ class PipelineSpec extends FunSuite:
 
   test("pipeline preserves workflow labels") {
     val labeledWorkflow = Workflow.one("labeled", job1, labels = Set("fast", "unit"))
-    val pipeline = Pipeline.one(PipelineId("preserve-labels"), labeledWorkflow)
+    val pipeline        = Pipeline.one(PipelineId("preserve-labels"), labeledWorkflow)
 
     assertEquals(pipeline.workflows.head.labels, Set("fast", "unit"))
   }
@@ -410,10 +413,10 @@ class PipelineSpec extends FunSuite:
   }
 
   test("pipeline with workflow containing composite steps") {
-    val compositeStep = Step.Composite(NonEmptyVector.of(dummyStep, dummyStep2, dummyStep3))
-    val compositeJob = Job.one(JobId("composite"), compositeStep)
+    val compositeStep     = Step.Composite(NonEmptyVector.of(dummyStep, dummyStep2, dummyStep3))
+    val compositeJob      = Job.one(JobId("composite"), compositeStep)
     val compositeWorkflow = Workflow.one("composite-workflow", compositeJob)
-    val pipeline = Pipeline.one(PipelineId("composite-pipeline"), compositeWorkflow)
+    val pipeline          = Pipeline.one(PipelineId("composite-pipeline"), compositeWorkflow)
 
     assertEquals(pipeline.workflows.head.jobs.head.steps.length, 1)
     pipeline.workflows.head.jobs.head.steps.head match
@@ -431,7 +434,7 @@ class PipelineSpec extends FunSuite:
   }
 
   test("pipeline with special characters in labels") {
-    val labels = Set("v1.0", "release-2024", "tag_name")
+    val labels   = Set("v1.0", "release-2024", "tag_name")
     val pipeline = Pipeline.one(PipelineId("special"), workflow1, labels = labels)
     assertEquals(pipeline.labels, labels)
   }
@@ -442,7 +445,8 @@ class PipelineSpec extends FunSuite:
   }
 
   test("chaining add and ++ operators") {
-    val pipeline = Pipeline.one(PipelineId("chain"), workflow1)
+    val pipeline = Pipeline
+      .one(PipelineId("chain"), workflow1)
       .add(workflow2)
       .++(NonEmptyVector.one(workflow3))
 

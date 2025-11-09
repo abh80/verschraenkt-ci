@@ -6,33 +6,33 @@ import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration.DurationInt
 
 /** Represents a unique identifier for a job in the CI system
- *
- * @param value
- * The string value of the job identifier
- */
+  *
+  * @param value
+  *   The string value of the job identifier
+  */
 final case class JobId(value: String)
 
 /** Represents a CI job with its configuration and execution steps
- *
- * @param id
- * Unique identifier for the job
- * @param steps
- * Non-empty sequence of steps to be executed in order
- * @param dependencies
- * Set of job IDs that must complete before this job can start
- * @param resources
- * Computational resources required for the job
- * @param timeout
- * Maximum duration allowed for job completion
- * @param matrix
- * Configuration for matrix builds, mapping variables to their possible values
- * @param container
- * Optional container configuration for job isolation
- * @param labels
- * Set of labels for job categorization and filtering
- * @param concurrencyGroup
- * Optional group name for controlling concurrent execution
- */
+  *
+  * @param id
+  *   Unique identifier for the job
+  * @param steps
+  *   Non-empty sequence of steps to be executed in order
+  * @param dependencies
+  *   Set of job IDs that must complete before this job can start
+  * @param resources
+  *   Computational resources required for the job
+  * @param timeout
+  *   Maximum duration allowed for job completion
+  * @param matrix
+  *   Configuration for matrix builds, mapping variables to their possible values
+  * @param container
+  *   Optional container configuration for job isolation
+  * @param labels
+  *   Set of labels for job categorization and filtering
+  * @param concurrencyGroup
+  *   Optional group name for controlling concurrent execution
+  */
 final case class Job(
     id: JobId,
     steps: NonEmptyVector[Step],
@@ -56,28 +56,28 @@ final case class Job(
 /** Companion object for Job class providing convenient factory methods for job creation */
 object Job:
   /** Creates a Job with a single step
-   *
-   * @param id
-   * Unique identifier for the job
-   * @param step
-   * Single step to be executed
-   * @param needs
-   * Set of job dependencies
-   * @param resources
-   * Required computational resources
-   * @param timeout
-   * Maximum execution duration
-   * @param matrix
-   * Matrix build configuration
-   * @param container
-   * Optional container configuration
-   * @param labels
-   * Job labels
-   * @param concurrencyGroup
-   * Optional concurrency control group
-   * @return
-   * A new Job instance with the specified configuration
-   */
+    *
+    * @param id
+    *   Unique identifier for the job
+    * @param step
+    *   Single step to be executed
+    * @param needs
+    *   Set of job dependencies
+    * @param resources
+    *   Required computational resources
+    * @param timeout
+    *   Maximum execution duration
+    * @param matrix
+    *   Matrix build configuration
+    * @param container
+    *   Optional container configuration
+    * @param labels
+    *   Job labels
+    * @param concurrencyGroup
+    *   Optional concurrency control group
+    * @return
+    *   A new Job instance with the specified configuration
+    */
   def one(
       id: JobId,
       step: Step,
@@ -92,20 +92,20 @@ object Job:
     Job(id, NonEmptyVector.one(step), needs, resources, timeout, matrix, container, labels, concurrencyGroup)
 
   /** Creates a Job with multiple steps
-   *
-   * @param id
-   * Unique identifier for the job
-   * @param first
-   * First step to be executed
-   * @param rest
-   * Additional steps to be executed in sequence
-   * @param timeout
-   * Maximum execution duration
-   * @param container
-   * Optional container configuration
-   * @return
-   * A new Job instance with the specified steps and configuration
-   */
+    *
+    * @param id
+    *   Unique identifier for the job
+    * @param first
+    *   First step to be executed
+    * @param rest
+    *   Additional steps to be executed in sequence
+    * @param timeout
+    *   Maximum execution duration
+    * @param container
+    *   Optional container configuration
+    * @return
+    *   A new Job instance with the specified steps and configuration
+    */
   def of(
       id: JobId,
       first: Step,

@@ -7,7 +7,7 @@ import scala.concurrent.duration.*
 
 class JobSpec extends FunSuite:
 
-  val dummyStep: Step = Step.Checkout()(using StepMeta())
+  val dummyStep: Step  = Step.Checkout()(using StepMeta())
   val dummyStep2: Step = Step.Run(Command.Exec("echo", List("test")))(using StepMeta())
   val dummyStep3: Step = Step.Run(Command.Shell("ls -la"))(using StepMeta())
 
@@ -91,7 +91,8 @@ class JobSpec extends FunSuite:
     val job = Job.of(
       id = JobId("multi-step"),
       first = dummyStep,
-      rest = dummyStep2, dummyStep3
+      rest = dummyStep2,
+      dummyStep3
     )(
       timeout = 45.minutes,
       container = Some(Container("ubuntu:22.04"))
@@ -117,7 +118,7 @@ class JobSpec extends FunSuite:
   }
 
   test("~> operator adds single step to job") {
-    val job = Job.one(JobId("job1"), dummyStep)
+    val job      = Job.one(JobId("job1"), dummyStep)
     val extended = job ~> dummyStep2
 
     assertEquals(extended.steps.length, 2)
@@ -126,9 +127,9 @@ class JobSpec extends FunSuite:
   }
 
   test("~> operator adds multiple steps to job") {
-    val job = Job.one(JobId("job1"), dummyStep)
+    val job       = Job.one(JobId("job1"), dummyStep)
     val moreSteps = NonEmptyVector.of(dummyStep2, dummyStep3)
-    val extended = job ~> moreSteps
+    val extended  = job ~> moreSteps
 
     assertEquals(extended.steps.length, 3)
     assertEquals(extended.steps.toVector, Vector(dummyStep, dummyStep2, dummyStep3))
@@ -136,7 +137,7 @@ class JobSpec extends FunSuite:
   }
 
   test("~> operator chains multiple single steps") {
-    val job = Job.one(JobId("chain"), dummyStep)
+    val job    = Job.one(JobId("chain"), dummyStep)
     val result = job ~> dummyStep2 ~> dummyStep3
 
     assertEquals(result.steps.length, 3)
@@ -144,7 +145,7 @@ class JobSpec extends FunSuite:
   }
 
   test("needs method adds job dependencies") {
-    val job = Job.one(JobId("dependent"), dummyStep)
+    val job      = Job.one(JobId("dependent"), dummyStep)
     val withDeps = job.needs(JobId("dep1"), JobId("dep2"))
 
     assertEquals(withDeps.dependencies, Set(JobId("dep1"), JobId("dep2")))
@@ -163,7 +164,7 @@ class JobSpec extends FunSuite:
   }
 
   test("needs method with no arguments") {
-    val job = Job.one(JobId("job1"), dummyStep)
+    val job       = Job.one(JobId("job1"), dummyStep)
     val unchanged = job.needs()
 
     assertEquals(unchanged.dependencies, Set.empty)
@@ -211,9 +212,9 @@ class JobSpec extends FunSuite:
       JobId("matrix-job"),
       dummyStep,
       matrix = Map(
-        "os" -> NonEmptyVector.of("linux", "windows", "macos"),
+        "os"      -> NonEmptyVector.of("linux", "windows", "macos"),
         "version" -> NonEmptyVector.of("1.0", "2.0"),
-        "arch" -> NonEmptyVector.of("x64", "arm64")
+        "arch"    -> NonEmptyVector.of("x64", "arm64")
       )
     )
 
@@ -230,11 +231,12 @@ class JobSpec extends FunSuite:
 
   test("complex job pipeline") {
     val checkout = Step.Checkout()(using StepMeta())
-    val install = Step.Run(Command.Exec("npm", List("install")))(using StepMeta())
-    val test = Step.Run(Command.Exec("npm", List("test")))(using StepMeta())
-    val build = Step.Run(Command.Exec("npm", List("run", "build")))(using StepMeta())
+    val install  = Step.Run(Command.Exec("npm", List("install")))(using StepMeta())
+    val test     = Step.Run(Command.Exec("npm", List("test")))(using StepMeta())
+    val build    = Step.Run(Command.Exec("npm", List("run", "build")))(using StepMeta())
 
-    val job = Job.one(JobId("ci"), checkout)
+    val job = Job
+      .one(JobId("ci"), checkout)
       .~>(install)
       .~>(test)
       .~>(build)

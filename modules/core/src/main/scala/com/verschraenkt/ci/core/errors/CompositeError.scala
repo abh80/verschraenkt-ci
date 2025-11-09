@@ -3,7 +3,7 @@ package com.verschraenkt.ci.core.errors
 import com.verschraenkt.ci.core.utils.Location
 
 final case class CompositeError(errors: Vector[DomainError])
-  extends DomainError("multiple errors", None, None, None):
+    extends DomainError("multiple errors", None, None, None):
   def withSource(s: String): CompositeError =
     copy(errors = errors.map(_.withSource(s)))
 

@@ -32,10 +32,9 @@ object Workflow:
     }
 
 extension (w: Workflow)
-  def add(job: Job): Workflow =
-    w.copy(jobs = NonEmptyVector.fromVectorUnsafe(w.jobs.toVector :+ job))
+  def addJob(job: Job): Workflow = w.copy(jobs = NonEmptyVector.fromVectorUnsafe(w.jobs.toVector :+ job))
 
-  def ++(more: NonEmptyVector[Job]): Workflow =
+  def addJobs(more: NonEmptyVector[Job]): Workflow =
     w.copy(jobs = NonEmptyVector.fromVectorUnsafe(w.jobs.toVector ++ more.toVector))
 
   def materialized: NonEmptyVector[Job] =

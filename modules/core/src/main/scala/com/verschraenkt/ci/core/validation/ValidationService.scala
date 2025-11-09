@@ -48,94 +48,98 @@ object ValidationService:
 
   def validateStep(step: Step)(using ctx: ApplicationContext): ValidationResult[Step] =
     step match
-      case s: Step.Checkout      => validateCheckout(s)
-      case s: Step.Run           => validateRun(s)
-      case s: Step.RestoreCache  => validateRestoreCache(s)
-      case s: Step.SaveCache     => validateSaveCache(s)
-      case s: Step.Composite     => validateCompositeStep(s)
+      case s: Step.Checkout     => validateCheckout(s)
+      case s: Step.Run          => validateRun(s)
+      case s: Step.RestoreCache => validateRestoreCache(s)
+      case s: Step.SaveCache    => validateSaveCache(s)
+      case s: Step.Composite    => validateCompositeStep(s)
 
-  private def validatePipelineId(id: PipelineId)(using ctx: ApplicationContext): ValidationResult[PipelineId] =
-    if id.value.trim.isEmpty then
-      ctx.validation("Pipeline ID cannot be empty").invalidNel
-    else if id.value.length > 255 then
-      ctx.validation("Pipeline ID cannot exceed 255 characters").invalidNel
+  private def validatePipelineId(
+      id: PipelineId
+  )(using ctx: ApplicationContext): ValidationResult[PipelineId] =
+    if id.value.trim.isEmpty then ctx.validation("Pipeline ID cannot be empty").invalidNel
+    else if id.value.length > 255 then ctx.validation("Pipeline ID cannot exceed 255 characters").invalidNel
     else if !id.value.matches("[a-zA-Z0-9_-]+") then
-      ctx.validation("Pipeline ID must contain only alphanumeric characters, underscores, and hyphens").invalidNel
-    else
-      id.validNel
+      ctx
+        .validation("Pipeline ID must contain only alphanumeric characters, underscores, and hyphens")
+        .invalidNel
+    else id.validNel
 
-  private def validateWorkflows(workflows: NonEmptyVector[Workflow])(using ctx: ApplicationContext): ValidationResult[NonEmptyVector[Workflow]] =
+  private def validateWorkflows(workflows: NonEmptyVector[Workflow])(using
+      ctx: ApplicationContext
+  ): ValidationResult[NonEmptyVector[Workflow]] =
     val validated = workflows.toVector.zipWithIndex.map { case (w, idx) =>
       validateWorkflow(w)(using ctx.child(s"workflow[$idx]"))
     }
     validated.sequence.map(v => NonEmptyVector.fromVectorUnsafe(v))
 
   private def validateWorkflowName(name: String)(using ctx: ApplicationContext): ValidationResult[String] =
-    if name.trim.isEmpty then
-      ctx.validation("Workflow name cannot be empty").invalidNel
-    else if name.length > 255 then
-      ctx.validation("Workflow name cannot exceed 255 characters").invalidNel
-    else
-      name.validNel
+    if name.trim.isEmpty then ctx.validation("Workflow name cannot be empty").invalidNel
+    else if name.length > 255 then ctx.validation("Workflow name cannot exceed 255 characters").invalidNel
+    else name.validNel
 
-  private def validateJobs(jobs: NonEmptyVector[Job])(using ctx: ApplicationContext): ValidationResult[NonEmptyVector[Job]] =
+  private def validateJobs(jobs: NonEmptyVector[Job])(using
+      ctx: ApplicationContext
+  ): ValidationResult[NonEmptyVector[Job]] =
     val validated = jobs.toVector.zipWithIndex.map { case (j, idx) =>
       validateJob(j)(using ctx.child(s"job[${j.id.value}]"))
     }
-    
+
     val validationResult = validated.sequence.map(v => NonEmptyVector.fromVectorUnsafe(v))
-    
+
     validationResult.andThen { validJobs =>
       validateJobDependenciesWithDAG(validJobs)
     }
 
   private def validateJobId(id: JobId)(using ctx: ApplicationContext): ValidationResult[JobId] =
-    if id.value.trim.isEmpty then
-      ctx.validation("Job ID cannot be empty").invalidNel
-    else if id.value.length > 255 then
-      ctx.validation("Job ID cannot exceed 255 characters").invalidNel
+    if id.value.trim.isEmpty then ctx.validation("Job ID cannot be empty").invalidNel
+    else if id.value.length > 255 then ctx.validation("Job ID cannot exceed 255 characters").invalidNel
     else if !id.value.matches("[a-zA-Z0-9_-]+") then
       ctx.validation("Job ID must contain only alphanumeric characters, underscores, and hyphens").invalidNel
-    else
-      id.validNel
+    else id.validNel
 
-  private def validateSteps(steps: NonEmptyVector[Step])(using ctx: ApplicationContext): ValidationResult[NonEmptyVector[Step]] =
+  private def validateSteps(steps: NonEmptyVector[Step])(using
+      ctx: ApplicationContext
+  ): ValidationResult[NonEmptyVector[Step]] =
     val validated = steps.toVector.zipWithIndex.map { case (s, idx) =>
       validateStep(s)(using ctx.child(s"step[$idx]"))
     }
     validated.sequence.map(v => NonEmptyVector.fromVectorUnsafe(v))
 
-  private def validateDependencies(deps: Set[JobId], currentJobId: JobId)(using ctx: ApplicationContext): ValidationResult[Set[JobId]] =
+  private def validateDependencies(deps: Set[JobId], currentJobId: JobId)(using
+      ctx: ApplicationContext
+  ): ValidationResult[Set[JobId]] =
     if deps.contains(currentJobId) then
       ctx.validation(s"Job ${currentJobId.value} cannot depend on itself").invalidNel
-    else
-      deps.validNel
+    else deps.validNel
 
-  private def validateJobDependenciesWithDAG(jobs: NonEmptyVector[Job])(using ctx: ApplicationContext): ValidationResult[NonEmptyVector[Job]] =
+  private def validateJobDependenciesWithDAG(jobs: NonEmptyVector[Job])(using
+      ctx: ApplicationContext
+  ): ValidationResult[NonEmptyVector[Job]] =
     DAG.order(jobs.toVector.toList) match
-      case Right(_) => jobs.validNel
+      case Right(_)  => jobs.validNel
       case Left(err) => err.asInstanceOf[ValidationError].invalidNel
 
-  private def validateResource(resource: Resource)(using ctx: ApplicationContext): ValidationResult[Resource] =
+  private def validateResource(resource: Resource)(using
+      ctx: ApplicationContext
+  ): ValidationResult[Resource] =
     val errors = Vector.newBuilder[ValidationError]
-    
-    if resource.cpuMilli <= 0 then
-      errors += ctx.validation("CPU must be positive")
-    
-    if resource.memoryMiB <= 0 then
-      errors += ctx.validation("Memory must be positive")
-    
-    if resource.gpu < 0 then
-      errors += ctx.validation("GPU count cannot be negative")
-    
-    if resource.diskMiB < 0 then
-      errors += ctx.validation("Disk space cannot be negative")
-    
+
+    if resource.cpuMilli <= 0 then errors += ctx.validation("CPU must be positive")
+
+    if resource.memoryMiB <= 0 then errors += ctx.validation("Memory must be positive")
+
+    if resource.gpu < 0 then errors += ctx.validation("GPU count cannot be negative")
+
+    if resource.diskMiB < 0 then errors += ctx.validation("Disk space cannot be negative")
+
     val errs = errors.result()
     if errs.isEmpty then resource.validNel
     else Validated.invalid(NonEmptyList.fromListUnsafe(errs.toList))
 
-  private def validateTimeout(timeout: Option[FiniteDuration], context: String)(using ctx: ApplicationContext): ValidationResult[Unit] =
+  private def validateTimeout(timeout: Option[FiniteDuration], context: String)(using
+      ctx: ApplicationContext
+  ): ValidationResult[Unit] =
     timeout match
       case None => ().validNel
       case Some(t) if t <= 0.seconds =>
@@ -144,40 +148,42 @@ object ValidationService:
         ctx.validation(s"Timeout for $context cannot exceed 24 hours").invalidNel
       case _ => ().validNel
 
-  private def validateMatrix(matrix: Map[String, NonEmptyVector[String]])(using ctx: ApplicationContext): ValidationResult[Unit] =
+  private def validateMatrix(matrix: Map[String, NonEmptyVector[String]])(using
+      ctx: ApplicationContext
+  ): ValidationResult[Unit] =
     val errors = Vector.newBuilder[ValidationError]
-    
+
     matrix.foreach { case (key, values) =>
-      if key.trim.isEmpty then
-        errors += ctx.validation("Matrix key cannot be empty")
-      
-      if values.length > 256 then
-        errors += ctx.validation(s"Matrix key '$key' has too many values (max 256)")
-      
+      if key.trim.isEmpty then errors += ctx.validation("Matrix key cannot be empty")
+
+      if values.length > 256 then errors += ctx.validation(s"Matrix key '$key' has too many values (max 256)")
+
       if values.toVector.exists(_.trim.isEmpty) then
         errors += ctx.validation(s"Matrix key '$key' contains empty values")
     }
-    
+
     val totalCombinations = matrix.values.map(_.length.toLong).product
     if totalCombinations > 256 then
       errors += ctx.validation(s"Matrix generates too many combinations: $totalCombinations (max 256)")
-    
+
     val errs = errors.result()
     if errs.isEmpty then ().validNel
     else Validated.invalid(NonEmptyList.fromListUnsafe(errs.toList))
 
-  private def validateContainer(container: Option[Container])(using ctx: ApplicationContext): ValidationResult[Unit] =
+  private def validateContainer(container: Option[Container])(using
+      ctx: ApplicationContext
+  ): ValidationResult[Unit] =
     container match
       case None => ().validNel
       case Some(c) =>
-        if c.image.trim.isEmpty then
-          ctx.validation("Container image cannot be empty").invalidNel
+        if c.image.trim.isEmpty then ctx.validation("Container image cannot be empty").invalidNel
         else if c.image.length > 512 then
           ctx.validation("Container image name cannot exceed 512 characters").invalidNel
-        else
-          ().validNel
+        else ().validNel
 
-  private def validateCheckout(checkout: Step.Checkout)(using ctx: ApplicationContext): ValidationResult[Step] =
+  private def validateCheckout(checkout: Step.Checkout)(using
+      ctx: ApplicationContext
+  ): ValidationResult[Step] =
     validateStepMeta(checkout.meta).map(_ => checkout)
 
   private def validateRun(run: Step.Run)(using ctx: ApplicationContext): ValidationResult[Step] =
@@ -186,7 +192,9 @@ object ValidationService:
       validateStepMeta(run.meta)
     ).mapN((_, _) => run)
 
-  private def validateRestoreCache(restore: Step.RestoreCache)(using ctx: ApplicationContext): ValidationResult[Step] =
+  private def validateRestoreCache(
+      restore: Step.RestoreCache
+  )(using ctx: ApplicationContext): ValidationResult[Step] =
     (
       validateCacheLike(restore.cache),
       validatePaths(restore.paths),
@@ -200,7 +208,9 @@ object ValidationService:
       validateStepMeta(save.meta)
     ).mapN((_, _, _) => save)
 
-  private def validateCompositeStep(composite: Step.Composite)(using ctx: ApplicationContext): ValidationResult[Step] =
+  private def validateCompositeStep(composite: Step.Composite)(using
+      ctx: ApplicationContext
+  ): ValidationResult[Step] =
     val validated = composite.steps.toVector.zipWithIndex.map { case (s, idx) =>
       validateStep(s)(using ctx.child(s"composite[$idx]"))
     }
@@ -214,27 +224,24 @@ object ValidationService:
         ctx.validation("Retry max attempts cannot exceed 10").invalidNel
       else if meta.retry.exists(_.delay <= 0.seconds) then
         ctx.validation("Retry delay must be positive").invalidNel
-      else
-        ().validNel
+      else ().validNel
     }
 
   private def validateCommand(command: CommandLike)(using ctx: ApplicationContext): ValidationResult[Unit] =
     command.asCommand match
       case Command.Exec(program, _, _, _, timeout) =>
-        if program.trim.isEmpty then
-          ctx.validation("Exec program cannot be empty").invalidNel
-        else
-          validateCommandTimeout(timeout)
+        if program.trim.isEmpty then ctx.validation("Exec program cannot be empty").invalidNel
+        else validateCommandTimeout(timeout)
       case Command.Shell(script, _, _, _, timeout) =>
-        if script.trim.isEmpty then
-          ctx.validation("Shell script cannot be empty").invalidNel
-        else
-          validateCommandTimeout(timeout)
+        if script.trim.isEmpty then ctx.validation("Shell script cannot be empty").invalidNel
+        else validateCommandTimeout(timeout)
       case Command.Composite(steps) =>
         val validated = steps.toVector.map(validateCommand)
         validated.sequence.map(_ => ())
 
-  private def validateCommandTimeout(timeout: Option[Int])(using ctx: ApplicationContext): ValidationResult[Unit] =
+  private def validateCommandTimeout(timeout: Option[Int])(using
+      ctx: ApplicationContext
+  ): ValidationResult[Unit] =
     timeout match
       case None => ().validNel
       case Some(t) if t <= 0 =>
@@ -244,24 +251,22 @@ object ValidationService:
       case _ => ().validNel
 
   private def validateCacheLike(cache: CacheLike)(using ctx: ApplicationContext): ValidationResult[Unit] =
-    if cache.key.value.trim.isEmpty then
-      ctx.validation("Cache key cannot be empty").invalidNel
+    if cache.key.value.trim.isEmpty then ctx.validation("Cache key cannot be empty").invalidNel
     else if cache.key.value.length > 128 then
       ctx.validation("Cache key cannot exceed 128 characters").invalidNel
-    else
-      ().validNel
+    else ().validNel
 
-  private def validatePaths(paths: NonEmptyList[String])(using ctx: ApplicationContext): ValidationResult[Unit] =
+  private def validatePaths(paths: NonEmptyList[String])(using
+      ctx: ApplicationContext
+  ): ValidationResult[Unit] =
     val errors = Vector.newBuilder[ValidationError]
-    
+
     paths.toList.zipWithIndex.foreach { case (path, idx) =>
-      if path.trim.isEmpty then
-        errors += ctx.validation(s"Path at index $idx cannot be empty")
-      
-      if path.length > 1024 then
-        errors += ctx.validation(s"Path at index $idx cannot exceed 1024 characters")
+      if path.trim.isEmpty then errors += ctx.validation(s"Path at index $idx cannot be empty")
+
+      if path.length > 1024 then errors += ctx.validation(s"Path at index $idx cannot exceed 1024 characters")
     }
-    
+
     val errs = errors.result()
     if errs.isEmpty then ().validNel
     else Validated.invalid(NonEmptyList.fromListUnsafe(errs.toList))

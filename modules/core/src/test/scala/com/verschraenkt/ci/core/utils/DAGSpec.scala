@@ -10,7 +10,7 @@ import scala.concurrent.duration.*
 
 class DAGSpec extends FunSuite:
   given ctx: ApplicationContext = new ApplicationContext("test.ci")
-  
+
   val dummyStep: Step = Step.Checkout()(using StepMeta())
 
   def createJob(id: String, deps: Set[JobId] = Set.empty): Job =

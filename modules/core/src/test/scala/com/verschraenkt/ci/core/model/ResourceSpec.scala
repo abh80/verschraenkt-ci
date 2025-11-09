@@ -53,8 +53,8 @@ class ResourceSpec extends FunSuite:
   }
 
   test("+ should add two resources correctly") {
-    val r1 = Resource(1000, 512, 1, 1024)
-    val r2 = Resource(2000, 256, 2, 512)
+    val r1     = Resource(1000, 512, 1, 1024)
+    val r2     = Resource(2000, 256, 2, 512)
     val result = r1 + r2
     assertEquals(result.cpuMilli, 3000)
     assertEquals(result.memoryMiB, 768)
@@ -63,7 +63,7 @@ class ResourceSpec extends FunSuite:
   }
 
   test("+ should work with zero resource") {
-    val r1 = Resource(1000, 512, 1, 1024)
+    val r1     = Resource(1000, 512, 1, 1024)
     val result = r1 + Resource.zero
     assertEquals(result, r1)
   }
@@ -85,8 +85,8 @@ class ResourceSpec extends FunSuite:
   }
 
   test("saturatingAdd should add two resources correctly") {
-    val r1 = Resource(1000, 512, 1, 1024)
-    val r2 = Resource(2000, 256, 2, 512)
+    val r1     = Resource(1000, 512, 1, 1024)
+    val r2     = Resource(2000, 256, 2, 512)
     val result = r1.saturatingAdd(r2)
     assertEquals(result.cpuMilli, 3000)
     assertEquals(result.memoryMiB, 768)
@@ -95,15 +95,15 @@ class ResourceSpec extends FunSuite:
   }
 
   test("saturatingAdd should saturate at Int.MaxValue for cpuMilli") {
-    val r1 = Resource(Int.MaxValue, 100, 0, 0)
-    val r2 = Resource(1000, 100, 0, 0)
+    val r1     = Resource(Int.MaxValue, 100, 0, 0)
+    val r2     = Resource(1000, 100, 0, 0)
     val result = r1.saturatingAdd(r2)
     assertEquals(result.cpuMilli, Int.MaxValue)
   }
 
   test("saturatingAdd should saturate at Int.MaxValue for all fields") {
-    val r1 = Resource(Int.MaxValue, Int.MaxValue, Int.MaxValue, Int.MaxValue)
-    val r2 = Resource(1, 1, 1, 1)
+    val r1     = Resource(Int.MaxValue, Int.MaxValue, Int.MaxValue, Int.MaxValue)
+    val r2     = Resource(1, 1, 1, 1)
     val result = r1.saturatingAdd(r2)
     assertEquals(result.cpuMilli, Int.MaxValue)
     assertEquals(result.memoryMiB, Int.MaxValue)
@@ -112,8 +112,8 @@ class ResourceSpec extends FunSuite:
   }
 
   test("subtractFloorZero should subtract resources correctly") {
-    val r1 = Resource(3000, 768, 3, 1536)
-    val r2 = Resource(1000, 256, 1, 512)
+    val r1     = Resource(3000, 768, 3, 1536)
+    val r2     = Resource(1000, 256, 1, 512)
     val result = r1.subtractFloorZero(r2)
     assertEquals(result.cpuMilli, 2000)
     assertEquals(result.memoryMiB, 512)
@@ -122,8 +122,8 @@ class ResourceSpec extends FunSuite:
   }
 
   test("subtractFloorZero should floor at zero when subtracting larger value") {
-    val r1 = Resource(1000, 512, 1, 1024)
-    val r2 = Resource(2000, 1024, 2, 2048)
+    val r1     = Resource(1000, 512, 1, 1024)
+    val r2     = Resource(2000, 1024, 2, 2048)
     val result = r1.subtractFloorZero(r2)
     assertEquals(result.cpuMilli, 0)
     assertEquals(result.memoryMiB, 0)
@@ -132,13 +132,13 @@ class ResourceSpec extends FunSuite:
   }
 
   test("subtractFloorZero with zero should return same resource") {
-    val r1 = Resource(1000, 512, 1, 1024)
+    val r1     = Resource(1000, 512, 1, 1024)
     val result = r1.subtractFloorZero(Resource.zero)
     assertEquals(result, r1)
   }
 
   test("scaleBy should scale resource by positive factor") {
-    val r = Resource(1000, 500, 2, 1000)
+    val r      = Resource(1000, 500, 2, 1000)
     val result = r.scaleBy(2.0)
     assertEquals(result.cpuMilli, 2000)
     assertEquals(result.memoryMiB, 1000)
@@ -147,7 +147,7 @@ class ResourceSpec extends FunSuite:
   }
 
   test("scaleBy should scale resource by fractional factor") {
-    val r = Resource(1000, 500, 4, 1000)
+    val r      = Resource(1000, 500, 4, 1000)
     val result = r.scaleBy(0.5)
     assertEquals(result.cpuMilli, 500)
     assertEquals(result.memoryMiB, 250)
@@ -156,7 +156,7 @@ class ResourceSpec extends FunSuite:
   }
 
   test("scaleBy should floor negative results at zero") {
-    val r = Resource(1000, 500, 2, 1000)
+    val r      = Resource(1000, 500, 2, 1000)
     val result = r.scaleBy(-1.0)
     assertEquals(result.cpuMilli, 0)
     assertEquals(result.memoryMiB, 0)
@@ -165,7 +165,7 @@ class ResourceSpec extends FunSuite:
   }
 
   test("scaleBy should round to nearest integer") {
-    val r = Resource(100, 100, 100, 100)
+    val r      = Resource(100, 100, 100, 100)
     val result = r.scaleBy(1.55)
     assertEquals(result.cpuMilli, 155)
     assertEquals(result.memoryMiB, 155)
@@ -174,13 +174,13 @@ class ResourceSpec extends FunSuite:
   }
 
   test("scaleBy with zero should return zero resource") {
-    val r = Resource(1000, 500, 2, 1000)
+    val r      = Resource(1000, 500, 2, 1000)
     val result = r.scaleBy(0.0)
     assertEquals(result, Resource.zero)
   }
 
   test("fitsIn should return true when all components fit") {
-    val r = Resource(1000, 512, 1, 1024)
+    val r     = Resource(1000, 512, 1, 1024)
     val limit = Resource(2000, 1024, 2, 2048)
     assert(r.fitsIn(limit))
   }
@@ -191,38 +191,38 @@ class ResourceSpec extends FunSuite:
   }
 
   test("fitsIn should return false when cpuMilli exceeds limit") {
-    val r = Resource(3000, 512, 1, 1024)
+    val r     = Resource(3000, 512, 1, 1024)
     val limit = Resource(2000, 1024, 2, 2048)
     assert(!r.fitsIn(limit))
   }
 
   test("fitsIn should return false when memoryMiB exceeds limit") {
-    val r = Resource(1000, 2048, 1, 1024)
+    val r     = Resource(1000, 2048, 1, 1024)
     val limit = Resource(2000, 1024, 2, 2048)
     assert(!r.fitsIn(limit))
   }
 
   test("fitsIn should return false when gpu exceeds limit") {
-    val r = Resource(1000, 512, 3, 1024)
+    val r     = Resource(1000, 512, 3, 1024)
     val limit = Resource(2000, 1024, 2, 2048)
     assert(!r.fitsIn(limit))
   }
 
   test("fitsIn should return false when diskMiB exceeds limit") {
-    val r = Resource(1000, 512, 1, 3072)
+    val r     = Resource(1000, 512, 1, 3072)
     val limit = Resource(2000, 1024, 2, 2048)
     assert(!r.fitsIn(limit))
   }
 
   test("fitsIn should return false when any component exceeds limit") {
-    val r = Resource(1000, 512, 1, 2049)
+    val r     = Resource(1000, 512, 1, 2049)
     val limit = Resource(2000, 1024, 2, 2048)
     assert(!r.fitsIn(limit))
   }
 
   test("max should return maximum values from two resources") {
-    val r1 = Resource(1000, 1024, 1, 512)
-    val r2 = Resource(500, 2048, 2, 256)
+    val r1     = Resource(1000, 1024, 1, 512)
+    val r2     = Resource(500, 2048, 2, 256)
     val result = r1.max(r2)
     assertEquals(result.cpuMilli, 1000)
     assertEquals(result.memoryMiB, 2048)
@@ -231,20 +231,20 @@ class ResourceSpec extends FunSuite:
   }
 
   test("max with same resource should return same resource") {
-    val r = Resource(1000, 512, 1, 1024)
+    val r      = Resource(1000, 512, 1, 1024)
     val result = r.max(r)
     assertEquals(result, r)
   }
 
   test("max with zero should return original resource") {
-    val r = Resource(1000, 512, 1, 1024)
+    val r      = Resource(1000, 512, 1, 1024)
     val result = r.max(Resource.zero)
     assertEquals(result, r)
   }
 
   test("min should return minimum values from two resources") {
-    val r1 = Resource(1000, 1024, 1, 512)
-    val r2 = Resource(500, 2048, 2, 256)
+    val r1     = Resource(1000, 1024, 1, 512)
+    val r2     = Resource(500, 2048, 2, 256)
     val result = r1.min(r2)
     assertEquals(result.cpuMilli, 500)
     assertEquals(result.memoryMiB, 1024)
@@ -253,20 +253,20 @@ class ResourceSpec extends FunSuite:
   }
 
   test("min with same resource should return same resource") {
-    val r = Resource(1000, 512, 1, 1024)
+    val r      = Resource(1000, 512, 1, 1024)
     val result = r.min(r)
     assertEquals(result, r)
   }
 
   test("min with zero should return zero resource") {
-    val r = Resource(1000, 512, 1, 1024)
+    val r      = Resource(1000, 512, 1, 1024)
     val result = r.min(Resource.zero)
     assertEquals(result, Resource.zero)
   }
 
   test("Semigroup should combine resources") {
-    val r1 = Resource(1000, 512, 1, 1024)
-    val r2 = Resource(500, 256, 0, 512)
+    val r1     = Resource(1000, 512, 1, 1024)
+    val r2     = Resource(500, 256, 0, 512)
     val result = Semigroup[Resource].combine(r1, r2)
     assertEquals(result.cpuMilli, 1500)
     assertEquals(result.memoryMiB, 768)
@@ -280,21 +280,21 @@ class ResourceSpec extends FunSuite:
   }
 
   test("Monoid should combine resources") {
-    val r1 = Resource(1000, 512, 1, 1024)
-    val r2 = Resource(500, 256, 0, 512)
+    val r1     = Resource(1000, 512, 1, 1024)
+    val r2     = Resource(500, 256, 0, 512)
     val result = Monoid[Resource].combine(r1, r2)
     assertEquals(result.cpuMilli, 1500)
     assertEquals(result.memoryMiB, 768)
   }
 
   test("Monoid should satisfy left identity law") {
-    val r = Resource(1000, 512, 1, 1024)
+    val r      = Resource(1000, 512, 1, 1024)
     val result = Monoid[Resource].combine(Monoid[Resource].empty, r)
     assertEquals(result, r)
   }
 
   test("Monoid should satisfy right identity law") {
-    val r = Resource(1000, 512, 1, 1024)
+    val r      = Resource(1000, 512, 1, 1024)
     val result = Monoid[Resource].combine(r, Monoid[Resource].empty)
     assertEquals(result, r)
   }
@@ -340,12 +340,12 @@ class ResourceSpec extends FunSuite:
   }
 
   test("Multiple operations should compose correctly") {
-    val r1 = Resource(1000, 512, 1, 1024)
-    val r2 = Resource(500, 256, 1, 512)
-    val sum = r1 + r2
+    val r1     = Resource(1000, 512, 1, 1024)
+    val r2     = Resource(500, 256, 1, 512)
+    val sum    = r1 + r2
     val scaled = sum.scaleBy(0.5)
-    val maxed = scaled.max(r1)
-    
+    val maxed  = scaled.max(r1)
+
     assertEquals(maxed.cpuMilli, 1000)
     assertEquals(maxed.memoryMiB, 512)
     assertEquals(maxed.gpu, 1)
@@ -365,9 +365,9 @@ class ResourceSpec extends FunSuite:
   }
 
   test("fitsIn should work with complex resource hierarchies") {
-    val small = Resource(500, 256, 0, 512)
+    val small  = Resource(500, 256, 0, 512)
     val medium = Resource(1000, 512, 1, 1024)
-    val large = Resource(2000, 1024, 2, 2048)
+    val large  = Resource(2000, 1024, 2, 2048)
 
     assert(small.fitsIn(medium))
     assert(medium.fitsIn(large))
