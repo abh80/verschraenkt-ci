@@ -1,4 +1,4 @@
-package com.verschraenkt.ci.dsl.scala
+package com.verschraenkt.ci.dsl.sc
 
 import com.verschraenkt.ci.core.model.Container
 
@@ -14,10 +14,3 @@ object Docker:
       workdir: Option[String] = None
   ) extends Executor:
     def toContainer: Container = new Container(image, args, env, user, workdir)
-
-  def executor(
-      image: String,
-      env: Map[String, String] = Map.empty,
-      user: Option[String] = None,
-      workdir: Option[String] = None
-  ): Exec = new Docker.Exec(image, args, env, user, workdir)
