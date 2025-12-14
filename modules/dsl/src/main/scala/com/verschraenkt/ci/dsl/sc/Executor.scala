@@ -1,6 +1,6 @@
 package com.verschraenkt.ci.dsl.sc
 
-import com.verschraenkt.ci.core.model.Container
+import _root_.com.verschraenkt.ci.core.model.Container
 
 sealed trait Executor:
   def toContainer: Container

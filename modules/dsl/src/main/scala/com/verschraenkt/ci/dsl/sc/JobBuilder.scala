@@ -1,69 +1,47 @@
 package com.verschraenkt.ci.dsl.sc
 
 import cats.data.NonEmptyVector
-import com.verschraenkt.ci.core.model.{Condition, Container, Job, JobId, Resource, Step, StepMeta}
+import _root_.com.verschraenkt.ci.core.model.{Condition, Container, Job, JobId, Resource, Step, StepMeta}
 
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.duration.FiniteDuration
 
-final case class JobBuilder(
-    name: String,
-    steps: Vector[Step] = Vector.empty,
-    dependencies: Set[JobId] = Set.empty,
-    resources: Resource = Resource(1000, 512, 0, 0),
-    timeout: FiniteDuration = 30.minutes,
-    matrix: Map[String, NonEmptyVector[String]] = Map.empty,
-    container: Option[Container] = None,
-    labels: Set[String] = Set.empty,
-    concurrencyGroup: Option[String] = None,
-    condition: Condition = Condition.Always,
-    stepMeta: StepMeta = StepMeta()
-):
+final class JobBuilder(val name: String):
+  private var stepsVec: Vector[Step]                         = Vector.empty
+  private var dependenciesSet: Set[JobId]                    = Set.empty
+  private var resourcesVal: Resource                         = Resource(1000, 512, 0, 0)
+  private var timeoutVal: FiniteDuration                     = 30.minutes
+  private var matrixMap: Map[String, NonEmptyVector[String]] = Map.empty
+  private var containerOpt: Option[Container]                = None
+  private var labelsSet: Set[String]                         = Set.empty
+  private var concurrencyGroupOpt: Option[String]            = None
+  private var conditionVal: Condition                        = Condition.Always
+  private val stepMetaVal: StepMeta = StepMeta() // Keep stepMeta as val, configure it via StepLike later
 
-  private def withResource(resource: Resource): JobBuilder =
-    this.copy(resources = resource)
+  // Mutator methods
+  def addStep(step: StepLike): Unit =
+    given sb: StepsBuilder = StepsBuilder()
+    stepsVec :+= StepBuilder.toStep(step)(using stepMetaVal, sb)
+  def addDependencies(jobIds: JobId*): Unit      = dependenciesSet ++= jobIds.toSet
+  def setResources(resource: Resource): Unit     = resourcesVal = resource
+  def setTimeout(duration: FiniteDuration): Unit = timeoutVal = duration
+  def setMatrix(matrixConfig: Map[String, NonEmptyVector[String]]): Unit = matrixMap = matrixConfig
+  def setContainer(containerConfig: Container): Unit = containerOpt = Some(containerConfig)
+  def addLabels(moreLabels: String*): Unit           = labelsSet ++= moreLabels
+  def setConcurrencyGroup(group: String): Unit       = concurrencyGroupOpt = Some(group)
+  def setCondition(cond: Condition): Unit            = conditionVal = cond
 
-  private def withTimeout(duration: FiniteDuration): JobBuilder =
-    this.copy(timeout = duration)
-
-  private def withContainer(containerConfig: Container): JobBuilder =
-    this.copy(container = Some(containerConfig))
-
-  def executor(exec: Executor): JobBuilder = withContainer(exec.toContainer)
-
-  def labels(moreLabels: String*): JobBuilder = this.copy(labels = labels ++ moreLabels)
-
-  def concurrencyGroup(group: String): JobBuilder =
-    this.copy(concurrencyGroup = Some(group))
-
-  def withCondition(cond: Condition): JobBuilder =
-    this.copy(condition = cond)
-
-  def dependsOn(jobIds: JobId*): JobBuilder =
-    this.copy(dependencies = dependencies ++ jobIds.toSet)
-
-  def needs(jobIds: JobId*): JobBuilder =
-    dependsOn(jobIds*)
-
-  def withMatrix(matrixConfig: Map[String, NonEmptyVector[String]]): JobBuilder =
-    this.copy(matrix = matrixConfig)
-
-  def steps(stepLike: StepLike*): JobBuilder =
-    this.copy(steps = steps ++ stepLike.map(StepBuilder.toStep(_)(using stepMeta)))
-
-  def timeout(duration: FiniteDuration): JobBuilder = this.copy(timeout = duration)
-
-  private def build(): Job =
-    require(steps.nonEmpty, s"Job '$name' must have at least one step")
+  private[sc] def build(): Job =
+    require(stepsVec.nonEmpty, s"Job '$name' must have at least one step")
     Job(
       id = JobId(name),
-      steps = NonEmptyVector.fromVectorUnsafe(steps),
-      dependencies = dependencies,
-      resources = resources,
-      timeout = timeout,
-      matrix = matrix,
-      container = container,
-      labels = labels,
-      concurrencyGroup = concurrencyGroup,
-      condition = condition
+      steps = NonEmptyVector.fromVectorUnsafe(stepsVec),
+      dependencies = dependenciesSet,
+      resources = resourcesVal,
+      timeout = timeoutVal,
+      matrix = matrixMap,
+      container = containerOpt,
+      labels = labelsSet,
+      concurrencyGroup = concurrencyGroupOpt,
+      condition = conditionVal
     )

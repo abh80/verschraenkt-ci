@@ -280,7 +280,9 @@ object ValidationService:
 
     condition match
       case Condition.Always | Condition.Never | Condition.OnSuccess | Condition.OnFailure |
-          Condition.OnManualTrigger | Condition.OnDraft | Condition.NotOnDraft =>
+          Condition.OnManualTrigger | Condition.OnDraft | Condition.NotOnDraft | Condition.OnPullRequest |
+          Condition.OnWorkflowDispatch | Condition.OnWorkflowCall | Condition.IsFork | Condition.IsNotFork |
+          Condition.OnCancelled | Condition.IsPrivate | Condition.IsPublic =>
         ().validNel
 
       case Condition.OnBranch(pattern, _) =>
@@ -299,14 +301,10 @@ object ValidationService:
         validatePattern(pattern, "commit message")
 
       case Condition.OnEvent(event) =>
-        if event.trim.isEmpty then ctx.validation("Event name cannot be empty").invalidNel
-        else if event.length > 128 then ctx.validation("Event name cannot exceed 128 characters").invalidNel
-        else ().validNel
+        validateString(event, "Event name", 128)
 
       case Condition.NotOnEvent(event) =>
-        if event.trim.isEmpty then ctx.validation("Event name cannot be empty").invalidNel
-        else if event.length > 128 then ctx.validation("Event name cannot exceed 128 characters").invalidNel
-        else ().validNel
+        validateString(event, "Event name", 128)
 
       case Condition.OnPathsChanged(paths) =>
         paths.toVector.traverse_(path => validatePathPattern(path))
@@ -327,31 +325,16 @@ object ValidationService:
         validateEnvKey(key)
 
       case Condition.OnSchedule(cron) =>
-        if cron.trim.isEmpty then ctx.validation("Cron expression cannot be empty").invalidNel
-        else if cron.length > 256 then
-          ctx.validation("Cron expression cannot exceed 256 characters").invalidNel
-        else ().validNel
+        validateString(cron, "Cron expression", 256)
 
       case Condition.OnAuthor(author) =>
-        if author.trim.isEmpty then ctx.validation("Author name cannot be empty").invalidNel
-        else if author.length > 256 then ctx.validation("Author name cannot exceed 256 characters").invalidNel
-        else ().validNel
+        validateString(author, "Author name", 256)
 
       case Condition.NotOnAuthor(author) =>
-        if author.trim.isEmpty then ctx.validation("Author name cannot be empty").invalidNel
-        else if author.length > 256 then ctx.validation("Author name cannot exceed 256 characters").invalidNel
-        else ().validNel
+        validateString(author, "Author name", 256)
 
       case Condition.OnRepository(repo) =>
-        if repo.trim.isEmpty then ctx.validation("Repository name cannot be empty").invalidNel
-        else if repo.length > 256 then
-          ctx.validation("Repository name cannot exceed 256 characters").invalidNel
-        else ().validNel
-
-      case Condition.OnPullRequest | Condition.OnManualTrigger | Condition.OnWorkflowDispatch |
-          Condition.OnWorkflowCall | Condition.IsFork | Condition.IsNotFork | Condition.OnCancelled |
-          Condition.IsPrivate | Condition.IsPublic =>
-        ().validNel
+        validateString(repo, "Repository name", 256)
 
       case Condition.Expression(expr) =>
         if expr.trim.isEmpty then ctx.validation("Expression cannot be empty").invalidNel
@@ -368,49 +351,33 @@ object ValidationService:
         validateCondition(cond, depth + 1)
 
       case Condition.HasLabel(label) =>
-        if label.trim.isEmpty then ctx.validation("Label name cannot be empty").invalidNel
-        else if label.length > 256 then ctx.validation("Label name cannot exceed 256 characters").invalidNel
-        else ().validNel
+        validateString(label, "Label name", 256)
 
       case Condition.HasAllLabels(labels) =>
-        labels.toVector.traverse_(label =>
-          if label.trim.isEmpty then ctx.validation("Label name cannot be empty").invalidNel
-          else if label.length > 256 then ctx.validation("Label name cannot exceed 256 characters").invalidNel
-          else ().validNel
-        )
+        labels.toVector.traverse_(label => validateString(label, "Label name", 256))
 
       case Condition.HasAnyLabel(labels) =>
-        labels.toVector.traverse_(label =>
-          if label.trim.isEmpty then ctx.validation("Label name cannot be empty").invalidNel
-          else if label.length > 256 then ctx.validation("Label name cannot exceed 256 characters").invalidNel
-          else ().validNel
-        )
+        labels.toVector.traverse_(label => validateString(label, "Label name", 256))
 
       case Condition.NotHasLabel(label) =>
-        if label.trim.isEmpty then ctx.validation("Label name cannot be empty").invalidNel
-        else if label.length > 256 then ctx.validation("Label name cannot exceed 256 characters").invalidNel
-        else ().validNel
+        validateString(label, "Label name", 256)
 
       case Condition.ActorIs(username) =>
-        if username.trim.isEmpty then ctx.validation("Username cannot be empty").invalidNel
-        else if username.length > 256 then ctx.validation("Username cannot exceed 256 characters").invalidNel
-        else ().validNel
+        validateString(username, "Username", 256)
 
       case Condition.ActorIsNot(username) =>
-        if username.trim.isEmpty then ctx.validation("Username cannot be empty").invalidNel
-        else if username.length > 256 then ctx.validation("Username cannot exceed 256 characters").invalidNel
-        else ().validNel
+        validateString(username, "Username", 256)
 
       case Condition.ActorInTeam(team) =>
-        if team.trim.isEmpty then ctx.validation("Team name cannot be empty").invalidNel
-        else if team.length > 256 then ctx.validation("Team name cannot exceed 256 characters").invalidNel
-        else ().validNel
+        validateString(team, "Team name", 256)
 
       case Condition.HasPermission(permission) =>
-        if permission.trim.isEmpty then ctx.validation("Permission name cannot be empty").invalidNel
-        else if permission.length > 256 then
-          ctx.validation("Permission name cannot exceed 256 characters").invalidNel
-        else ().validNel
+        validateString(permission, "Permission name", 256)
+
+  private def validateString(value: String, name: String, maxLength: Int)(using ctx: ApplicationContext): ValidationResult[Unit] =
+    if value.trim.isEmpty then ctx.validation(s"$name cannot be empty").invalidNel
+    else if value.length > maxLength then ctx.validation(s"$name cannot exceed $maxLength characters").invalidNel
+    else ().validNel
 
   private def validatePattern(pattern: String, context: String)(using
       ctx: ApplicationContext

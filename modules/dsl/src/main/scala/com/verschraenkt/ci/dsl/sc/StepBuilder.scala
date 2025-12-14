@@ -1,26 +1,35 @@
 package com.verschraenkt.ci.dsl.sc
 
 import cats.data.NonEmptyList
-import com.verschraenkt.ci.core.model.{ CacheLike, Command, Retry, ShellKind, Step, StepMeta, When }
+import _root_.com.verschraenkt.ci.core.model.{ CacheLike, Command, Retry, ShellKind, Step, StepMeta, When }
 
 import scala.concurrent.duration.FiniteDuration
+
+type Meta = StepMetaBuilder => StepMetaBuilder
+
+final class MetaBuilder extends (StepMetaBuilder => StepMetaBuilder):
+  private var meta: Meta = identity
+
+  def withMeta[A](f: Meta)(block: => A): A =
+    val old = meta
+    meta = meta.andThen(f)
+    try
+      block
+    finally
+      meta = old
+
+  def apply(b: StepMetaBuilder): StepMetaBuilder = meta(b)
 
 sealed trait StepLike
 
 object StepLike:
 
-  final class Run(
-      val shellCommand: String,
-      val shell: ShellKind,
-      val f: StepMetaBuilder => StepMetaBuilder
+  final case class Run(
+    shellCommand: String,
+    shell: ShellKind = ShellKind.Sh,
+    f: Meta = identity
   ) extends StepLike
 
-  object Run:
-    def apply(
-        shellCommand: String,
-        shell: ShellKind = ShellKind.Sh
-    )(f: StepMetaBuilder => StepMetaBuilder = identity): Run =
-      new Run(shellCommand, shell, f)
 
   case object Checkout extends StepLike
 
@@ -28,9 +37,12 @@ object StepLike:
   case class SaveCache(cache: CacheLike, paths: NonEmptyList[String])    extends StepLike
 
 final class StepsBuilder:
-  private var acc                   = Vector.empty[StepLike]
-  def unary_+(step: StepLike): Unit = acc :+= step
-  def result: Vector[StepLike]      = acc
+  private var acc               = Vector.empty[StepLike]
+  private[sc] val stepMeta      = MetaBuilder()
+  def add(step: StepLike): Unit = acc :+= step
+  def result: Vector[StepLike]  = acc
+  def meta(f: Meta)(body: => Unit): Unit =
+    stepMeta.withMeta(f)(body)
 
   def steps(body: StepsBuilder ?=> Unit): Vector[StepLike] =
     given sb: StepsBuilder = StepsBuilder()
@@ -38,10 +50,11 @@ final class StepsBuilder:
     sb.result
 
 object StepBuilder:
-  def toStep(step: StepLike)(using meta: StepMeta): Step =
+  def toStep(step: StepLike)(using meta: StepMeta, sb: StepsBuilder): Step =
     step match
       case r: StepLike.Run =>
-        val newMeta = r.f(StepMetaBuilder.from(meta))
+        val f       = sb.stepMeta.andThen(r.f)
+        val newMeta = f(StepMetaBuilder.from(meta))
 
         Step.Run(
           Command.Shell(

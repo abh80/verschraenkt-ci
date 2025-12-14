@@ -1,6 +1,7 @@
 package com.verschraenkt.ci.core.model
 
 import cats.data.{ NonEmptyList, NonEmptyVector }
+import cats.syntax.all._
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -78,3 +79,66 @@ enum RetryMode:
   case Linear, Exponential
 
 final case class Retry(maxAttempts: Int, delay: FiniteDuration, mode: RetryMode = RetryMode.Exponential)
+
+/** Utility methods for working with Step and Command types */
+object StepUtils {
+  /** Extract command strings from a sequence of steps
+    * @param steps Sequence of steps to process
+    * @return Sequence of optional command strings (None for steps that don't have commands)
+    */
+  def extractCommandStrings(steps: Seq[Step]): Seq[Option[String]] = {
+    steps.map {
+      case Step.Run(cmd) => cmd.asCommand match {
+        case Command.Exec(program, args, _, _, _) => Some((program :: args).mkString(" "))
+        case Command.Shell(script, _, _, _, _) => Some(script)
+        case Command.Composite(_) => None
+      }
+      case _ => None
+    }
+  }
+  
+  /** Map over steps, transforming commands while preserving the step structure
+    * @param step The step to map over
+    * @param f Function to transform commands
+    * @return A new step with transformed commands
+    */
+  def mapCommands(step: Step)(f: Command => Command): Step = step match {
+    case s @ Step.Run(cmd) => 
+      val newCmd = cmd.asCommand match {
+        case c: Command => f(c)
+      }
+      s.copy(command = newCmd)(using s.meta)
+    case s: Step.Composite => 
+      s.copy(steps = s.steps.map(mapCommands(_)(f)))
+    case other => other
+  }
+  
+  /** Find all commands in a step, including those in composite steps
+    * @param step The step to search in
+    * @return Sequence of all commands found
+    */
+  def findAllCommands(step: Step): Seq[Command] = step match {
+    case Step.Run(cmd) => Seq(cmd.asCommand)
+    case Step.Composite(steps) =>
+      ???
+    case _ => Nil
+  }
+  
+  /** Find all shell commands in a step
+  @param step The step to search in
+    * @return Sequence of shell command strings
+    */
+  def findAllShellCommands(step: Step): Seq[String] = 
+    findAllCommands(step).collect { 
+      case Command.Shell(script, _, _, _, _) => script 
+    }
+  
+  /** Find all exec commands in a step
+    * @param step The step to search in
+    * @return Sequence of (program, args) tuples
+    */
+  def findAllExecCommands(step: Step): Seq[(String, List[String])] = 
+    findAllCommands(step).collect { 
+      case Command.Exec(program, args, _, _, _) => (program, args) 
+    }
+}
