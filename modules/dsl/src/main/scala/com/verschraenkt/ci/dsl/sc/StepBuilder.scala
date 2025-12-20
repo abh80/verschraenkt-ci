@@ -41,11 +41,25 @@ final class StepsBuilder:
   private[sc] val stepMeta      = MetaBuilder()
   def add(step: StepLike): Unit = acc :+= step
   def result: Vector[StepLike]  = acc
+  
+  def modifyLast(f: StepLike => StepLike): Unit =
+    if (acc.nonEmpty) {
+      val last = acc.last
+      acc = acc.dropRight(1) :+ f(last)
+    }
 
   def steps(body: StepsBuilder ?=> Unit): Vector[StepLike] =
     given sb: StepsBuilder = StepsBuilder()
     body
     sb.result
+
+class AddedStep(sb: StepsBuilder):
+  def withMeta(f: Meta): AddedStep =
+    sb.modifyLast {
+      case r: StepLike.Run => r.copy(f = r.f.andThen(f))
+      case other           => other
+    }
+    this
 
 object StepBuilder:
   def toStep(step: StepLike)(using meta: StepMeta, sb: StepsBuilder): Step =

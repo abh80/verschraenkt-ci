@@ -12,8 +12,8 @@ class MetaDslSpec extends FunSuite {
       dsl.workflow("w") {
         dsl.job("j") {
           dsl.steps {
-            dsl.run("echo 'default'")()
-            dsl.run("echo 'individual'") {
+            dsl.run("echo 'default'")
+            dsl.run("echo 'individual'").withMeta {
               _.timeout(5.minutes).continueOnError(true)
             }
           }
@@ -42,10 +42,10 @@ class MetaDslSpec extends FunSuite {
         dsl.job("j") {
           dsl.steps {
             dsl.meta(_.timeout(10.minutes)) {
-              dsl.run("echo 'group 1'")()
-              dsl.run("echo 'group 2'")()
+              dsl.run("echo 'group 1'")
+              dsl.run("echo 'group 2'")
             }
-            dsl.run("echo 'outside group'")()
+            dsl.run("echo 'outside group'")
           }
         }
       }
@@ -71,8 +71,8 @@ class MetaDslSpec extends FunSuite {
         dsl.job("j") {
           dsl.steps {
             dsl.meta(_.timeout(10.minutes).continueOnError(true)) {
-              dsl.run("echo 'group meta'")()
-              dsl.run("echo 'override meta'") {
+              dsl.run("echo 'group meta'")
+              dsl.run("echo 'override meta'").withMeta {
                 _.timeout(1.minute).continueOnError(false)
               }
             }

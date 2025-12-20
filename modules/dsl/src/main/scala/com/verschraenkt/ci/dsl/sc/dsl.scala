@@ -108,8 +108,7 @@ object dsl:
   def run(
     shellCommand: String,
     shell: ShellKind = ShellKind.Sh
-  )(
-    f: Meta = identity
-  )(using sb: StepsBuilder): Unit =
-    val combinedMeta = sb.stepMeta.meta.andThen(f)
+  )(using sb: StepsBuilder): AddedStep =
+    val combinedMeta = sb.stepMeta.meta
     sb.add(StepLike.Run(shellCommand, shell, combinedMeta))
+    AddedStep(sb)
