@@ -8,7 +8,7 @@ import scala.concurrent.duration.FiniteDuration
 type Meta = StepMetaBuilder => StepMetaBuilder
 
 final class MetaBuilder extends (StepMetaBuilder => StepMetaBuilder):
-  private var meta: Meta = identity
+  var meta: Meta = identity
 
   def withMeta[A](f: Meta)(block: => A): A =
     val old = meta
@@ -41,8 +41,6 @@ final class StepsBuilder:
   private[sc] val stepMeta      = MetaBuilder()
   def add(step: StepLike): Unit = acc :+= step
   def result: Vector[StepLike]  = acc
-  def meta(f: Meta)(body: => Unit): Unit =
-    stepMeta.withMeta(f)(body)
 
   def steps(body: StepsBuilder ?=> Unit): Vector[StepLike] =
     given sb: StepsBuilder = StepsBuilder()
@@ -53,18 +51,17 @@ object StepBuilder:
   def toStep(step: StepLike)(using meta: StepMeta, sb: StepsBuilder): Step =
     step match
       case r: StepLike.Run =>
-        val f       = sb.stepMeta.andThen(r.f)
-        val newMeta = f(StepMetaBuilder.from(meta))
-
-        Step.Run(
-          Command.Shell(
-            r.shellCommand,
-            r.shell,
-            newMeta.env,
-            newMeta.workingDirectory,
-            newMeta.timeout.map(_.toSeconds.toInt)
-          )
+        val f = sb.stepMeta.andThen(r.f)
+        val newMetaBuilder = f(StepMetaBuilder.from(meta))
+        val finalMeta = newMetaBuilder.toStepMeta
+        val command = Command.Shell(
+          r.shellCommand,
+          r.shell,
+          finalMeta.env,
+          finalMeta.workingDirectory,
+          finalMeta.timeout.map(_.toSeconds.toInt)
         )
+        Step.Run(command)(using finalMeta)
 
       case StepLike.Checkout        => Step.Checkout()
       case r: StepLike.RestoreCache => Step.RestoreCache(r.cache, r.paths)
@@ -83,8 +80,11 @@ case class StepMetaBuilder(
   def continueOnError(should: Boolean): StepMetaBuilder  = this.copy(continueOnError = should)
   def when(_when: When): StepMetaBuilder                 = this.copy(when = _when)
   def retry(mode: Retry): StepMetaBuilder                = this.copy(retry = Some(mode))
-  def env(vars: (String, String)*): StepMetaBuilder      = this.copy(env = vars.toMap())
+  def env(vars: (String, String)*): StepMetaBuilder      = this.copy(env = this.env ++ vars.toMap)
   def workingDir(dir: String): StepMetaBuilder           = this.copy(workingDirectory = Some(dir))
+
+  def toStepMeta: StepMeta =
+    StepMeta(name, when, timeout, continueOnError, retry, env, workingDirectory)
 
 object StepMetaBuilder:
   def from(meta: StepMeta): StepMetaBuilder =

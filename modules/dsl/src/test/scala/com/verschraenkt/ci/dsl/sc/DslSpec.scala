@@ -15,7 +15,7 @@ class DslSpec extends FunSuite:
       workflow("w") {
         job("j") {
           steps {
-            run("s")
+            run("s")()
           }
         }
       }
@@ -50,9 +50,9 @@ class DslSpec extends FunSuite:
             resources(cpuMilli = 1000, memoryMiB = 1024, diskMiB = 5.GB.toInt)
             steps {
               checkout()
-              run("sbt scalafmtCheckAll")
-              run("sbt scalafixAll")
-              run("npm ci && npm run lint", shell = ShellKind.Bash)
+              run("sbt scalafmtCheckAll")()
+              run("sbt scalafixAll")()
+              run("npm ci && npm run lint", shell = ShellKind.Bash)()
             }
           }
 
@@ -70,8 +70,8 @@ class DslSpec extends FunSuite:
             )
             steps {
               checkout()
-              run("scripts/setup-db.sh $db")
-              run("sbt ++$scala clean test")
+              run("scripts/setup-db.sh $db")()
+              run("sbt ++$scala clean test")()
             }
           }
 
@@ -87,8 +87,8 @@ class DslSpec extends FunSuite:
             )
             steps {
               checkout()
-              run("nvm use $node && npm ci")
-              run("nvm use $node && npm test")
+              run("nvm use $node && npm ci")()
+              run("nvm use $node && npm test")()
             }
           }
 
@@ -100,11 +100,11 @@ class DslSpec extends FunSuite:
             resources(cpuMilli = 4000, memoryMiB = 8192, diskMiB = 40.GB.toInt)
             steps {
               checkout()
-              run("docker compose pull")
-              run("docker compose up -d")
-              run("npm run e2e")
-              run("docker compose logs")
-              run("docker compose down --volumes")
+              run("docker compose pull")()
+              run("docker compose up -d")()
+              run("npm run e2e")()
+              run("docker compose logs")()
+              run("docker compose down --volumes")()
             }
           }
         }
@@ -130,9 +130,9 @@ class DslSpec extends FunSuite:
             resources(cpuMilli = 1500, memoryMiB = 2048, diskMiB = 5.GB.toInt)
             steps {
               checkout()
-              run("scripts/render-config.sh staging")
-              run("scripts/apply-k8s.sh staging")
-              run("kubectl rollout status deploy/monorepo-api -n staging")
+              run("scripts/render-config.sh staging")()
+              run("scripts/apply-k8s.sh staging")()
+              run("kubectl rollout status deploy/monorepo-api -n staging")()
             }
           }
 
@@ -142,7 +142,7 @@ class DslSpec extends FunSuite:
             jobLabels("deploy", "staging", "smoke")
             resources(cpuMilli = 1000, memoryMiB = 1024, diskMiB = 2.GB.toInt)
             steps {
-              run("scripts/smoke.sh staging")
+              run("scripts/smoke.sh staging")()
             }
           }
 
@@ -156,9 +156,9 @@ class DslSpec extends FunSuite:
             resources(cpuMilli = 2000, memoryMiB = 3072, diskMiB = 5.GB.toInt)
             steps {
               checkout()
-              run("scripts/render-config.sh production")
-              run("scripts/apply-k8s.sh production")
-              run("kubectl rollout status deploy/monorepo-api -n production")
+              run("scripts/render-config.sh production")()
+              run("scripts/apply-k8s.sh production")()
+              run("kubectl rollout status deploy/monorepo-api -n production")()
             }
           }
 
@@ -168,7 +168,7 @@ class DslSpec extends FunSuite:
             jobLabels("deploy", "production", "smoke")
             resources(cpuMilli = 1000, memoryMiB = 1024, diskMiB = 2.GB.toInt)
             steps {
-              run("scripts/smoke.sh production")
+              run("scripts/smoke.sh production")()
             }
           }
         }
@@ -187,7 +187,7 @@ class DslSpec extends FunSuite:
             resources(cpuMilli = 1000, memoryMiB = 1024, diskMiB = 2.GB.toInt)
             steps {
               checkout()
-              run("scripts/migrate.sh --dry-run")
+              run("scripts/migrate.sh --dry-run")()
             }
           }
 
@@ -198,7 +198,7 @@ class DslSpec extends FunSuite:
             resources(cpuMilli = 1000, memoryMiB = 1024, diskMiB = 2.GB.toInt)
             steps {
               checkout()
-              run("scripts/migrate.sh --apply")
+              run("scripts/migrate.sh --apply")()
             }
           }
 
@@ -207,7 +207,7 @@ class DslSpec extends FunSuite:
             jobLabels("maintenance", "cleanup")
             resources(cpuMilli = 500, memoryMiB = 512, diskMiB = 1.GB.toInt)
             steps {
-              run("scripts/cleanup-artifacts.sh 30")
+              run("scripts/cleanup-artifacts.sh 30")()
             }
           }
         }

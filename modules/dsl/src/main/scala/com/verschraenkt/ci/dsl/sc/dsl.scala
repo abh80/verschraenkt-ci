@@ -1,3 +1,4 @@
+
 package com.verschraenkt.ci.dsl.sc
 
 import _root_.com.verschraenkt.ci.core.model.*
@@ -91,10 +92,24 @@ object dsl:
 
   // --- Step-level functions (using StepsBuilder) ---
 
+  def meta(f: Meta)(body: StepsBuilder ?=> Unit)(using sb: StepsBuilder): Unit =
+    // Temporarily modify sb.stepMeta
+    val oldMeta = sb.stepMeta.meta
+    sb.stepMeta.meta = sb.stepMeta.meta.andThen(f)
+    try
+      body(using sb) // Execute body, explicitly passing 'sb' as implicit
+    finally
+      sb.stepMeta.meta = oldMeta // Restore old meta
+
   def checkout()(using sb: StepsBuilder): Unit =
     sb.add(StepLike.Checkout)
 
-  def run(shellCommand: String, shell: ShellKind = ShellKind.Sh)(using f: Meta = identity)(using
-      sb: StepsBuilder
-  ): Unit =
-    sb.add(StepLike.Run(shellCommand, shell, f))
+  // Original curried method (keep as-is, with defaults)
+  def run(
+    shellCommand: String,
+    shell: ShellKind = ShellKind.Sh
+  )(
+    f: Meta = identity
+  )(using sb: StepsBuilder): Unit =
+    val combinedMeta = sb.stepMeta.meta.andThen(f)
+    sb.add(StepLike.Run(shellCommand, shell, combinedMeta))

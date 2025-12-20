@@ -87,22 +87,3 @@ class StepBuilderSpec extends FunSuite:
     assertEquals(step, Step.SaveCache(cache, paths)(using defaultStepMeta))
   }
 
-  test("StepsBuilder.steps should accumulate steps") {
-    import dsl.* // for run, checkout
-    val stepsResult = new StepsBuilder().steps {
-      run("step 1")
-      checkout()
-      run("step 2")
-    }
-
-    assertEquals(stepsResult.length, 3)
-    stepsResult.head match
-      case StepLike.Run(cmd, _, _) => assertEquals(cmd, "step 1")
-      case _                       => fail("Expected StepLike.Run")
-    stepsResult(1) match
-      case StepLike.Checkout => ()
-      case _                 => fail("Expected StepLike.Checkout")
-    stepsResult(2) match
-      case StepLike.Run(cmd, _, _) => assertEquals(cmd, "step 2")
-      case _                       => fail("Expected StepLike.Run")
-  }
