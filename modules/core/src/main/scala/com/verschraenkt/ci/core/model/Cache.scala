@@ -1,3 +1,14 @@
+/*
+ * Copyright (c) 2025 abh80 on gitlab.com. All rights reserved.
+ *
+ * This file and all its contents are originally written, developed, and solely owned by abh80 on gitlab.com.
+ * Every part of the code has been manually authored by abh80 on gitlab.com without the use of any artificial intelligence
+ * tools for code generation. AI assistance was limited exclusively to generating or suggesting comments, if any.
+ *
+ * Unauthorized use, distribution, or reproduction is prohibited without explicit permission from the owner.
+ * See License
+ */
+
 package com.verschraenkt.ci.core.model
 
 import cats.data.NonEmptyList
@@ -5,7 +16,16 @@ import scala.util.matching.Regex
 import java.security.MessageDigest
 import java.nio.charset.StandardCharsets.UTF_8
 
-/** Defines different scoping levels for caches */
+/** Defines different scoping levels for caches in CI workflows.
+ *
+ * Each scope represents a different level of cache isolation:
+ * - Global: Shared across all workflows
+ * - Branch: Isolated to specific branch
+ * - PullRequest: Specific to pull requests
+ * - Tag: Associated with specific tags
+ *
+ * @param intVal Integer value representing the scope level
+ */
 enum CacheScope(val intVal: Int):
   /** Global cache scope, available to all workflows */
   case Global extends CacheScope(0)
@@ -19,16 +39,35 @@ enum CacheScope(val intVal: Int):
   /** Tag-specific cache scope */
   case Tag extends CacheScope(3)
 
-/** Represents a normalized cache key */
-final case class CacheKey private (value: String) extends AnyVal
+/** Represents a normalized cache key for identifying cached content.
+ *
+ * Cache keys are normalized to ensure they:
+ * - Contain only valid characters (alphanumeric, dots, underscores, dashes, pipes, colons)
+ * - Are within length limits
+ * - Have consistent formatting
+ *
+ * @param value The normalized string value of the cache key
+ */
+sealed case class CacheKey private (value: String) extends AnyVal
 
-/** Common trait for cache operations */
-sealed trait CacheLike:
+/** Common trait for cache operations defining core functionality.
+ *
+ * This trait defines the basic properties that all cache operations must have:
+ * - A scope that determines the visibility/isolation level
+ * - A key that uniquely identifies the cached content
+ * - Methods for generating storage keys
+ */
+trait CacheLike:
   /** The scope this cache operation applies to */
   def scope: CacheScope
 
   /** The key used to identify this cache */
   def key: CacheKey
+  
+  def getStorageKey: String = s"${scope.toString}/${key.value}"
+
+object CacheLike:
+  given CanEqual[CacheLike, CacheLike] = CanEqual.derived
 
 /** Factory methods for creating and manipulating cache keys */
 object CacheKey:
@@ -89,7 +128,14 @@ object CacheScope:
       case 3 => Some(CacheScope.Tag)
       case _ => None
 
-/** Factory methods for creating cache operations */
+/** Factory methods for creating various cache operations.
+ *
+ * Provides convenience methods for:
+ * - Creating scoped cache keys for branches, PRs and tags
+ * - Building restore operations for different scopes
+ * - Building save operations for different scopes
+ * - Custom scope operations with context
+ */
 object Cache:
   /** Creates a branch-scoped cache key */
   def forBranch(key: CacheKey, branch: String): CacheKey =
@@ -159,14 +205,24 @@ object Cache:
     val scopedKey = CacheKey.scoped(scope, key, ctx)
     SaveCache(scopedKey, paths, scope)
 
-  /** Represents a restore cache operation */
+  /** Represents an operation to restore content from cache.
+   *
+   * @param key   The cache key to restore from
+   * @param paths List of paths to restore
+   * @param scope The scope level for this restore operation
+   */
   final case class RestoreCache(
       key: CacheKey,
       paths: NonEmptyList[String],
       scope: CacheScope = CacheScope.Global
   ) extends CacheLike
 
-  /** Represents a save cache operation */
+  /** Represents an operation to save content to cache.
+   *
+   * @param key   The cache key to save under
+   * @param paths List of paths to cache
+   * @param scope The scope level for this save operation
+   */
   final case class SaveCache(
       key: CacheKey,
       paths: NonEmptyList[String],
