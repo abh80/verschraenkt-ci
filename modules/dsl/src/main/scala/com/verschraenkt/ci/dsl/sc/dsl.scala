@@ -114,6 +114,92 @@ object dsl:
   def checkout()(using sb: StepsBuilder): Unit =
     sb.add(StepLike.Checkout)
 
+  // --- Cache functions ---
+
+  def restoreCache(key: String, paths: String*)(using sb: StepsBuilder): Unit =
+    import cats.data.NonEmptyList
+    val cacheKey = CacheKey.literal(key)
+    val nonEmptyPaths = NonEmptyList.fromList(paths.toList).getOrElse(NonEmptyList.one("default"))
+    sb.add(StepLike.RestoreCache(Cache.RestoreCache(cacheKey, nonEmptyPaths), nonEmptyPaths))
+
+  def saveCache(key: String, paths: String*)(using sb: StepsBuilder): Unit =
+    import cats.data.NonEmptyList
+    val cacheKey = CacheKey.literal(key)
+    val nonEmptyPaths = NonEmptyList.fromList(paths.toList).getOrElse(NonEmptyList.one("default"))
+    sb.add(StepLike.SaveCache(Cache.SaveCache(cacheKey, nonEmptyPaths), nonEmptyPaths))
+
+  def restoreBranchCache(key: String, branch: String, paths: String*)(using sb: StepsBuilder): Unit =
+    import cats.data.NonEmptyList
+    val cacheKey = CacheKey.literal(key)
+    val nonEmptyPaths = NonEmptyList.fromList(paths.toList).getOrElse(NonEmptyList.one("default"))
+    val cache = Cache.restoreForBranch(cacheKey, nonEmptyPaths, branch)
+    sb.add(StepLike.RestoreCache(cache, nonEmptyPaths))
+
+  def saveBranchCache(key: String, branch: String, paths: String*)(using sb: StepsBuilder): Unit =
+    import cats.data.NonEmptyList
+    val cacheKey = CacheKey.literal(key)
+    val nonEmptyPaths = NonEmptyList.fromList(paths.toList).getOrElse(NonEmptyList.one("default"))
+    val cache = Cache.saveForBranch(cacheKey, nonEmptyPaths, branch)
+    sb.add(StepLike.SaveCache(cache, nonEmptyPaths))
+
+  def restorePRCache(key: String, pr: String, paths: String*)(using sb: StepsBuilder): Unit =
+    import cats.data.NonEmptyList
+    val cacheKey = CacheKey.literal(key)
+    val nonEmptyPaths = NonEmptyList.fromList(paths.toList).getOrElse(NonEmptyList.one("default"))
+    val cache = Cache.restoreForPR(cacheKey, nonEmptyPaths, pr)
+    sb.add(StepLike.RestoreCache(cache, nonEmptyPaths))
+
+  def savePRCache(key: String, pr: String, paths: String*)(using sb: StepsBuilder): Unit =
+    import cats.data.NonEmptyList
+    val cacheKey = CacheKey.literal(key)
+    val nonEmptyPaths = NonEmptyList.fromList(paths.toList).getOrElse(NonEmptyList.one("default"))
+    val cache = Cache.saveForPR(cacheKey, nonEmptyPaths, pr)
+    sb.add(StepLike.SaveCache(cache, nonEmptyPaths))
+
+  def restoreTagCache(key: String, tag: String, paths: String*)(using sb: StepsBuilder): Unit =
+    import cats.data.NonEmptyList
+    val cacheKey = CacheKey.literal(key)
+    val nonEmptyPaths = NonEmptyList.fromList(paths.toList).getOrElse(NonEmptyList.one("default"))
+    val cache = Cache.restoreForTag(cacheKey, nonEmptyPaths, tag)
+    sb.add(StepLike.RestoreCache(cache, nonEmptyPaths))
+
+  def saveTagCache(key: String, tag: String, paths: String*)(using sb: StepsBuilder): Unit =
+    import cats.data.NonEmptyList
+    val cacheKey = CacheKey.literal(key)
+    val nonEmptyPaths = NonEmptyList.fromList(paths.toList).getOrElse(NonEmptyList.one("default"))
+    val cache = Cache.saveForTag(cacheKey, nonEmptyPaths, tag)
+    sb.add(StepLike.SaveCache(cache, nonEmptyPaths))
+
+  // --- External cache functions ---
+
+  def restoreS3Cache(bucket: String, region: String, key: String, paths: String*)(using sb: StepsBuilder): Unit =
+    import cats.data.NonEmptyList
+    val cacheKey = CacheKey.literal(key)
+    val nonEmptyPaths = NonEmptyList.fromList(paths.toList).getOrElse(NonEmptyList.one("default"))
+    val cache = S3Cache(bucket, region, cacheKey)
+    sb.add(StepLike.RestoreCache(cache, nonEmptyPaths))
+
+  def saveS3Cache(bucket: String, region: String, key: String, paths: String*)(using sb: StepsBuilder): Unit =
+    import cats.data.NonEmptyList
+    val cacheKey = CacheKey.literal(key)
+    val nonEmptyPaths = NonEmptyList.fromList(paths.toList).getOrElse(NonEmptyList.one("default"))
+    val cache = S3Cache(bucket, region, cacheKey)
+    sb.add(StepLike.SaveCache(cache, nonEmptyPaths))
+
+  def restoreGCSCache(bucket: String, key: String, paths: String*)(using sb: StepsBuilder): Unit =
+    import cats.data.NonEmptyList
+    val cacheKey = CacheKey.literal(key)
+    val nonEmptyPaths = NonEmptyList.fromList(paths.toList).getOrElse(NonEmptyList.one("default"))
+    val cache = GCSCache(bucket, cacheKey)
+    sb.add(StepLike.RestoreCache(cache, nonEmptyPaths))
+
+  def saveGCSCache(bucket: String, key: String, paths: String*)(using sb: StepsBuilder): Unit =
+    import cats.data.NonEmptyList
+    val cacheKey = CacheKey.literal(key)
+    val nonEmptyPaths = NonEmptyList.fromList(paths.toList).getOrElse(NonEmptyList.one("default"))
+    val cache = GCSCache(bucket, cacheKey)
+    sb.add(StepLike.SaveCache(cache, nonEmptyPaths))
+
   // Original curried method (keep as-is, with defaults)
   def run(
     shellCommand: String,

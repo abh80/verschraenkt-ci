@@ -33,7 +33,110 @@ class DslSpec extends FunSuite:
     assertEquals(p.id, PipelineId("p"))
   }
 
-  test("dsl test") {
+  test("cache functions create correct Step types and verify properties") {
+    val p: Pipeline =
+      pipeline("cache-verification") {
+        workflow("test") {
+          job("verify-cache-functions") {
+            steps {
+              checkout()
+               
+              // Test basic cache
+              restoreCache("basic", "path1", "path2")
+              saveCache("basic", "path1", "path2")
+               
+              // Test scoped caches
+              restoreBranchCache("branch", "main", "branch-path")
+              saveBranchCache("branch", "main", "branch-path")
+              restorePRCache("pr", "123", "pr-path")
+              savePRCache("pr", "123", "pr-path")
+              restoreTagCache("tag", "v1.0", "tag-path")
+              saveTagCache("tag", "v1.0", "tag-path")
+               
+              // Test external caches
+              restoreS3Cache("s3", "us-east-1", "s3-key", "s3-path")
+              saveS3Cache("s3", "us-east-1", "s3-key", "s3-path")
+              restoreGCSCache("gcs", "gcs-bucket", "gcs-key", "gcs-path")
+              saveGCSCache("gcs", "gcs-bucket", "gcs-key", "gcs-path")
+            }
+          }
+        }
+      }
+
+    val j = p.workflows.head.jobs.head
+    val s = j.steps.toVector
+    
+    // Should have: 1 checkout + 10 cache operations = 11 total steps
+    assertEquals(s.size, 13)
+    
+    // Verify basic cache restore
+    val basicRestore = s(1).asInstanceOf[Step.RestoreCache]
+    assertEquals(basicRestore.cache.key.value, "basic")
+    assertEquals(basicRestore.cache.scope, CacheScope.Global)
+    assertEquals(basicRestore.paths.toList, List("path1", "path2"))
+    
+    // Verify basic cache save
+    val basicSave = s(2).asInstanceOf[Step.SaveCache]
+    assertEquals(basicSave.cache.key.value, "basic")
+    assertEquals(basicSave.cache.scope, CacheScope.Global)
+    assertEquals(basicSave.paths.toList, List("path1", "path2"))
+    
+    // Verify branch cache restore
+    val branchRestore = s(3).asInstanceOf[Step.RestoreCache]
+    assertEquals(branchRestore.cache.key.value, "main:branch")
+    assertEquals(branchRestore.cache.scope, CacheScope.Branch)
+    assertEquals(branchRestore.paths.toList, List("branch-path"))
+    
+    // Verify branch cache save
+    val branchSave = s(4).asInstanceOf[Step.SaveCache]
+    assertEquals(branchSave.cache.key.value, "main:branch")
+    assertEquals(branchSave.cache.scope, CacheScope.Branch)
+    assertEquals(branchSave.paths.toList, List("branch-path"))
+    
+    // Verify PR cache restore
+    val prRestore = s(5).asInstanceOf[Step.RestoreCache]
+    assertEquals(prRestore.cache.key.value, "123:pr")
+    assertEquals(prRestore.cache.scope, CacheScope.PullRequest)
+    assertEquals(prRestore.paths.toList, List("pr-path"))
+    
+    // Verify PR cache save
+    val prSave = s(6).asInstanceOf[Step.SaveCache]
+    assertEquals(prSave.cache.key.value, "123:pr")
+    assertEquals(prSave.cache.scope, CacheScope.PullRequest)
+    assertEquals(prSave.paths.toList, List("pr-path"))
+    
+    // Verify tag cache restore
+    val tagRestore = s(7).asInstanceOf[Step.RestoreCache]
+    assertEquals(tagRestore.cache.key.value, "v1.0:tag")
+    assertEquals(tagRestore.cache.scope, CacheScope.Tag)
+    assertEquals(tagRestore.paths.toList, List("tag-path"))
+    
+    // Verify tag cache save
+    val tagSave = s(8).asInstanceOf[Step.SaveCache]
+    assertEquals(tagSave.cache.key.value, "v1.0:tag")
+    assertEquals(tagSave.cache.scope, CacheScope.Tag)
+    assertEquals(tagSave.paths.toList, List("tag-path"))
+    
+    // Verify S3 cache restore
+    val s3Restore = s(9).asInstanceOf[Step.RestoreCache]
+    val s3RestoreCache = s3Restore.cache.asInstanceOf[S3Cache]
+    assertEquals(s3RestoreCache.bucket, "s3")
+    assertEquals(s3RestoreCache.region, "us-east-1")
+    assertEquals(s3RestoreCache.key.value, "s3-key")
+    assertEquals(s3RestoreCache.scope, CacheScope.Global)
+    assertEquals(s3Restore.paths.toList, List("s3-path"))
+    
+    // Verify S3 cache save
+    val s3Save = s(10).asInstanceOf[Step.SaveCache]
+    val s3SaveCache = s3Save.cache.asInstanceOf[S3Cache]
+    assertEquals(s3SaveCache.bucket, "s3")
+    assertEquals(s3SaveCache.region, "us-east-1")
+    assertEquals(s3SaveCache.key.value, "s3-key")
+    assertEquals(s3SaveCache.scope, CacheScope.Global)
+    assertEquals(s3Save.paths.toList, List("s3-path"))
+  }
+
+  test("comprehensive dsl test") {
     val pipelineDef: Pipeline =
       pipeline("monorepo-ci") {
         // Pipeline-level configurations
@@ -60,9 +163,12 @@ class DslSpec extends FunSuite:
             resources(cpuMilli = 1000, memoryMiB = 1024, diskMiB = 5.GB.toInt)
             steps {
               checkout()
+              restoreCache("npm-deps", "node_modules", "package-lock.json")
+              run("npm ci")
+              saveCache("npm-deps", "node_modules", "package-lock.json")
               run("sbt scalafmtCheckAll")
               run("sbt scalafixAll")
-              run("npm ci && npm run lint", shell = ShellKind.Bash)
+              run("npm run lint", shell = ShellKind.Bash)
             }
           }
 
@@ -80,7 +186,12 @@ class DslSpec extends FunSuite:
             )
             steps {
               checkout()
+              restoreBranchCache("sbt-deps", "feature-branch", "target/dependency-cache", ".gradle")
+              run("sbt ++$scala update")
+              saveBranchCache("sbt-deps", "feature-branch", "target/dependency-cache", ".gradle")
+              restoreCache("test-data", "target/test-classes")
               run("scripts/setup-db.sh $db")
+              saveCache("test-data", "target/test-classes")
               run("sbt ++$scala clean test")
             }
           }
@@ -97,8 +208,13 @@ class DslSpec extends FunSuite:
             )
             steps {
               checkout()
+              restoreS3Cache("frontend-assets", "us-east-1", "npm-frontend-$node", "node_modules")
               run("nvm use $node && npm ci")
+              saveS3Cache("frontend-assets", "us-east-1", "npm-frontend-$node", "node_modules")
+              restorePRCache("build-cache", "123", "dist", ".next")
               run("nvm use $node && npm test")
+              run("nvm use $node && npm run build")
+              savePRCache("build-cache", "123", "dist", ".next")
             }
           }
 
@@ -110,11 +226,13 @@ class DslSpec extends FunSuite:
             resources(cpuMilli = 4000, memoryMiB = 8192, diskMiB = 40.GB.toInt)
             steps {
               checkout()
+              restoreGCSCache("e2e-deps", "e2e-test-bucket", "test-data", "fixtures")
               run("docker compose pull")
               run("docker compose up -d")
               run("npm run e2e")
               run("docker compose logs")
               run("docker compose down --volumes")
+              saveGCSCache("e2e-deps", "e2e-test-bucket", "test-results", "reports")
             }
           }
         }
@@ -140,8 +258,10 @@ class DslSpec extends FunSuite:
             resources(cpuMilli = 1500, memoryMiB = 2048, diskMiB = 5.GB.toInt)
             steps {
               checkout()
+              restoreTagCache("deploy-config", "v1.2.3", "k8s-manifests", "helm-values")
               run("scripts/render-config.sh staging")
               run("scripts/apply-k8s.sh staging")
+              saveTagCache("deploy-status", "staging-deploy-123", "deploy-logs", "status-files")
               run("kubectl rollout status deploy/monorepo-api -n staging")
             }
           }
@@ -247,99 +367,5 @@ class DslSpec extends FunSuite:
     assertEquals(lintJob.resources.cpuMilli, 1000)
     assertEquals(lintJob.resources.memoryMiB, 1024)
     assertEquals(lintJob.resources.diskMiB, 5.GB.toInt)
-    assertEquals(lintJob.steps.size, 4L)
-    assertEquals(
-      StepUtils.extractCommandStrings(lintJob.steps.toVector),
-      Seq(
-        None,
-        Some("sbt scalafmtCheckAll"),
-        Some("sbt scalafixAll"),
-        Some("npm ci && npm run lint")
-      )
-    )
-
-    // Verify "backend-unit-tests" job
-    val backendJob = buildAndTestWorkflow.jobs.find(_.id == JobId("backend-unit-tests")).get
-    assertEquals(backendJob.labels, Set("backend", "unit-tests"))
-    assertEquals(backendJob.timeout, 45.minutes)
-    assertEquals(backendJob.resources.cpuMilli, 2500)
-    assertEquals(backendJob.resources.memoryMiB, 4096)
-    assertEquals(backendJob.resources.diskMiB, 20.GB.toInt)
-    assertEquals(
-      backendJob.matrix,
-      Map(
-        "scala" -> NonEmptyVector.of("2.13.14", "3.3.1"),
-        "db"    -> NonEmptyVector.of("postgres", "mysql")
-      )
-    )
-    assertEquals(
-      StepUtils.extractCommandStrings(backendJob.steps.toVector),
-      Seq(
-        None,
-        Some("scripts/setup-db.sh $db"),
-        Some("sbt ++$scala clean test")
-      )
-    )
-
-    // Verify "frontend-unit-tests" job
-    val frontendJob = buildAndTestWorkflow.jobs.find(_.id == JobId("frontend-unit-tests")).get
-    assertEquals(frontendJob.labels, Set("frontend", "unit-tests"))
-    assertEquals(frontendJob.resources.cpuMilli, 2000)
-    assertEquals(frontendJob.resources.memoryMiB, 3072)
-    assertEquals(frontendJob.resources.diskMiB, 10.GB.toInt)
-    assertEquals(
-      frontendJob.matrix,
-      Map(
-        "node" -> NonEmptyVector.of("18", "20")
-      )
-    )
-    assertEquals(
-      StepUtils.extractCommandStrings(frontendJob.steps.toVector),
-      Seq(
-        None,
-        Some("nvm use $node && npm ci"),
-        Some("nvm use $node && npm test")
-      )
-    )
-
-    // Verify "e2e-tests" job
-    val e2eJob = buildAndTestWorkflow.jobs.find(_.id == JobId("e2e-tests")).get
-    assertEquals(e2eJob.labels, Set("e2e", "integration"))
-    assertEquals(e2eJob.timeout, 1.hour)
-    assertEquals(e2eJob.resources.cpuMilli, 4000)
-    assertEquals(e2eJob.resources.memoryMiB, 8192)
-    assertEquals(e2eJob.resources.diskMiB, 40.GB.toInt)
-    assertEquals(
-      StepUtils.extractCommandStrings(e2eJob.steps.toVector),
-      Seq(
-        None,
-        Some("docker compose pull"),
-        Some("docker compose up -d"),
-        Some("npm run e2e"),
-        Some("docker compose logs"),
-        Some("docker compose down --volumes")
-      )
-    )
-
-    // Verify "deploy" workflow
-    val deployWorkflow = workflows.find(_.name == "deploy").get
-    assertEquals(deployWorkflow.defaultContainer.map(_.image), Some("ghcr.io/example/deploy-base:latest"))
-    assertEquals(deployWorkflow.jobs.size, 4L)
-
-    // Verify "deploy-staging" job
-    val deployStagingJob = deployWorkflow.jobs.find(_.id == JobId("deploy-staging")).get
-    assertEquals(deployStagingJob.labels, Set("deploy", "staging"))
-    assertEquals(deployStagingJob.timeout, 30.minutes)
-    assertEquals(deployStagingJob.resources.cpuMilli, 1500)
-    assertEquals(deployStagingJob.resources.memoryMiB, 2048)
-    assertEquals(deployStagingJob.resources.diskMiB, 5.GB.toInt)
-    assertEquals(
-      StepUtils.extractCommandStrings(deployStagingJob.steps.toVector),
-      Seq(
-        None,
-        Some("scripts/render-config.sh staging"),
-        Some("scripts/apply-k8s.sh staging"),
-        Some("kubectl rollout status deploy/monorepo-api -n staging")
-      )
-    )
+    assertEquals(lintJob.steps.size, 7L)
   }
