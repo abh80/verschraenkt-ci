@@ -21,10 +21,10 @@ final class PipelineBuilder(val id: PipelineId):
   private var labelsSet: Set[String]              = Set.empty
   private var timeoutOpt: Option[FiniteDuration]  = None
 
-  def addWorkflow(w: Workflow): Unit             = workflowsVec :+= w
-  def setConcurrency(group: String): Unit        = concurrencyGroupOpt = Some(group)
-  def addLabels(newLabels: String*): Unit        = labelsSet ++= newLabels
-  def setTimeout(duration: FiniteDuration): Unit = timeoutOpt = Some(duration)
+  def addWorkflow(w: Workflow): Unit             = synchronized { workflowsVec :+= w }
+  def setConcurrency(group: String): Unit        = synchronized { concurrencyGroupOpt = Some(group) }
+  def addLabels(newLabels: String*): Unit        = synchronized { labelsSet ++= newLabels }
+  def setTimeout(duration: FiniteDuration): Unit = synchronized { timeoutOpt = Some(duration) }
 
   def build(): Pipeline =
     require(workflowsVec.nonEmpty, s"Pipeline '${id.value}' must have at least one workflow")

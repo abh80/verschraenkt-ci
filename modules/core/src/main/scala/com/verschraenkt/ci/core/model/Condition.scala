@@ -198,8 +198,12 @@ object Condition:
         else Or(NonEmptyVector.fromVectorUnsafe(filtered))
 
     // Not with And/Or (De Morgan's laws)
-    case Not(And(cs)) => simplify(Or(cs.map(c => Not(c))))
-    case Not(Or(cs))  => simplify(And(cs.map(c => Not(c))))
+    case Not(And(cs)) =>
+      val negated = cs.map(c => simplify(Not(c)))
+      simplify(Or(negated))
+    case Not(Or(cs)) =>
+      val negated = cs.map(c => simplify(Not(c)))
+      simplify(And(negated))
     // Other Not cases
     case Not(inner) => Not(simplify(inner))
 

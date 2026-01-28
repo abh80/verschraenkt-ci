@@ -119,54 +119,62 @@ object dsl:
   def restoreCache(key: String, paths: String*)(using sb: StepsBuilder): Unit =
     import cats.data.NonEmptyList
     val cacheKey = CacheKey.literal(key)
-    val nonEmptyPaths = NonEmptyList.fromList(paths.toList).getOrElse(NonEmptyList.one("default"))
+    val nonEmptyPaths = NonEmptyList.fromList(paths.toList)
+      .getOrElse(throw new IllegalArgumentException("restoreCache requires at least one path"))
     sb.add(StepLike.RestoreCache(Cache.RestoreCache(cacheKey, nonEmptyPaths), nonEmptyPaths))
 
   def saveCache(key: String, paths: String*)(using sb: StepsBuilder): Unit =
     import cats.data.NonEmptyList
     val cacheKey = CacheKey.literal(key)
-    val nonEmptyPaths = NonEmptyList.fromList(paths.toList).getOrElse(NonEmptyList.one("default"))
+    val nonEmptyPaths = NonEmptyList.fromList(paths.toList)
+      .getOrElse(throw new IllegalArgumentException("saveCache requires at least one path"))
     sb.add(StepLike.SaveCache(Cache.SaveCache(cacheKey, nonEmptyPaths), nonEmptyPaths))
 
   def restoreBranchCache(key: String, branch: String, paths: String*)(using sb: StepsBuilder): Unit =
     import cats.data.NonEmptyList
     val cacheKey = CacheKey.literal(key)
-    val nonEmptyPaths = NonEmptyList.fromList(paths.toList).getOrElse(NonEmptyList.one("default"))
+    val nonEmptyPaths = NonEmptyList.fromList(paths.toList)
+      .getOrElse(throw new IllegalArgumentException("restoreBranchCache requires at least one path"))
     val cache = Cache.restoreForBranch(cacheKey, nonEmptyPaths, branch)
     sb.add(StepLike.RestoreCache(cache, nonEmptyPaths))
 
   def saveBranchCache(key: String, branch: String, paths: String*)(using sb: StepsBuilder): Unit =
     import cats.data.NonEmptyList
     val cacheKey = CacheKey.literal(key)
-    val nonEmptyPaths = NonEmptyList.fromList(paths.toList).getOrElse(NonEmptyList.one("default"))
+    val nonEmptyPaths = NonEmptyList.fromList(paths.toList)
+      .getOrElse(throw new IllegalArgumentException("saveBranchCache requires at least one path"))
     val cache = Cache.saveForBranch(cacheKey, nonEmptyPaths, branch)
     sb.add(StepLike.SaveCache(cache, nonEmptyPaths))
 
   def restorePRCache(key: String, pr: String, paths: String*)(using sb: StepsBuilder): Unit =
     import cats.data.NonEmptyList
     val cacheKey = CacheKey.literal(key)
-    val nonEmptyPaths = NonEmptyList.fromList(paths.toList).getOrElse(NonEmptyList.one("default"))
+    val nonEmptyPaths = NonEmptyList.fromList(paths.toList)
+      .getOrElse(throw new IllegalArgumentException("restorePRCache requires at least one path"))
     val cache = Cache.restoreForPR(cacheKey, nonEmptyPaths, pr)
     sb.add(StepLike.RestoreCache(cache, nonEmptyPaths))
 
   def savePRCache(key: String, pr: String, paths: String*)(using sb: StepsBuilder): Unit =
     import cats.data.NonEmptyList
     val cacheKey = CacheKey.literal(key)
-    val nonEmptyPaths = NonEmptyList.fromList(paths.toList).getOrElse(NonEmptyList.one("default"))
+    val nonEmptyPaths = NonEmptyList.fromList(paths.toList)
+      .getOrElse(throw new IllegalArgumentException("savePRCache requires at least one path"))
     val cache = Cache.saveForPR(cacheKey, nonEmptyPaths, pr)
     sb.add(StepLike.SaveCache(cache, nonEmptyPaths))
 
   def restoreTagCache(key: String, tag: String, paths: String*)(using sb: StepsBuilder): Unit =
     import cats.data.NonEmptyList
     val cacheKey = CacheKey.literal(key)
-    val nonEmptyPaths = NonEmptyList.fromList(paths.toList).getOrElse(NonEmptyList.one("default"))
+    val nonEmptyPaths = NonEmptyList.fromList(paths.toList)
+      .getOrElse(throw new IllegalArgumentException("restoreTagCache requires at least one path"))
     val cache = Cache.restoreForTag(cacheKey, nonEmptyPaths, tag)
     sb.add(StepLike.RestoreCache(cache, nonEmptyPaths))
 
   def saveTagCache(key: String, tag: String, paths: String*)(using sb: StepsBuilder): Unit =
     import cats.data.NonEmptyList
     val cacheKey = CacheKey.literal(key)
-    val nonEmptyPaths = NonEmptyList.fromList(paths.toList).getOrElse(NonEmptyList.one("default"))
+    val nonEmptyPaths = NonEmptyList.fromList(paths.toList)
+      .getOrElse(throw new IllegalArgumentException("saveTagCache requires at least one path"))
     val cache = Cache.saveForTag(cacheKey, nonEmptyPaths, tag)
     sb.add(StepLike.SaveCache(cache, nonEmptyPaths))
 
@@ -175,28 +183,32 @@ object dsl:
   def restoreS3Cache(bucket: String, region: String, key: String, paths: String*)(using sb: StepsBuilder): Unit =
     import cats.data.NonEmptyList
     val cacheKey = CacheKey.literal(key)
-    val nonEmptyPaths = NonEmptyList.fromList(paths.toList).getOrElse(NonEmptyList.one("default"))
+    val nonEmptyPaths = NonEmptyList.fromList(paths.toList)
+      .getOrElse(throw new IllegalArgumentException("restoreS3Cache requires at least one path"))
     val cache = S3Cache(bucket, region, cacheKey)
     sb.add(StepLike.RestoreCache(cache, nonEmptyPaths))
 
   def saveS3Cache(bucket: String, region: String, key: String, paths: String*)(using sb: StepsBuilder): Unit =
     import cats.data.NonEmptyList
     val cacheKey = CacheKey.literal(key)
-    val nonEmptyPaths = NonEmptyList.fromList(paths.toList).getOrElse(NonEmptyList.one("default"))
+    val nonEmptyPaths = NonEmptyList.fromList(paths.toList)
+      .getOrElse(throw new IllegalArgumentException("saveS3Cache requires at least one path"))
     val cache = S3Cache(bucket, region, cacheKey)
     sb.add(StepLike.SaveCache(cache, nonEmptyPaths))
 
   def restoreGCSCache(bucket: String, key: String, paths: String*)(using sb: StepsBuilder): Unit =
     import cats.data.NonEmptyList
     val cacheKey = CacheKey.literal(key)
-    val nonEmptyPaths = NonEmptyList.fromList(paths.toList).getOrElse(NonEmptyList.one("default"))
+    val nonEmptyPaths = NonEmptyList.fromList(paths.toList)
+      .getOrElse(throw new IllegalArgumentException("restoreGCSCache requires at least one path"))
     val cache = GCSCache(bucket, cacheKey)
     sb.add(StepLike.RestoreCache(cache, nonEmptyPaths))
 
   def saveGCSCache(bucket: String, key: String, paths: String*)(using sb: StepsBuilder): Unit =
     import cats.data.NonEmptyList
     val cacheKey = CacheKey.literal(key)
-    val nonEmptyPaths = NonEmptyList.fromList(paths.toList).getOrElse(NonEmptyList.one("default"))
+    val nonEmptyPaths = NonEmptyList.fromList(paths.toList)
+      .getOrElse(throw new IllegalArgumentException("saveGCSCache requires at least one path"))
     val cache = GCSCache(bucket, cacheKey)
     sb.add(StepLike.SaveCache(cache, nonEmptyPaths))
 

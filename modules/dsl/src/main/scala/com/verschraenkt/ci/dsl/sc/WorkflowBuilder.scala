@@ -20,11 +20,11 @@ final class WorkflowBuilder(val name: String):
   private var labelsSet: Set[String]                 = Set.empty
   private var conditionVal: Condition                = Condition.Always
 
-  def addJob(j: Job): Unit                            = jobsVec :+= j
-  def setDefaultContainer(container: Container): Unit = defaultContainerOpt = Some(container)
-  def setConcurrency(group: String): Unit             = concurrencyGroupOpt = Some(group)
-  def addLabels(newLabels: String*): Unit             = labelsSet ++= newLabels
-  def setCondition(newCondition: Condition): Unit     = conditionVal = newCondition
+  def addJob(j: Job): Unit                            = synchronized { jobsVec :+= j }
+  def setDefaultContainer(container: Container): Unit = synchronized { defaultContainerOpt = Some(container) }
+  def setConcurrency(group: String): Unit             = synchronized { concurrencyGroupOpt = Some(group) }
+  def addLabels(newLabels: String*): Unit             = synchronized { labelsSet ++= newLabels }
+  def setCondition(newCondition: Condition): Unit     = synchronized { conditionVal = newCondition }
 
   private[sc] def build(): Workflow =
     require(jobsVec.nonEmpty, s"Workflow '$name' must have at least one job")

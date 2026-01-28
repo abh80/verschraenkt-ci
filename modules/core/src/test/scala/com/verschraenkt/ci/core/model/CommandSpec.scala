@@ -275,3 +275,9 @@ class CommandSpec extends FunSuite:
         assertEquals(timeout, Some(300))
       case _ => fail("Expected Exec command")
   }
+  test("~> operator throws IllegalArgumentException for non-CommandLike elements in tuple") {
+    val cmd1 = Command.Exec("echo")
+    intercept[IllegalArgumentException] {
+      cmd1 ~> ("not a command", 123)
+    }
+  }

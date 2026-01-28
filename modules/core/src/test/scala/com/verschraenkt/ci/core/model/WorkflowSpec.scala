@@ -404,3 +404,60 @@ class WorkflowSpec extends FunSuite:
     assertEquals(workflow.jobs.length, 1)
     assertEquals(workflow.jobs.head.steps.length, 3)
   }
+
+  // Tests for Issue 2.4: concurrencyGroup propagation in materialize
+  test("Workflow.materialize propagates concurrencyGroup to jobs without one") {
+    val jobWithConcurrency = job1.copy(concurrencyGroup = Some("job-group"))
+    val jobWithoutConcurrency = job2.copy(concurrencyGroup = None)
+
+    val workflow = Workflow(
+      name = "concurrency-test",
+      jobs = NonEmptyVector.of(jobWithConcurrency, jobWithoutConcurrency),
+      defaultContainer = None,
+      concurrencyGroup = Some("workflow-group")
+    )
+
+    val materialized = Workflow.materialize(workflow)
+
+    // Job with its own concurrencyGroup should keep it
+    assertEquals(materialized.head.concurrencyGroup, Some("job-group"))
+    // Job without concurrencyGroup should inherit from workflow
+    assertEquals(materialized.tail.head.concurrencyGroup, Some("workflow-group"))
+  }
+
+  test("Workflow.materialize does not override job concurrencyGroup") {
+    val jobWithConcurrency = job1.copy(concurrencyGroup = Some("my-group"))
+
+    val workflow = Workflow.one(
+      name = "override-test",
+      job = jobWithConcurrency,
+      concurrencyGroup = Some("workflow-group")
+    )
+
+    val materialized = Workflow.materialize(workflow)
+    assertEquals(materialized.head.concurrencyGroup, Some("my-group"))
+  }
+
+  test("Workflow.materialize leaves job concurrencyGroup as None when workflow has none") {
+    val jobWithoutConcurrency = job1.copy(concurrencyGroup = None)
+
+    val workflow = Workflow.one(
+      name = "no-concurrency",
+      job = jobWithoutConcurrency,
+      concurrencyGroup = None
+    )
+
+    val materialized = Workflow.materialize(workflow)
+    assertEquals(materialized.head.concurrencyGroup, None)
+  }
+
+  test("materialized extension method propagates concurrencyGroup") {
+    val workflow = Workflow.one(
+      "extension-concurrency",
+      job1.copy(concurrencyGroup = None),
+      concurrencyGroup = Some("workflow-conc")
+    )
+
+    val materialized = workflow.materialized
+    assertEquals(materialized.head.concurrencyGroup, Some("workflow-conc"))
+  }

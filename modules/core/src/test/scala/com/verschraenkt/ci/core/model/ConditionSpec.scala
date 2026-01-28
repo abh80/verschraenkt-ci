@@ -365,3 +365,59 @@ class ConditionSpec extends AnyFunSuite with Matchers:
     left shouldBe a[Condition.Not]
     right shouldBe a[Condition.Or]
   }
+
+  // Tests for Issue 2.3: De Morgan simplification doesn't infinite loop
+  test("simplify: Not(And) applies De Morgan's law correctly") {
+    val cond1 = Condition.OnBranch("main", PatternKind.Exact)
+    val cond2 = Condition.OnEvent("push")
+    val notAnd = Condition.Not(Condition.And(NonEmptyVector.of(cond1, cond2)))
+    
+    val simplified = notAnd.simplify
+    // Should become Or(Not(cond1), Not(cond2))
+    simplified shouldBe a[Condition.Or]
+    simplified match {
+      case Condition.Or(cs) =>
+        cs.length shouldBe 2
+        cs.toVector.foreach { c => c shouldBe a[Condition.Not] }
+      case _ => fail("Expected Or condition")
+    }
+  }
+
+  test("simplify: Not(Or) applies De Morgan's law correctly") {
+    val cond1 = Condition.OnBranch("main", PatternKind.Exact)
+    val cond2 = Condition.OnEvent("push")
+    val notOr = Condition.Not(Condition.Or(NonEmptyVector.of(cond1, cond2)))
+    
+    val simplified = notOr.simplify
+    // Should become And(Not(cond1), Not(cond2))
+    simplified shouldBe a[Condition.And]
+    simplified match {
+      case Condition.And(cs) =>
+        cs.length shouldBe 2
+        cs.toVector.foreach { c => c shouldBe a[Condition.Not] }
+      case _ => fail("Expected And condition")
+    }
+  }
+
+  test("simplify: deeply nested De Morgan does not stack overflow") {
+    // Create a deeply nested structure: Not(And(Not(Or(Not(And(...))))))
+    var cond: Condition = Condition.OnBranch("main", PatternKind.Exact)
+    for (_ <- 1 to 20) {
+      cond = Condition.Not(Condition.And(NonEmptyVector.of(cond, Condition.OnEvent("push"))))
+    }
+    
+    // This should complete without stack overflow
+    val simplified = cond.simplify
+    // Just verify it returns something (the actual structure is complex)
+    simplified should not be null
+  }
+
+  test("simplify: Not(Not(And)) simplifies correctly via De Morgan") {
+    val cond1 = Condition.OnBranch("main", PatternKind.Exact)
+    val cond2 = Condition.OnEvent("push")
+    val doubleNegAnd = Condition.Not(Condition.Not(Condition.And(NonEmptyVector.of(cond1, cond2))))
+    
+    val simplified = doubleNegAnd.simplify
+    // Double negation should cancel out, leaving the And
+    simplified shouldBe a[Condition.And]
+  }

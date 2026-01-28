@@ -39,7 +39,8 @@ object Workflow:
     w.jobs.map { j =>
       j.copy(
         container = j.container.orElse(w.defaultContainer),
-        labels = j.labels ++ w.labels
+        labels = j.labels ++ w.labels,
+        concurrencyGroup = j.concurrencyGroup.orElse(w.concurrencyGroup)
       )
     }
 

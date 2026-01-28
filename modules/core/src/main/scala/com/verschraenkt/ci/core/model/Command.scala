@@ -134,7 +134,11 @@ extension (c: CommandLike)
 
   /** Chain multiple commands together using tuple syntax */
   infix def ~>(commands: Tuple): Composite =
-    val allCommands = c +: commands.toList.asInstanceOf[List[CommandLike]]
+    val commandList = commands.toList.map {
+      case cmd: CommandLike => cmd
+      case other            => throw new IllegalArgumentException(s"Element '$other' in tuple is not a CommandLike")
+    }
+    val allCommands = c +: commandList
     Composite(NonEmptyVector.fromVectorUnsafe(allCommands.toVector.map(_.asCommand)))
 
 extension (left: Step)

@@ -1,5 +1,7 @@
 package com.verschraenkt.ci.engine.api
 
+import com.verschraenkt.ci.core.model.CacheScope
+
 // Artifact & Cache Protocol
 case class ArtifactInstructions(
   downloads: List[ArtifactDownload],
@@ -23,10 +25,3 @@ case class CacheInstructions(
   paths: List[String],
   restoreKeys: List[String]
 )
-
-sealed trait CacheScope
-object CacheScope {
-  case object Job extends CacheScope
-  case object Pipeline extends CacheScope
-  case object Global extends CacheScope
-}

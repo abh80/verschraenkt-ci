@@ -49,14 +49,15 @@ object StepLike:
 final class StepsBuilder:
   private var acc               = Vector.empty[StepLike]
   private[sc] val stepMeta      = MetaBuilder()
-  def add(step: StepLike): Unit = acc :+= step
-  def result: Vector[StepLike]  = acc
+  def add(step: StepLike): Unit = synchronized { acc :+= step }
+  def result: Vector[StepLike]  = synchronized { acc }
   
-  def modifyLast(f: StepLike => StepLike): Unit =
+  def modifyLast(f: StepLike => StepLike): Unit = synchronized {
     if (acc.nonEmpty) {
       val last = acc.last
       acc = acc.dropRight(1) :+ f(last)
     }
+  }
 
   def steps(body: StepsBuilder ?=> Unit): Vector[StepLike] =
     given sb: StepsBuilder = StepsBuilder()
@@ -92,7 +93,7 @@ object StepBuilder:
       case r: StepLike.SaveCache    => Step.SaveCache(r.cache, r.paths)
 
 case class StepMetaBuilder(
-    name: Option[String] = None,
+    id: Option[String] = None,
     when: When = When.Always,
     timeout: Option[FiniteDuration] = None,
     continueOnError: Boolean = false,
@@ -108,7 +109,7 @@ case class StepMetaBuilder(
   def workingDir(dir: String): StepMetaBuilder           = this.copy(workingDirectory = Some(dir))
 
   def toStepMeta: StepMeta =
-    StepMeta(name, when, timeout, continueOnError, retry, env, workingDirectory)
+    StepMeta(id, when, timeout, continueOnError, retry, env, workingDirectory)
 
 object StepMetaBuilder:
   def from(meta: StepMeta): StepMetaBuilder =

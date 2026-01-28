@@ -130,7 +130,7 @@ object StepUtils {
   def findAllCommands(step: Step): Seq[Command] = step match {
     case Step.Run(cmd) => Seq(cmd.asCommand)
     case Step.Composite(steps) =>
-      ???
+      steps.toVector.flatMap(findAllCommands)
     case _ => Nil
   }
   

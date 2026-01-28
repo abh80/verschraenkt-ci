@@ -20,6 +20,8 @@ class CacheSpec extends FunSuite:
     assertEquals(CacheScope.Branch.intVal, 1)
     assertEquals(CacheScope.PullRequest.intVal, 2)
     assertEquals(CacheScope.Tag.intVal, 3)
+    assertEquals(CacheScope.Job.intVal, 4)
+    assertEquals(CacheScope.Pipeline.intVal, 5)
   }
 
   test("CacheScope.fromInt should convert valid integers") {
@@ -27,11 +29,13 @@ class CacheSpec extends FunSuite:
     assertEquals(CacheScope.fromInt(1), Some(CacheScope.Branch))
     assertEquals(CacheScope.fromInt(2), Some(CacheScope.PullRequest))
     assertEquals(CacheScope.fromInt(3), Some(CacheScope.Tag))
+    assertEquals(CacheScope.fromInt(4), Some(CacheScope.Job))
+    assertEquals(CacheScope.fromInt(5), Some(CacheScope.Pipeline))
   }
 
   test("CacheScope.fromInt should return None for invalid integers") {
     assertEquals(CacheScope.fromInt(-1), None)
-    assertEquals(CacheScope.fromInt(4), None)
+    assertEquals(CacheScope.fromInt(6), None)
     assertEquals(CacheScope.fromInt(100), None)
   }
 
@@ -155,6 +159,18 @@ class CacheSpec extends FunSuite:
     val key    = CacheKey.literal("my-key")
     val scoped = CacheKey.scoped(CacheScope.Tag, key, Map("tag" -> "v1.0.0"))
     assertEquals(scoped.value, "v1.0.0:my-key")
+  }
+
+  test("CacheKey.scoped should namespace Job scope") {
+    val key    = CacheKey.literal("my-key")
+    val scoped = CacheKey.scoped(CacheScope.Job, key, Map("job" -> "job-123"))
+    assertEquals(scoped.value, "job-123:my-key")
+  }
+
+  test("CacheKey.scoped should namespace Pipeline scope") {
+    val key    = CacheKey.literal("my-key")
+    val scoped = CacheKey.scoped(CacheScope.Pipeline, key, Map("pipeline" -> "pipeline-456"))
+    assertEquals(scoped.value, "pipeline-456:my-key")
   }
 
   test("Cache.forBranch should create branch-scoped key") {

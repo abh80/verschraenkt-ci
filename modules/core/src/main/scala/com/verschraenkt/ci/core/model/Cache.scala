@@ -23,6 +23,8 @@ import java.nio.charset.StandardCharsets.UTF_8
  * - Branch: Isolated to specific branch
  * - PullRequest: Specific to pull requests
  * - Tag: Associated with specific tags
+ * - Job: Scoped to a specific job execution
+ * - Pipeline: Scoped to a pipeline execution
  *
  * @param intVal Integer value representing the scope level
  */
@@ -38,6 +40,12 @@ enum CacheScope(val intVal: Int):
 
   /** Tag-specific cache scope */
   case Tag extends CacheScope(3)
+
+  /** Job-specific cache scope */
+  case Job extends CacheScope(4)
+
+  /** Pipeline-specific cache scope */
+  case Pipeline extends CacheScope(5)
 
 /** Represents a normalized cache key for identifying cached content.
  *
@@ -101,6 +109,8 @@ object CacheKey:
       case CacheScope.Branch      => namespace(ctx.getOrElse("branch", "unknown"), key)
       case CacheScope.PullRequest => namespace(ctx.getOrElse("pr", "unknown"), key)
       case CacheScope.Tag         => namespace(ctx.getOrElse("tag", "unknown"), key)
+      case CacheScope.Job         => namespace(ctx.getOrElse("job", "unknown"), key)
+      case CacheScope.Pipeline    => namespace(ctx.getOrElse("pipeline", "unknown"), key)
 
   private def normalize(s: String): CacheKey =
     val trimmed = s.trim
@@ -126,6 +136,8 @@ object CacheScope:
       case 1 => Some(CacheScope.Branch)
       case 2 => Some(CacheScope.PullRequest)
       case 3 => Some(CacheScope.Tag)
+      case 4 => Some(CacheScope.Job)
+      case 5 => Some(CacheScope.Pipeline)
       case _ => None
 
 /** Factory methods for creating various cache operations.

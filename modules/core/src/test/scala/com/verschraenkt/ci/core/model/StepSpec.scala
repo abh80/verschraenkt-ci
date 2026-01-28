@@ -462,3 +462,71 @@ class StepSpec extends FunSuite:
 
     assertEquals(outer.steps.length, 3)
   }
+
+  // Tests for Issue 2.1: findAllCommands with composite steps
+  test("StepUtils.findAllCommands extracts commands from composite steps") {
+    given StepMeta = StepMeta()
+    val cmd1 = Command.Shell("echo hello")
+    val cmd2 = Command.Exec("npm", List("install"))
+    val cmd3 = Command.Shell("npm test")
+    
+    val composite = Step.Composite(cats.data.NonEmptyVector.of(
+      Step.Run(cmd1),
+      Step.Run(cmd2),
+      Step.Checkout(),
+      Step.Run(cmd3)
+    ))
+    
+    val commands = StepUtils.findAllCommands(composite)
+    assertEquals(commands.length, 3)
+    assertEquals(commands(0), cmd1)
+    assertEquals(commands(1), cmd2)
+    assertEquals(commands(2), cmd3)
+  }
+
+  test("StepUtils.findAllCommands handles nested composite steps") {
+    given StepMeta = StepMeta()
+    val cmd1 = Command.Shell("echo 1")
+    val cmd2 = Command.Shell("echo 2")
+    val cmd3 = Command.Shell("echo 3")
+    
+    val inner = Step.Composite(cats.data.NonEmptyVector.of(
+      Step.Run(cmd1),
+      Step.Run(cmd2)
+    ))
+    val outer = Step.Composite(cats.data.NonEmptyVector.of(
+      inner,
+      Step.Run(cmd3)
+    ))
+    
+    val commands = StepUtils.findAllCommands(outer)
+    assertEquals(commands.length, 3)
+  }
+
+  test("StepUtils.findAllShellCommands works with composite steps") {
+    given StepMeta = StepMeta()
+    val composite = Step.Composite(cats.data.NonEmptyVector.of(
+      Step.Run(Command.Shell("echo hello")),
+      Step.Run(Command.Exec("npm", List("install"))),
+      Step.Run(Command.Shell("npm test"))
+    ))
+    
+    val shellCommands = StepUtils.findAllShellCommands(composite)
+    assertEquals(shellCommands.length, 2)
+    assertEquals(shellCommands(0), "echo hello")
+    assertEquals(shellCommands(1), "npm test")
+  }
+
+  test("StepUtils.findAllExecCommands works with composite steps") {
+    given StepMeta = StepMeta()
+    val composite = Step.Composite(cats.data.NonEmptyVector.of(
+      Step.Run(Command.Shell("echo hello")),
+      Step.Run(Command.Exec("npm", List("install"))),
+      Step.Run(Command.Exec("sbt", List("compile", "test")))
+    ))
+    
+    val execCommands = StepUtils.findAllExecCommands(composite)
+    assertEquals(execCommands.length, 2)
+    assertEquals(execCommands(0), ("npm", List("install")))
+    assertEquals(execCommands(1), ("sbt", List("compile", "test")))
+  }

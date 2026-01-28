@@ -33,6 +33,64 @@ class DslSpec extends FunSuite:
     assertEquals(p.id, PipelineId("p"))
   }
 
+  // Tests for Issue 2.2: cache functions require at least one path
+  test("restoreCache throws IllegalArgumentException when no paths provided") {
+    intercept[IllegalArgumentException] {
+      pipeline("test") {
+        workflow("w") {
+          job("j") {
+            steps {
+              restoreCache("key")
+            }
+          }
+        }
+      }
+    }
+  }
+
+  test("saveCache throws IllegalArgumentException when no paths provided") {
+    intercept[IllegalArgumentException] {
+      pipeline("test") {
+        workflow("w") {
+          job("j") {
+            steps {
+              saveCache("key")
+            }
+          }
+        }
+      }
+    }
+  }
+
+  test("restoreBranchCache throws IllegalArgumentException when no paths provided") {
+    intercept[IllegalArgumentException] {
+      pipeline("test") {
+        workflow("w") {
+          job("j") {
+            steps {
+              restoreBranchCache("key", "main")
+            }
+          }
+        }
+      }
+    }
+  }
+
+  test("restoreS3Cache throws IllegalArgumentException when no paths provided") {
+    intercept[IllegalArgumentException] {
+      pipeline("test") {
+        workflow("w") {
+          job("j") {
+            steps {
+              restoreS3Cache("bucket", "region", "key")
+            }
+          }
+        }
+      }
+    }
+  }
+
+
   test("cache functions create correct Step types and verify properties") {
     val p: Pipeline =
       pipeline("cache-verification") {

@@ -29,17 +29,18 @@ final class JobBuilder(val name: String):
   private val stepMetaVal: StepMeta = StepMeta() // Keep stepMeta as val, configure it via StepLike later
 
   // Mutator methods
-  def addStep(step: StepLike): Unit =
+  def addStep(step: StepLike): Unit = synchronized {
     given sb: StepsBuilder = StepsBuilder()
     stepsVec :+= StepBuilder.toStep(step)(using stepMetaVal, sb)
-  def addDependencies(jobIds: JobId*): Unit      = dependenciesSet ++= jobIds.toSet
-  def setResources(resource: Resource): Unit     = resourcesVal = resource
-  def setTimeout(duration: FiniteDuration): Unit = timeoutVal = duration
-  def setMatrix(matrixConfig: Map[String, NonEmptyVector[String]]): Unit = matrixMap = matrixConfig
-  def setContainer(containerConfig: Container): Unit = containerOpt = Some(containerConfig)
-  def addLabels(moreLabels: String*): Unit           = labelsSet ++= moreLabels
-  def setConcurrencyGroup(group: String): Unit       = concurrencyGroupOpt = Some(group)
-  def setCondition(cond: Condition): Unit            = conditionVal = cond
+  }
+  def addDependencies(jobIds: JobId*): Unit      = synchronized { dependenciesSet ++= jobIds.toSet }
+  def setResources(resource: Resource): Unit     = synchronized { resourcesVal = resource }
+  def setTimeout(duration: FiniteDuration): Unit = synchronized { timeoutVal = duration }
+  def setMatrix(matrixConfig: Map[String, NonEmptyVector[String]]): Unit = synchronized { matrixMap = matrixConfig }
+  def setContainer(containerConfig: Container): Unit = synchronized { containerOpt = Some(containerConfig) }
+  def addLabels(moreLabels: String*): Unit           = synchronized { labelsSet ++= moreLabels }
+  def setConcurrencyGroup(group: String): Unit       = synchronized { concurrencyGroupOpt = Some(group) }
+  def setCondition(cond: Condition): Unit            = synchronized { conditionVal = cond }
 
   private[sc] def build(): Job =
     require(stepsVec.nonEmpty, s"Job '$name' must have at least one step")
