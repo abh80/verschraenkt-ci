@@ -26,8 +26,10 @@ object ValidationService:
     val result = (
       validatePipelineId(pipeline.id),
       validateWorkflows(pipeline.workflows),
+      validateUniqueWorkflowNames(pipeline.workflows),
+      validateLabels(pipeline.labels, "Pipeline label"),
       validateTimeout(pipeline.timeout, "pipeline")
-    ).mapN { (id, workflows, _) =>
+    ).mapN { (id, workflows, _, _, _) =>
       pipeline.copy(id = id, workflows = workflows)
     }
 
@@ -39,9 +41,10 @@ object ValidationService:
     (
       validateWorkflowName(workflow.name),
       validateJobs(workflow.jobs),
+      validateLabels(workflow.labels, "Workflow label"),
       validateContainer(workflow.defaultContainer),
       validateCondition(workflow.condition)
-    ).mapN { (name, jobs, _, _) =>
+    ).mapN { (name, jobs, _, _, _) =>
       workflow.copy(name = name, jobs = jobs)
     }
 
@@ -49,13 +52,15 @@ object ValidationService:
     (
       validateJobId(job.id),
       validateSteps(job.steps),
+      validateStepIds(job.steps),
       validateDependencies(job.dependencies, job.id),
       validateResource(job.resources),
       validateTimeout(Some(job.timeout), "job"),
       validateMatrix(job.matrix),
       validateContainer(job.container),
+      validateLabels(job.labels, "Job label"),
       validateCondition(job.condition)
-    ).mapN { (id, steps, _, resource, _, _, _, _) =>
+    ).mapN { (id, steps, _, _, resource, _, _, _, _, _) =>
       job.copy(id = id, steps = steps, resources = resource)
     }
 
@@ -402,16 +407,16 @@ object ValidationService:
         validateCondition(cond, depth + 1)
 
       case Condition.HasLabel(label) =>
-        validateString(label, "Label name", 256)
+        validateLabel(label, "Label name")
 
       case Condition.HasAllLabels(labels) =>
-        labels.toVector.traverse_(label => validateString(label, "Label name", 256))
+        labels.toVector.traverse_(label => validateLabel(label, "Label name"))
 
       case Condition.HasAnyLabel(labels) =>
-        labels.toVector.traverse_(label => validateString(label, "Label name", 256))
+        labels.toVector.traverse_(label => validateLabel(label, "Label name"))
 
       case Condition.NotHasLabel(label) =>
-        validateString(label, "Label name", 256)
+        validateLabel(label, "Label name")
 
       case Condition.ActorIs(username) =>
         validateString(username, "Username", 256)
@@ -454,4 +459,45 @@ object ValidationService:
   private def validateEnvValue(value: String)(using ctx: ApplicationContext): ValidationResult[Unit] =
     if value.length > 4096 then
       ctx.validation("Environment variable value cannot exceed 4096 characters").invalidNel
+    else ().validNel
+
+  private def validateUniqueWorkflowNames(workflows: NonEmptyVector[Workflow])(using
+      ctx: ApplicationContext
+  ): ValidationResult[Unit] =
+    val names      = workflows.map(_.name)
+    val duplicates = names.toVector.groupBy(identity).collect { case (name, list) if list.size > 1 => name }
+    if duplicates.nonEmpty then
+      val errors = duplicates.map(name => ctx.validation(s"Duplicate workflow name: $name")).toList
+      Validated.invalid(NonEmptyList.fromListUnsafe(errors))
+    else ().validNel
+
+  private def validateStepIds(steps: NonEmptyVector[Step])(using ctx: ApplicationContext): ValidationResult[Unit] =
+    val ids        = collectStepIds(steps)
+    val duplicates = ids.groupBy(identity).collect { case (id, list) if list.size > 1 => id }
+    if duplicates.nonEmpty then
+      val errors = duplicates.map(id => ctx.validation(s"Duplicate step ID: $id")).toList
+      Validated.invalid(NonEmptyList.fromListUnsafe(errors))
+    else ().validNel
+
+  private def collectStepIds(steps: NonEmptyVector[Step]): Vector[String] =
+    steps.toVector.flatMap(collectIds)
+
+  private def collectIds(step: Step): Vector[String] =
+    val selfId = step.getMeta.flatMap(_.id).toVector
+    step match
+      case Step.Composite(children) => selfId ++ children.toVector.flatMap(collectIds)
+      case _                        => selfId
+
+  private def validateLabels(labels: Set[String], context: String)(using
+      ctx: ApplicationContext
+  ): ValidationResult[Unit] =
+    labels.toVector.traverse_(label => validateLabel(label, context))
+
+  private def validateLabel(label: String, context: String)(using
+      ctx: ApplicationContext
+  ): ValidationResult[Unit] =
+    if label.trim.isEmpty then ctx.validation(s"$context cannot be empty").invalidNel
+    else if label.length > 256 then ctx.validation(s"$context cannot exceed 256 characters").invalidNel
+    else if !label.matches("[a-zA-Z0-9_-]+") then
+      ctx.validation(s"$context must contain only alphanumeric characters, underscores, and hyphens").invalidNel
     else ().validNel
