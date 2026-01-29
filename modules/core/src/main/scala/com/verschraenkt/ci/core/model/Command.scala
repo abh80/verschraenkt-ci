@@ -76,9 +76,22 @@ enum ShellKind:
   * @param maxTimeoutSec
   *   Maximum allowed timeout in seconds
   * @param denyPatterns
-  *   List of denied command patterns
+  *   List of denied command patterns (regex)
+  * @param allowedExecutables
+  *   Optional allowlist of permitted executables (supports glob patterns)
+  * @param blockEnvironmentVariables
+  *   Set of environment variable names that are blocked
+  * @param maxOutputBytes
+  *   Maximum allowed output size in bytes
   */
-final case class Policy(allowShell: Boolean, maxTimeoutSec: Int, denyPatterns: List[String])
+final case class Policy(
+    allowShell: Boolean,
+    maxTimeoutSec: Int,
+    denyPatterns: List[String],
+    allowedExecutables: Option[Set[String]] = None,
+    blockEnvironmentVariables: Set[String] = Set.empty,
+    maxOutputBytes: Long = 10L * 1024 * 1024 // 10MB default
+)
 
 /** Result of executing a command
   * @param exitCode

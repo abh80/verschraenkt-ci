@@ -15,6 +15,7 @@ import cats.implicits.*
 import com.verschraenkt.ci.core.context.ApplicationContext
 import com.verschraenkt.ci.core.errors.{ CompositeError, ValidationError }
 import com.verschraenkt.ci.core.model.*
+import com.verschraenkt.ci.core.security.{ CommandSanitizer, ContainerImageValidator, ContainerImageConfig }
 import com.verschraenkt.ci.core.utils.DAG
 import scala.concurrent.duration.*
 
@@ -188,10 +189,23 @@ object ValidationService:
     container match
       case None => ().validNel
       case Some(c) =>
-        if c.image.trim.isEmpty then ctx.validation("Container image cannot be empty").invalidNel
+        // Use ContainerImageValidator with a lenient config for now
+        // TODO: Make this configurable via system settings
+        val config = ContainerImageConfig(
+          approvedRegistries = Set("docker.io", "ghcr.io", "gcr.io", "quay.io"),
+          requireDigest = false,  // TODO: Enable in production
+          allowLatestTag = true,  // TODO: Disable in production
+          allowUnspecifiedRegistry = false
+        )
+        
+        if c.image.trim.isEmpty then
+          ctx.validation("Container image cannot be empty").invalidNel
         else if c.image.length > 512 then
           ctx.validation("Container image name cannot exceed 512 characters").invalidNel
-        else ().validNel
+        else
+          ContainerImageValidator.validate(c.image, config) match
+            case Right(_) => ().validNel
+            case Left(err) => err.invalidNel
 
   private def validateCheckout(checkout: Step.Checkout)(using
       ctx: ApplicationContext
@@ -240,13 +254,40 @@ object ValidationService:
     }
 
   private def validateCommand(command: CommandLike)(using ctx: ApplicationContext): ValidationResult[Unit] =
+    // Create a default policy for validation
+    // TODO: Make this configurable via system settings or per-job
+    val defaultPolicy = Policy(
+      allowShell = true,
+      maxTimeoutSec = 86400, // 24 hours
+      denyPatterns = List(
+        "rm -rf /",
+        // Fork bomb pattern removed due to escaping issues
+        "dd if=/dev/zero",
+        "mkfs"
+      ),
+      allowedExecutables = None, // No allowlist by default
+      blockEnvironmentVariables = Set("AWS_SECRET_ACCESS_KEY", "GITHUB_TOKEN")
+    )
+    
     command.asCommand match
       case Command.Exec(program, _, _, _, timeout) =>
-        if program.trim.isEmpty then ctx.validation("Exec program cannot be empty").invalidNel
-        else validateCommandTimeout(timeout)
+        if program.trim.isEmpty then
+          ctx.validation("Exec program cannot be empty").invalidNel
+        else
+          (
+            validateCommandTimeout(timeout),
+            CommandSanitizer.validate(command.asCommand, defaultPolicy)
+          ).mapN((_, _) => ())
+          
       case Command.Shell(script, _, _, _, timeout) =>
-        if script.trim.isEmpty then ctx.validation("Shell script cannot be empty").invalidNel
-        else validateCommandTimeout(timeout)
+        if script.trim.isEmpty then
+          ctx.validation("Shell script cannot be empty").invalidNel
+        else
+          (
+            validateCommandTimeout(timeout),
+            CommandSanitizer.validate(command.asCommand, defaultPolicy)
+          ).mapN((_, _) => ())
+          
       case Command.Composite(steps) =>
         val validated = steps.toVector.map(validateCommand)
         validated.sequence.map(_ => ())

@@ -9,7 +9,7 @@ case class RegisterExecutorRequest(
 
 case class RegisterExecutorResponse(
   executorId: ExecutorId,
-  runnerToken: String  // long-lived JWT
+  runnerToken: JwtToken  // Validated long-lived JWT
 )
 
 case class ExecutorCapabilities(

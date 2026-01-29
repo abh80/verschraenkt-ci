@@ -1,6 +1,7 @@
 package com.verschraenkt.ci.engine.api
 
-import com.verschraenkt.ci.core.model.{JobId, StepId}
+import com.verschraenkt.ci.core.model.{JobId, StepId, PipelineId}
+import com.verschraenkt.ci.core.security.SecretScope
 
 
 sealed trait JobStatus
@@ -37,5 +38,10 @@ case class StepDefinition(
 
 case class SecretReference(
   secretId: String,
-  version: Option[String]
+  version: Option[String],
+  scope: SecretScope,
+  allowedJobs: Set[JobId] = Set.empty,
+  allowedWorkflows: Set[String] = Set.empty,
+  allowedPipelines: Set[PipelineId] = Set.empty,
+  expiresAt: Option[Long] = None
 )
