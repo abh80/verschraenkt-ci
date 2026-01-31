@@ -13,12 +13,16 @@ package com.verschraenkt.ci.dsl.sc
 import cats.data.NonEmptyVector
 import com.verschraenkt.ci.core.model.*
 import munit.FunSuite
+
 import scala.concurrent.duration.*
 
-class PipelineBuilderSpec extends FunSuite {
+class PipelineBuilderSpec extends FunSuite:
 
-  private def createDummyJob(jobId: String): Job = Job.one(id = JobId(jobId), step = Step.Run(Command.Shell("echo 'dummy'"))(using StepMeta()))
-  private def createDummyWorkflow(name: String, jobId: String): Workflow = Workflow(name, NonEmptyVector.one(createDummyJob(jobId)))
+  private def createDummyWorkflow(name: String, jobId: String): Workflow =
+    Workflow(name, NonEmptyVector.one(createDummyJob(jobId)))
+
+  private def createDummyJob(jobId: String): Job =
+    Job.one(id = JobId(jobId), step = Step.Run(Command.Shell("echo 'dummy'"))(using StepMeta()))
 
   test("PipelineBuilder should build a pipeline with specified properties") {
     val pipelineBuilder = new PipelineBuilder(PipelineId("my-pipeline"))
@@ -64,4 +68,3 @@ class PipelineBuilderSpec extends FunSuite {
     val pipeline = pipelineBuilder.build()
     assertEquals(pipeline.workflows.length, 2)
   }
-}

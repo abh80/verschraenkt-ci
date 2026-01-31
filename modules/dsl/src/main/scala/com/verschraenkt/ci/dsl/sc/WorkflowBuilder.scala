@@ -10,8 +10,8 @@
  */
 package com.verschraenkt.ci.dsl.sc
 
+import _root_.com.verschraenkt.ci.core.model.{ Condition, Container, Job, Workflow }
 import cats.data.NonEmptyVector
-import _root_.com.verschraenkt.ci.core.model.{Condition, Container, Job, Workflow}
 
 final class WorkflowBuilder(val name: String):
   private var jobsVec: Vector[Job]                   = Vector.empty

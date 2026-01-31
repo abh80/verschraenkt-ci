@@ -12,8 +12,7 @@ package com.verschraenkt.ci.core.model
 
 import cats.data.NonEmptyVector
 
-import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.duration.DurationInt
+import scala.concurrent.duration.{ DurationInt, FiniteDuration }
 
 /** Represents a unique identifier for a job in the CI system
   *

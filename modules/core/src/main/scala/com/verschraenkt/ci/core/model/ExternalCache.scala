@@ -13,10 +13,14 @@ package com.verschraenkt.ci.core.model
 
 /** Amazon S3 based cache implementation
   *
-  * @param bucket S3 bucket name where cache is stored
-  * @param region AWS region for the S3 bucket
-  * @param key Cache key identifying the cached content
-  * @param scope Cache scope level (defaults to Global)
+  * @param bucket
+  *   S3 bucket name where cache is stored
+  * @param region
+  *   AWS region for the S3 bucket
+  * @param key
+  *   Cache key identifying the cached content
+  * @param scope
+  *   Cache scope level (defaults to Global)
   */
 final case class S3Cache(
     bucket: String,
@@ -27,9 +31,12 @@ final case class S3Cache(
 
 /** Google Cloud Storage based cache implementation
   *
-  * @param bucket GCS bucket name where cache is stored
-  * @param key Cache key identifying the cached content
-  * @param scope Cache scope level (defaults to Global)
+  * @param bucket
+  *   GCS bucket name where cache is stored
+  * @param key
+  *   Cache key identifying the cached content
+  * @param scope
+  *   Cache scope level (defaults to Global)
   */
 final case class GCSCache(
     bucket: String,

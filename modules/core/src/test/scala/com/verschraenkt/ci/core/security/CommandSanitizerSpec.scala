@@ -10,20 +10,17 @@
  */
 package com.verschraenkt.ci.core.security
 
-import munit.FunSuite
-import com.verschraenkt.ci.core.model.{Command, Policy}
 import com.verschraenkt.ci.core.context.ApplicationContext
+import com.verschraenkt.ci.core.model.{ Command, Policy }
+import munit.FunSuite
 
 class CommandSanitizerSpec extends FunSuite:
-
-  given ApplicationContext = ApplicationContext("test")
 
   private val permissivePolicy = Policy(
     allowShell = true,
     maxTimeoutSec = 3600,
     denyPatterns = List.empty
   )
-
   private val restrictivePolicy = Policy(
     allowShell = false,
     maxTimeoutSec = 300,
@@ -32,20 +29,22 @@ class CommandSanitizerSpec extends FunSuite:
     blockEnvironmentVariables = Set("AWS_SECRET_ACCESS_KEY", "GITHUB_TOKEN")
   )
 
+  given ApplicationContext = ApplicationContext("test")
+
   test("validate - allows exec command with permissive policy") {
-    val cmd = Command.Exec("echo", List("hello"))
+    val cmd    = Command.Exec("echo", List("hello"))
     val result = CommandSanitizer.validate(cmd, permissivePolicy)
     assert(result.isValid)
   }
 
   test("validate - allows shell command when shell is permitted") {
-    val cmd = Command.Shell("echo hello")
+    val cmd    = Command.Shell("echo hello")
     val result = CommandSanitizer.validate(cmd, permissivePolicy)
     assert(result.isValid)
   }
 
   test("validate - rejects shell command when shell is not allowed") {
-    val cmd = Command.Shell("echo hello")
+    val cmd    = Command.Shell("echo hello")
     val result = CommandSanitizer.validate(cmd, restrictivePolicy)
     assert(result.isInvalid)
     val errors = result.swap.toOption.get.toList
@@ -58,7 +57,7 @@ class CommandSanitizerSpec extends FunSuite:
       maxTimeoutSec = 3600,
       denyPatterns = List("rm -rf /")
     )
-    val cmd = Command.Shell("rm -rf /")
+    val cmd    = Command.Shell("rm -rf /")
     val result = CommandSanitizer.validate(cmd, policy)
     assert(result.isInvalid)
     val errors = result.swap.toOption.get.toList
@@ -66,7 +65,7 @@ class CommandSanitizerSpec extends FunSuite:
   }
 
   test("validate - rejects exec with non-allowed executable") {
-    val cmd = Command.Exec("dangerous-tool", List("--destroy"))
+    val cmd    = Command.Exec("dangerous-tool", List("--destroy"))
     val result = CommandSanitizer.validate(cmd, restrictivePolicy)
     assert(result.isInvalid)
     val errors = result.swap.toOption.get.toList
@@ -75,7 +74,7 @@ class CommandSanitizerSpec extends FunSuite:
 
   test("validate - allows exec with allowed executable") {
     val policy = restrictivePolicy.copy(allowShell = true) // need shell for this test to pass
-    val cmd = Command.Exec("npm", List("install"))
+    val cmd    = Command.Exec("npm", List("install"))
     val result = CommandSanitizer.validate(cmd, policy)
     assert(result.isValid)
   }
@@ -86,7 +85,7 @@ class CommandSanitizerSpec extends FunSuite:
       maxTimeoutSec = 60,
       denyPatterns = List.empty
     )
-    val cmd = Command.Exec("long-running", timeoutSec = Some(120))
+    val cmd    = Command.Exec("long-running", timeoutSec = Some(120))
     val result = CommandSanitizer.validate(cmd, policy)
     assert(result.isInvalid)
     val errors = result.swap.toOption.get.toList
@@ -99,7 +98,7 @@ class CommandSanitizerSpec extends FunSuite:
       maxTimeoutSec = 300,
       denyPatterns = List.empty
     )
-    val cmd = Command.Exec("fast-command", timeoutSec = Some(60))
+    val cmd    = Command.Exec("fast-command", timeoutSec = Some(60))
     val result = CommandSanitizer.validate(cmd, policy)
     assert(result.isValid)
   }
@@ -111,7 +110,7 @@ class CommandSanitizerSpec extends FunSuite:
       denyPatterns = List.empty,
       blockEnvironmentVariables = Set("SECRET_KEY")
     )
-    val cmd = Command.Exec("echo", env = Map("SECRET_KEY" -> "value"))
+    val cmd    = Command.Exec("echo", env = Map("SECRET_KEY" -> "value"))
     val result = CommandSanitizer.validate(cmd, policy)
     assert(result.isInvalid)
     val errors = result.swap.toOption.get.toList
@@ -125,7 +124,7 @@ class CommandSanitizerSpec extends FunSuite:
       denyPatterns = List.empty,
       blockEnvironmentVariables = Set("SECRET_KEY")
     )
-    val cmd = Command.Exec("echo", env = Map("PUBLIC_KEY" -> "value"))
+    val cmd    = Command.Exec("echo", env = Map("PUBLIC_KEY" -> "value"))
     val result = CommandSanitizer.validate(cmd, policy)
     assert(result.isValid)
   }

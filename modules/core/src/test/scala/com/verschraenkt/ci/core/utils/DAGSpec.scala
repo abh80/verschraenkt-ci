@@ -10,18 +10,18 @@
  */
 package com.verschraenkt.ci.core.utils
 
-import com.verschraenkt.ci.core.model.*
-import com.verschraenkt.ci.core.errors.*
 import cats.data.NonEmptyVector
 import com.verschraenkt.ci.core.context.ApplicationContext
+import com.verschraenkt.ci.core.errors.*
+import com.verschraenkt.ci.core.model.*
 import munit.FunSuite
 
 import scala.concurrent.duration.*
 
 class DAGSpec extends FunSuite:
-  given ctx: ApplicationContext = new ApplicationContext("test.ci")
-
   val dummyStep: Step = Step.Checkout()(using StepMeta())
+
+  given ctx: ApplicationContext = new ApplicationContext("test.ci")
 
   def createJob(id: String, deps: Set[JobId] = Set.empty): Job =
     Job.one(JobId(id), dummyStep, needs = deps)

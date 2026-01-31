@@ -15,8 +15,9 @@ import cats.implicits.*
 import com.verschraenkt.ci.core.context.ApplicationContext
 import com.verschraenkt.ci.core.errors.{ CompositeError, ValidationError }
 import com.verschraenkt.ci.core.model.*
-import com.verschraenkt.ci.core.security.{ CommandSanitizer, ContainerImageValidator, ContainerImageConfig }
+import com.verschraenkt.ci.core.security.{ CommandSanitizer, ContainerImageConfig, ContainerImageValidator }
 import com.verschraenkt.ci.core.utils.DAG
+
 import scala.concurrent.duration.*
 
 object ValidationService:
@@ -192,24 +193,23 @@ object ValidationService:
       ctx: ApplicationContext
   ): ValidationResult[Unit] =
     container match
-      case None => ().validNel
+      case None    => ().validNel
       case Some(c) =>
         // Use ContainerImageValidator with a lenient config for now
         // TODO: Make this configurable via system settings
         val config = ContainerImageConfig(
           approvedRegistries = Set("docker.io", "ghcr.io", "gcr.io", "quay.io"),
-          requireDigest = false,  // TODO: Enable in production
-          allowLatestTag = true,  // TODO: Disable in production
+          requireDigest = false, // TODO: Enable in production
+          allowLatestTag = true, // TODO: Disable in production
           allowUnspecifiedRegistry = false
         )
-        
-        if c.image.trim.isEmpty then
-          ctx.validation("Container image cannot be empty").invalidNel
+
+        if c.image.trim.isEmpty then ctx.validation("Container image cannot be empty").invalidNel
         else if c.image.length > 512 then
           ctx.validation("Container image name cannot exceed 512 characters").invalidNel
         else
           ContainerImageValidator.validate(c.image, config) match
-            case Right(_) => ().validNel
+            case Right(_)  => ().validNel
             case Left(err) => err.invalidNel
 
   private def validateCheckout(checkout: Step.Checkout)(using
@@ -273,26 +273,24 @@ object ValidationService:
       allowedExecutables = None, // No allowlist by default
       blockEnvironmentVariables = Set("AWS_SECRET_ACCESS_KEY", "GITHUB_TOKEN")
     )
-    
+
     command.asCommand match
       case Command.Exec(program, _, _, _, timeout) =>
-        if program.trim.isEmpty then
-          ctx.validation("Exec program cannot be empty").invalidNel
+        if program.trim.isEmpty then ctx.validation("Exec program cannot be empty").invalidNel
         else
           (
             validateCommandTimeout(timeout),
             CommandSanitizer.validate(command.asCommand, defaultPolicy)
           ).mapN((_, _) => ())
-          
+
       case Command.Shell(script, _, _, _, timeout) =>
-        if script.trim.isEmpty then
-          ctx.validation("Shell script cannot be empty").invalidNel
+        if script.trim.isEmpty then ctx.validation("Shell script cannot be empty").invalidNel
         else
           (
             validateCommandTimeout(timeout),
             CommandSanitizer.validate(command.asCommand, defaultPolicy)
           ).mapN((_, _) => ())
-          
+
       case Command.Composite(steps) =>
         val validated = steps.toVector.map(validateCommand)
         validated.sequence.map(_ => ())
@@ -430,9 +428,12 @@ object ValidationService:
       case Condition.HasPermission(permission) =>
         validateString(permission, "Permission name", 256)
 
-  private def validateString(value: String, name: String, maxLength: Int)(using ctx: ApplicationContext): ValidationResult[Unit] =
+  private def validateString(value: String, name: String, maxLength: Int)(using
+      ctx: ApplicationContext
+  ): ValidationResult[Unit] =
     if value.trim.isEmpty then ctx.validation(s"$name cannot be empty").invalidNel
-    else if value.length > maxLength then ctx.validation(s"$name cannot exceed $maxLength characters").invalidNel
+    else if value.length > maxLength then
+      ctx.validation(s"$name cannot exceed $maxLength characters").invalidNel
     else ().validNel
 
   private def validatePattern(pattern: String, context: String)(using
@@ -471,7 +472,9 @@ object ValidationService:
       Validated.invalid(NonEmptyList.fromListUnsafe(errors))
     else ().validNel
 
-  private def validateStepIds(steps: NonEmptyVector[Step])(using ctx: ApplicationContext): ValidationResult[Unit] =
+  private def validateStepIds(steps: NonEmptyVector[Step])(using
+      ctx: ApplicationContext
+  ): ValidationResult[Unit] =
     val ids        = collectStepIds(steps)
     val duplicates = ids.groupBy(identity).collect { case (id, list) if list.size > 1 => id }
     if duplicates.nonEmpty then
@@ -499,5 +502,7 @@ object ValidationService:
     if label.trim.isEmpty then ctx.validation(s"$context cannot be empty").invalidNel
     else if label.length > 256 then ctx.validation(s"$context cannot exceed 256 characters").invalidNel
     else if !label.matches("[a-zA-Z0-9_-]+") then
-      ctx.validation(s"$context must contain only alphanumeric characters, underscores, and hyphens").invalidNel
+      ctx
+        .validation(s"$context must contain only alphanumeric characters, underscores, and hyphens")
+        .invalidNel
     else ().validNel

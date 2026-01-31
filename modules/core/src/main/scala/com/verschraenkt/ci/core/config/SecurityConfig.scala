@@ -11,7 +11,7 @@
 package com.verschraenkt.ci.core.config
 
 import com.verschraenkt.ci.core.model.Policy
-import com.verschraenkt.ci.core.security.{JwtConfig, ContainerImageConfig}
+import com.verschraenkt.ci.core.security.{ ContainerImageConfig, JwtConfig }
 
 /** Security configuration for the CI system */
 case class SecurityConfig(

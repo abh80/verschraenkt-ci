@@ -11,6 +11,7 @@
 package com.verschraenkt.ci.core.security
 
 import com.verschraenkt.ci.core.errors.ValidationError
+
 import scala.util.matching.Regex
 
 /** Parsed container image reference */
@@ -40,47 +41,56 @@ case class ContainerImageConfig(
 
 /** Utility for validating container images */
 object ContainerImageValidator:
-  
+
   // Pattern: [registry/]repository[:tag][@digest]
-  private val ImagePattern: Regex = 
+  private val ImagePattern: Regex =
     """^(?:([a-z0-9.-]+(?::[0-9]+)?)/)?([a-z0-9._/-]+)(?::([a-z0-9._-]+))?(?:@(sha256:[a-f0-9]{64}))?$""".r
 
+  /** Validate a container image against security policy
+    * @param image
+    *   The image string to validate
+    * @param config
+    *   The validation configuration
+    * @return
+    *   Either an error or the parsed image reference
+    */
+  def validate(image: String, config: ContainerImageConfig): Either[ValidationError, ImageReference] =
+    for
+      ref <- parseImage(image)
+      _   <- validateRegistry(ref, config)
+      _   <- validateTag(ref, config)
+      _   <- validateDigest(ref, config)
+      _   <- validateImageName(ref)
+    yield ref
+
   /** Parse a container image reference
-    * @param image The image string to parse
-    * @return Either an error or the parsed image reference
+    * @param image
+    *   The image string to parse
+    * @return
+    *   Either an error or the parsed image reference
     */
   def parseImage(image: String): Either[ValidationError, ImageReference] =
     image.trim match
       case ImagePattern(registry, repository, tag, digest) =>
         val actualRegistry = Option(registry).getOrElse("docker.io")
-        val actualTag = Option(tag).getOrElse("latest")
-        val actualDigest = Option(digest)
-        
-        Right(ImageReference(
-          registry = actualRegistry,
-          repository = repository,
-          tag = actualTag,
-          digest = actualDigest
-        ))
-      case _ =>
-        Left(ValidationError(
-          s"Invalid container image format: '$image'",
-          Some("container.image.format")
-        ))
+        val actualTag      = Option(tag).getOrElse("latest")
+        val actualDigest   = Option(digest)
 
-  /** Validate a container image against security policy
-    * @param image The image string to validate
-    * @param config The validation configuration
-    * @return Either an error or the parsed image reference
-    */
-  def validate(image: String, config: ContainerImageConfig): Either[ValidationError, ImageReference] =
-    for
-      ref <- parseImage(image)
-      _ <- validateRegistry(ref, config)
-      _ <- validateTag(ref, config)
-      _ <- validateDigest(ref, config)
-      _ <- validateImageName(ref)
-    yield ref
+        Right(
+          ImageReference(
+            registry = actualRegistry,
+            repository = repository,
+            tag = actualTag,
+            digest = actualDigest
+          )
+        )
+      case _ =>
+        Left(
+          ValidationError(
+            s"Invalid container image format: '$image'",
+            Some("container.image.format")
+          )
+        )
 
   /** Validate the registry is in the approved list */
   private def validateRegistry(
@@ -90,18 +100,23 @@ object ContainerImageValidator:
     if config.approvedRegistries.isEmpty then
       // No restrictions
       Right(())
-    else if config.approvedRegistries.contains(ref.registry) then
-      Right(())
+    else if config.approvedRegistries.contains(ref.registry) then Right(())
     else if ref.registry == "docker.io" && !config.allowUnspecifiedRegistry then
-      Left(ValidationError(
-        s"Container registry '${ref.registry}' is not in the approved registries list: ${config.approvedRegistries.mkString(", ")}",
-        Some("container.image.registry")
-      ))
+      Left(
+        ValidationError(
+          s"Container registry '${ref.registry}' is not in the approved registries list: ${config.approvedRegistries
+              .mkString(", ")}",
+          Some("container.image.registry")
+        )
+      )
     else
-      Left(ValidationError(
-        s"Container registry '${ref.registry}' is not in the approved registries list: ${config.approvedRegistries.mkString(", ")}",
-        Some("container.image.registry")
-      ))
+      Left(
+        ValidationError(
+          s"Container registry '${ref.registry}' is not in the approved registries list: ${config.approvedRegistries
+              .mkString(", ")}",
+          Some("container.image.registry")
+        )
+      )
 
   /** Validate the tag (reject :latest if configured) */
   private def validateTag(
@@ -109,17 +124,20 @@ object ContainerImageValidator:
       config: ContainerImageConfig
   ): Either[ValidationError, Unit] =
     if !config.allowLatestTag && ref.tag == "latest" then
-      Left(ValidationError(
-        "Container image tag ':latest' is not allowed for security reasons. Please specify an exact version.",
-        Some("container.image.tag")
-      ))
+      Left(
+        ValidationError(
+          "Container image tag ':latest' is not allowed for security reasons. Please specify an exact version.",
+          Some("container.image.tag")
+        )
+      )
     else if ref.tag.isEmpty then
-      Left(ValidationError(
-        "Container image tag cannot be empty",
-        Some("container.image.tag")
-      ))
-    else
-      Right(())
+      Left(
+        ValidationError(
+          "Container image tag cannot be empty",
+          Some("container.image.tag")
+        )
+      )
+    else Right(())
 
   /** Validate the digest is present if required */
   private def validateDigest(
@@ -127,39 +145,48 @@ object ContainerImageValidator:
       config: ContainerImageConfig
   ): Either[ValidationError, Unit] =
     if config.requireDigest && ref.digest.isEmpty then
-      Left(ValidationError(
-        s"Container image must include a digest (sha256:...) for security reasons. Example: ${ref.registry}/${ref.repository}:${ref.tag}@sha256:...",
-        Some("container.image.digest")
-      ))
+      Left(
+        ValidationError(
+          s"Container image must include a digest (sha256:...) for security reasons. Example: ${ref.registry}/${ref.repository}:${ref.tag}@sha256:...",
+          Some("container.image.digest")
+        )
+      )
     else if ref.digest.exists(!_.startsWith("sha256:")) then
-      Left(ValidationError(
-        "Container image digest must use sha256 algorithm",
-        Some("container.image.digest")
-      ))
+      Left(
+        ValidationError(
+          "Container image digest must use sha256 algorithm",
+          Some("container.image.digest")
+        )
+      )
     else if ref.digest.exists(d => d.length != 71) then // "sha256:" + 64 hex chars
-      Left(ValidationError(
-        "Container image digest must be a valid sha256 hash",
-        Some("container.image.digest")
-      ))
-    else
-      Right(())
+      Left(
+        ValidationError(
+          "Container image digest must be a valid sha256 hash",
+          Some("container.image.digest")
+        )
+      )
+    else Right(())
 
   /** Validate the image name doesn't contain dangerous patterns */
   private def validateImageName(ref: ImageReference): Either[ValidationError, Unit] =
     // Check for path traversal attempts
     if ref.repository.contains("..") then
-      Left(ValidationError(
-        "Container image repository contains path traversal pattern",
-        Some("container.image.security")
-      ))
+      Left(
+        ValidationError(
+          "Container image repository contains path traversal pattern",
+          Some("container.image.security")
+        )
+      )
     // Check for suspicious characters
-    else if ref.repository.exists(c => !c.isLetterOrDigit && c != '/' && c != '-' && c != '_' && c != '.') then
-      Left(ValidationError(
-        "Container image repository contains invalid characters",
-        Some("container.image.security")
-      ))
-    else
-      Right(())
+    else if ref.repository.exists(c => !c.isLetterOrDigit && c != '/' && c != '-' && c != '_' && c != '.')
+    then
+      Left(
+        ValidationError(
+          "Container image repository contains invalid characters",
+          Some("container.image.security")
+        )
+      )
+    else Right(())
 
   /** Create a lenient configuration (useful for development) */
   def lenientConfig: ContainerImageConfig =

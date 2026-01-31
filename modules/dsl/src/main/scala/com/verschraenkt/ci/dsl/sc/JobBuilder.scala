@@ -10,14 +10,14 @@
  */
 package com.verschraenkt.ci.dsl.sc
 
+import _root_.com.verschraenkt.ci.core.model.*
 import cats.data.NonEmptyVector
-import _root_.com.verschraenkt.ci.core.model.{Condition, Container, Job, JobId, Resource, Step, StepMeta}
 
-import scala.concurrent.duration.DurationInt
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration.{ DurationInt, FiniteDuration }
 
 final class JobBuilder(val name: String):
-  private var stepsVec: Vector[Step]                         = Vector.empty
+  private val stepMetaVal: StepMeta  = StepMeta() // Keep stepMeta as val, configure it via StepLike later
+  private var stepsVec: Vector[Step] = Vector.empty
   private var dependenciesSet: Set[JobId]                    = Set.empty
   private var resourcesVal: Resource                         = Resource(1000, 512, 0, 0)
   private var timeoutVal: FiniteDuration                     = 30.minutes
@@ -26,7 +26,6 @@ final class JobBuilder(val name: String):
   private var labelsSet: Set[String]                         = Set.empty
   private var concurrencyGroupOpt: Option[String]            = None
   private var conditionVal: Condition                        = Condition.Always
-  private val stepMetaVal: StepMeta = StepMeta() // Keep stepMeta as val, configure it via StepLike later
 
   // Mutator methods
   def addStep(step: StepLike): Unit = synchronized {
@@ -36,7 +35,9 @@ final class JobBuilder(val name: String):
   def addDependencies(jobIds: JobId*): Unit      = synchronized { dependenciesSet ++= jobIds.toSet }
   def setResources(resource: Resource): Unit     = synchronized { resourcesVal = resource }
   def setTimeout(duration: FiniteDuration): Unit = synchronized { timeoutVal = duration }
-  def setMatrix(matrixConfig: Map[String, NonEmptyVector[String]]): Unit = synchronized { matrixMap = matrixConfig }
+  def setMatrix(matrixConfig: Map[String, NonEmptyVector[String]]): Unit = synchronized {
+    matrixMap = matrixConfig
+  }
   def setContainer(containerConfig: Container): Unit = synchronized { containerOpt = Some(containerConfig) }
   def addLabels(moreLabels: String*): Unit           = synchronized { labelsSet ++= moreLabels }
   def setConcurrencyGroup(group: String): Unit       = synchronized { concurrencyGroupOpt = Some(group) }

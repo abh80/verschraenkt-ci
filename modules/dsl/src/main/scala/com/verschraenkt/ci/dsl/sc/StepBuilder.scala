@@ -10,8 +10,8 @@
  */
 package com.verschraenkt.ci.dsl.sc
 
+import _root_.com.verschraenkt.ci.core.model.*
 import cats.data.NonEmptyList
-import _root_.com.verschraenkt.ci.core.model.{ CacheLike, Command, Retry, ShellKind, Step, StepMeta, When }
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -35,34 +35,35 @@ sealed trait StepLike
 object StepLike:
 
   final case class Run(
-    shellCommand: String,
-    shell: ShellKind = ShellKind.Sh,
-    f: Meta = identity
+      shellCommand: String,
+      shell: ShellKind = ShellKind.Sh,
+      f: Meta = identity
   ) extends StepLike
 
+  case class RestoreCache(cache: CacheLike, paths: NonEmptyList[String]) extends StepLike
+
+  case class SaveCache(cache: CacheLike, paths: NonEmptyList[String]) extends StepLike
 
   case object Checkout extends StepLike
 
-  case class RestoreCache(cache: CacheLike, paths: NonEmptyList[String]) extends StepLike
-  case class SaveCache(cache: CacheLike, paths: NonEmptyList[String])    extends StepLike
-
 final class StepsBuilder:
-  private var acc               = Vector.empty[StepLike]
-  private[sc] val stepMeta      = MetaBuilder()
+  private[sc] val stepMeta = MetaBuilder()
+  private var acc          = Vector.empty[StepLike]
+
   def add(step: StepLike): Unit = synchronized { acc :+= step }
-  def result: Vector[StepLike]  = synchronized { acc }
-  
+
   def modifyLast(f: StepLike => StepLike): Unit = synchronized {
-    if (acc.nonEmpty) {
+    if acc.nonEmpty then
       val last = acc.last
       acc = acc.dropRight(1) :+ f(last)
-    }
   }
 
   def steps(body: StepsBuilder ?=> Unit): Vector[StepLike] =
     given sb: StepsBuilder = StepsBuilder()
     body
     sb.result
+
+  def result: Vector[StepLike] = synchronized { acc }
 
 class AddedStep(sb: StepsBuilder):
   def withMeta(f: Meta): AddedStep =
@@ -76,9 +77,9 @@ object StepBuilder:
   def toStep(step: StepLike)(using meta: StepMeta, sb: StepsBuilder): Step =
     step match
       case r: StepLike.Run =>
-        val f = sb.stepMeta.andThen(r.f)
+        val f              = sb.stepMeta.andThen(r.f)
         val newMetaBuilder = f(StepMetaBuilder.from(meta))
-        val finalMeta = newMetaBuilder.toStepMeta
+        val finalMeta      = newMetaBuilder.toStepMeta
         val command = Command.Shell(
           r.shellCommand,
           r.shell,

@@ -11,6 +11,7 @@
 package com.verschraenkt.ci.core.model
 
 import cats.data.NonEmptyVector
+
 import scala.concurrent.duration.FiniteDuration
 
 /** Represents a unique identifier for a pipeline.

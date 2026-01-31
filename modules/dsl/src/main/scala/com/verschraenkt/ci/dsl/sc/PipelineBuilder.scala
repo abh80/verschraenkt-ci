@@ -10,8 +10,8 @@
  */
 package com.verschraenkt.ci.dsl.sc
 
-import cats.data.NonEmptyVector
 import _root_.com.verschraenkt.ci.core.model.{ Pipeline, PipelineId, Workflow }
+import cats.data.NonEmptyVector
 
 import scala.concurrent.duration.FiniteDuration
 

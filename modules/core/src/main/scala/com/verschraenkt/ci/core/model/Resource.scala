@@ -92,6 +92,9 @@ final case class Resource private (
 
 /** Companion object for Resource class */
 object Resource:
+  /** A Resource instance with all zero values */
+  val zero: Resource = Resource(0, 0, 0, 0)
+
   /** Creates a new Resource instance with validation of non-negative values
     *
     * @param cpuMilli
@@ -114,8 +117,17 @@ object Resource:
   private[core] def unsafe(cpuMilli: Int, memoryMiB: Int, gpu: Int, diskMiB: Int): Resource =
     new Resource(cpuMilli, memoryMiB, gpu, diskMiB)
 
-  /** A Resource instance with all zero values */
-  val zero: Resource = Resource(0, 0, 0, 0)
+  /** Helper for saturating arithmetic */
+  private def saturating(a: Int, b: Int): Int =
+    val r = a.toLong + b.toLong
+    if r > Int.MaxValue then Int.MaxValue
+    else if r < Int.MinValue then Int.MinValue
+    else r.toInt
+
+  /** Helper to round to the nearest non-negative integer */
+  private def roundNonNeg(x: Double): Int =
+    val v = Math.round(x).toInt
+    if v < 0 then 0 else v
 
   /** Semigroup instance for Resource combining with + */
   given Semigroup[Resource] with
@@ -138,15 +150,3 @@ object Resource:
           val c3 = java.lang.Integer.compare(x.gpu, y.gpu)
           if c3 != 0 then c3
           else java.lang.Integer.compare(x.diskMiB, y.diskMiB)
-
-  /** Helper for saturating arithmetic */
-  private def saturating(a: Int, b: Int): Int =
-    val r = a.toLong + b.toLong
-    if r > Int.MaxValue then Int.MaxValue
-    else if r < Int.MinValue then Int.MinValue
-    else r.toInt
-
-  /** Helper to round to the nearest non-negative integer */
-  private def roundNonNeg(x: Double): Int =
-    val v = Math.round(x).toInt
-    if v < 0 then 0 else v

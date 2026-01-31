@@ -14,7 +14,8 @@ import cats.data.ValidatedNel
 import cats.implicits.*
 import com.verschraenkt.ci.core.context.ApplicationContext
 import com.verschraenkt.ci.core.errors.ValidationError
-import com.verschraenkt.ci.core.model.{Command, Policy, ShellKind}
+import com.verschraenkt.ci.core.model.{ Command, Policy, ShellKind }
+
 import scala.util.matching.Regex
 
 /** Utility for sanitizing and validating commands against security policies */
@@ -22,10 +23,14 @@ object CommandSanitizer:
   type ValidationResult[A] = ValidatedNel[ValidationError, A]
 
   /** Validate a command against a security policy
-    * @param command The command to validate
-    * @param policy The security policy to enforce
-    * @param ctx Application context for error reporting
-    * @return Validation result
+    * @param command
+    *   The command to validate
+    * @param policy
+    *   The security policy to enforce
+    * @param ctx
+    *   Application context for error reporting
+    * @return
+    *   Validation result
     */
   def validate(command: Command, policy: Policy)(using ctx: ApplicationContext): ValidationResult[Unit] =
     command match
@@ -54,14 +59,15 @@ object CommandSanitizer:
     else ctx.validation("Shell commands are not allowed by security policy").invalidNel
 
   /** Validate executable against allowlist */
-  private def validateExecutable(program: String, policy: Policy)(using ctx: ApplicationContext): ValidationResult[Unit] =
+  private def validateExecutable(program: String, policy: Policy)(using
+      ctx: ApplicationContext
+  ): ValidationResult[Unit] =
     policy.allowedExecutables match
       case None => ().validNel // No allowlist configured
       case Some(allowed) =>
         if allowed.contains(program) || allowed.exists(pattern => matchesGlob(program, pattern)) then
           ().validNel
-        else
-          ctx.validation(s"Executable '$program' is not in the allowed executables list").invalidNel
+        else ctx.validation(s"Executable '$program' is not in the allowed executables list").invalidNel
 
   /** Validate shell script against deny patterns */
   private def validateShellScript(
@@ -70,7 +76,7 @@ object CommandSanitizer:
       policy: Policy
   )(using ctx: ApplicationContext): ValidationResult[Unit] =
     val deniedPatterns = policy.denyPatterns.map(_.r)
-    
+
     deniedPatterns.find(pattern => pattern.findFirstIn(script).isDefined) match
       case Some(matchedPattern) =>
         ctx.validation(s"Shell script contains forbidden pattern: ${matchedPattern.pattern}").invalidNel
@@ -79,9 +85,11 @@ object CommandSanitizer:
         validateShellInjection(script, shell)
 
   /** Validate arguments don't contain dangerous patterns */
-  private def validateArguments(args: List[String], policy: Policy)(using ctx: ApplicationContext): ValidationResult[Unit] =
+  private def validateArguments(args: List[String], policy: Policy)(using
+      ctx: ApplicationContext
+  ): ValidationResult[Unit] =
     val deniedPatterns = policy.denyPatterns.map(_.r)
-    
+
     args.zipWithIndex.find { case (arg, _) =>
       deniedPatterns.exists(pattern => pattern.findFirstIn(arg).isDefined)
     } match
@@ -91,17 +99,19 @@ object CommandSanitizer:
         ().validNel
 
   /** Detect common shell injection patterns */
-  private def validateShellInjection(script: String, shell: ShellKind)(using ctx: ApplicationContext): ValidationResult[Unit] =
+  private def validateShellInjection(script: String, shell: ShellKind)(using
+      ctx: ApplicationContext
+  ): ValidationResult[Unit] =
     val dangerousPatterns = List(
-      """\$\(.*\)""".r,              // Command substitution $(...)
-      "`.*`".r,                       // Backtick command substitution
-      """;.*""".r,                    // Command chaining with semicolon
-      """&&""".r,                     // Command chaining with AND
-      """\|\|""".r,                   // Command chaining with OR
-      """\|(?!\|)""".r,               // Pipe (but not ||)
-      """>""".r,                      // Output redirection
-      """<""".r,                      // Input redirection
-      """\$\{.*\}""".r               // Variable expansion
+      """\$\(.*\)""".r, // Command substitution $(...)
+      "`.*`".r,         // Backtick command substitution
+      """;.*""".r,      // Command chaining with semicolon
+      """&&""".r,       // Command chaining with AND
+      """\|\|""".r,     // Command chaining with OR
+      """\|(?!\|)""".r, // Pipe (but not ||)
+      """>""".r,        // Output redirection
+      """<""".r,        // Input redirection
+      """\$\{.*\}""".r  // Variable expansion
     )
 
     // These patterns are informational warnings, not hard blocks
@@ -109,12 +119,18 @@ object CommandSanitizer:
     ().validNel
 
   /** Validate timeout against policy limits */
-  private def validateTimeout(timeout: Option[Int], policy: Policy)(using ctx: ApplicationContext): ValidationResult[Unit] =
+  private def validateTimeout(timeout: Option[Int], policy: Policy)(using
+      ctx: ApplicationContext
+  ): ValidationResult[Unit] =
     timeout match
-      case None => ().validNel
+      case None                                 => ().validNel
       case Some(t) if t <= policy.maxTimeoutSec => ().validNel
       case Some(t) =>
-        ctx.validation(s"Command timeout ($t seconds) exceeds policy maximum (${policy.maxTimeoutSec} seconds)").invalidNel
+        ctx
+          .validation(
+            s"Command timeout ($t seconds) exceeds policy maximum (${policy.maxTimeoutSec} seconds)"
+          )
+          .invalidNel
 
   /** Validate environment variables against blocked list */
   private def validateEnvironment(
@@ -122,10 +138,9 @@ object CommandSanitizer:
       policy: Policy
   )(using ctx: ApplicationContext): ValidationResult[Unit] =
     val blocked = env.keys.filter(policy.blockEnvironmentVariables.contains)
-    
+
     if blocked.isEmpty then ().validNel
-    else
-      ctx.validation(s"Environment variables are blocked by policy: ${blocked.mkString(", ")}").invalidNel
+    else ctx.validation(s"Environment variables are blocked by policy: ${blocked.mkString(", ")}").invalidNel
 
   /** Simple glob pattern matching (supports * wildcards) */
   private def matchesGlob(text: String, pattern: String): Boolean =

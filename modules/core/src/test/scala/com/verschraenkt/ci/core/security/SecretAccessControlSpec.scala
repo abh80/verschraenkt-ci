@@ -10,53 +10,55 @@
  */
 package com.verschraenkt.ci.core.security
 
+import com.verschraenkt.ci.core.model.{ JobId, PipelineId }
 import munit.FunSuite
-import com.verschraenkt.ci.core.model.{JobId, PipelineId}
 
 class SecretAccessControlSpec extends FunSuite:
 
-  private val jobA = JobId("job-a")
-  private val jobB = JobId("job-b")
-  private val pipelineX = PipelineId("pipeline-x")
-  private val pipelineY = PipelineId("pipeline-y")
+  private val jobA          = JobId("job-a")
+  private val jobB          = JobId("job-b")
+  private val pipelineX     = PipelineId("pipeline-x")
+  private val pipelineY     = PipelineId("pipeline-y")
   private val workflowAlpha = "workflow-alpha"
-  private val workflowBeta = "workflow-beta"
+  private val workflowBeta  = "workflow-beta"
 
   private def context(
-    job: JobId = jobA,
-    workflow: String = workflowAlpha,
-    pipeline: PipelineId = pipelineX,
-    timestamp: Long = System.currentTimeMillis() / 1000
+      job: JobId = jobA,
+      workflow: String = workflowAlpha,
+      pipeline: PipelineId = pipelineX,
+      timestamp: Long = System.currentTimeMillis() / 1000
   ) = SecretAccessContext(job, workflow, pipeline, timestamp)
 
   test("global scope - allows access from any job") {
     val accessControl = SecretAccessControl.global
-    val result = SecretAccessControl.validateAccess("secret1", accessControl, context())
+    val result        = SecretAccessControl.validateAccess("secret1", accessControl, context())
     assert(result.isRight)
   }
 
   test("job scope - allows access from specified job") {
     val accessControl = SecretAccessControl.forJob(Set(jobA))
-    val result = SecretAccessControl.validateAccess("secret1", accessControl, context(job = jobA))
+    val result        = SecretAccessControl.validateAccess("secret1", accessControl, context(job = jobA))
     assert(result.isRight)
   }
 
   test("job scope - denies access from non-specified job") {
     val accessControl = SecretAccessControl.forJob(Set(jobA))
-    val result = SecretAccessControl.validateAccess("secret1", accessControl, context(job = jobB))
+    val result        = SecretAccessControl.validateAccess("secret1", accessControl, context(job = jobB))
     assert(result.isLeft)
     assert(result.swap.toOption.get.message.contains("does not have access"))
   }
 
   test("workflow scope - allows access from specified workflow") {
     val accessControl = SecretAccessControl.forWorkflow(Set(workflowAlpha))
-    val result = SecretAccessControl.validateAccess("secret1", accessControl, context(workflow = workflowAlpha))
+    val result =
+      SecretAccessControl.validateAccess("secret1", accessControl, context(workflow = workflowAlpha))
     assert(result.isRight)
   }
 
   test("workflow scope - denies access from non-specified workflow") {
     val accessControl = SecretAccessControl.forWorkflow(Set(workflowAlpha))
-    val result = SecretAccessControl.validateAccess("secret1", accessControl, context(workflow = workflowBeta))
+    val result =
+      SecretAccessControl.validateAccess("secret1", accessControl, context(workflow = workflowBeta))
     assert(result.isLeft)
   }
 
@@ -104,16 +106,18 @@ class SecretAccessControlSpec extends FunSuite:
 
   test("hierarchical validation - global allows all") {
     val accessControl = SecretAccessControl.global
-    val result = SecretAccessControl.validateAccessHierarchical("secret1", accessControl, context())
+    val result        = SecretAccessControl.validateAccessHierarchical("secret1", accessControl, context())
     assert(result.isRight)
   }
 
   test("hierarchical validation - pipeline scope checks pipeline") {
     val accessControl = SecretAccessControl.forPipeline(Set(pipelineX))
-    val resultOk = SecretAccessControl.validateAccessHierarchical("secret1", accessControl, context(pipeline = pipelineX))
+    val resultOk =
+      SecretAccessControl.validateAccessHierarchical("secret1", accessControl, context(pipeline = pipelineX))
     assert(resultOk.isRight)
-    
-    val resultFail = SecretAccessControl.validateAccessHierarchical("secret1", accessControl, context(pipeline = pipelineY))
+
+    val resultFail =
+      SecretAccessControl.validateAccessHierarchical("secret1", accessControl, context(pipeline = pipelineY))
     assert(resultFail.isLeft)
   }
 

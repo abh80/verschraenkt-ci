@@ -20,10 +20,10 @@ import scala.concurrent.duration.*
 
 class ValidationServiceSpec extends FunSuite:
 
-  given ctx: ApplicationContext = ApplicationContext("test-source")
-
   val validStep: Step           = Step.Checkout()(using StepMeta())
   val validContainer: Container = Container("ubuntu:22.04")
+
+  given ctx: ApplicationContext = ApplicationContext("test-source")
 
   // Pipeline Tests
   test("validatePipeline - valid pipeline passes") {

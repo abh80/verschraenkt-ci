@@ -12,9 +12,10 @@ package com.verschraenkt.ci.dsl.sc
 
 import com.verschraenkt.ci.core.model.*
 import munit.FunSuite
+
 import scala.concurrent.duration.*
 
-class MetaDslSpec extends FunSuite {
+class MetaDslSpec extends FunSuite:
   import dsl.*
 
   test("Individual step metadata should be applied via trailing lambda") {
@@ -31,12 +32,12 @@ class MetaDslSpec extends FunSuite {
       }
     }
 
-    val job = p.workflows.head.jobs.head
+    val job   = p.workflows.head.jobs.head
     val steps = job.steps.toVector
 
     assertEquals(steps.length, 2)
 
-    val defaultStep = steps(0).asInstanceOf[Step.Run]
+    val defaultStep    = steps(0).asInstanceOf[Step.Run]
     val individualStep = steps(1).asInstanceOf[Step.Run]
 
     assertEquals(defaultStep.meta.timeout, None)
@@ -61,13 +62,13 @@ class MetaDslSpec extends FunSuite {
       }
     }
 
-    val job = p.workflows.head.jobs.head
+    val job   = p.workflows.head.jobs.head
     val steps = job.steps.toVector
 
     assertEquals(steps.length, 3)
 
-    val groupStep1 = steps(0).asInstanceOf[Step.Run]
-    val groupStep2 = steps(1).asInstanceOf[Step.Run]
+    val groupStep1  = steps(0).asInstanceOf[Step.Run]
+    val groupStep2  = steps(1).asInstanceOf[Step.Run]
     val outsideStep = steps(2).asInstanceOf[Step.Run]
 
     assertEquals(groupStep1.meta.timeout, Some(10.minutes))
@@ -91,12 +92,12 @@ class MetaDslSpec extends FunSuite {
       }
     }
 
-    val job = p.workflows.head.jobs.head
+    val job   = p.workflows.head.jobs.head
     val steps = job.steps.toVector
 
     assertEquals(steps.length, 2)
 
-    val groupStep = steps(0).asInstanceOf[Step.Run]
+    val groupStep    = steps(0).asInstanceOf[Step.Run]
     val overrideStep = steps(1).asInstanceOf[Step.Run]
 
     assertEquals(groupStep.meta.timeout, Some(10.minutes))
@@ -105,4 +106,3 @@ class MetaDslSpec extends FunSuite {
     assertEquals(overrideStep.meta.timeout, Some(1.minute))
     assertEquals(overrideStep.meta.continueOnError, false)
   }
-}

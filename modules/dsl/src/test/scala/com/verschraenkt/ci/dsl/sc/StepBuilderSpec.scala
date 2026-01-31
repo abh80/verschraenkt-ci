@@ -13,6 +13,7 @@ package com.verschraenkt.ci.dsl.sc
 import cats.data.NonEmptyList
 import com.verschraenkt.ci.core.model.*
 import munit.FunSuite
+
 import scala.concurrent.duration.*
 
 class StepBuilderSpec extends FunSuite:
@@ -101,74 +102,70 @@ class StepBuilderSpec extends FunSuite:
     import dsl.*
     given StepsBuilder = new StepsBuilder()
     restoreCache("deps", "node_modules", "package-lock.json")
-    
+
     val result = summon[StepsBuilder].result
     assertEquals(result.size, 1)
-    result.head match {
+    result.head match
       case StepLike.RestoreCache(cache, paths) =>
         assertEquals(cache.key.value, "deps")
         assertEquals(paths.toList, List("node_modules", "package-lock.json"))
       case other => fail(s"Expected StepLike.RestoreCache, but got $other")
-    }
   }
 
   test("DSL saveCache should create SaveCache StepLike") {
     import dsl.*
     given StepsBuilder = new StepsBuilder()
     saveCache("build", "target", "dist")
-    
+
     val result = summon[StepsBuilder].result
     assertEquals(result.size, 1)
-    result.head match {
+    result.head match
       case StepLike.SaveCache(cache, paths) =>
         assertEquals(cache.key.value, "build")
         assertEquals(paths.toList, List("target", "dist"))
       case other => fail(s"Expected StepLike.SaveCache, but got $other")
-    }
   }
 
   test("DSL restoreBranchCache should create branch-scoped RestoreCache") {
     import dsl.*
     given StepsBuilder = new StepsBuilder()
     restoreBranchCache("deps", "main", "node_modules")
-    
+
     val result = summon[StepsBuilder].result
     assertEquals(result.size, 1)
-    result.head match {
+    result.head match
       case StepLike.RestoreCache(cache, paths) =>
         assertEquals(cache.key.value, "main:deps")
         assertEquals(cache.scope, CacheScope.Branch)
         assertEquals(paths.toList, List("node_modules"))
       case other => fail(s"Expected StepLike.RestoreCache, but got $other")
-    }
   }
 
   test("DSL savePRCache should create PR-scoped SaveCache") {
     import dsl.*
     given StepsBuilder = new StepsBuilder()
     savePRCache("build", "123", "target")
-    
+
     val result = summon[StepsBuilder].result
     assertEquals(result.size, 1)
-    result.head match {
+    result.head match
       case StepLike.SaveCache(cache, paths) =>
         assertEquals(cache.key.value, "123:build")
         assertEquals(cache.scope, CacheScope.PullRequest)
         assertEquals(paths.toList, List("target"))
       case other => fail(s"Expected StepLike.SaveCache, but got $other")
-    }
   }
 
   test("DSL restoreS3Cache should create S3-based RestoreCache") {
     import dsl.*
     given StepsBuilder = new StepsBuilder()
     restoreS3Cache("my-bucket", "us-east-1", "libs", "lib/")
-    
+
     val result = summon[StepsBuilder].result
     assertEquals(result.size, 1)
-    result.head match {
+    result.head match
       case StepLike.RestoreCache(cache, paths) =>
-        cache match {
+        cache match
           case s3Cache: S3Cache =>
             assertEquals(s3Cache.bucket, "my-bucket")
             assertEquals(s3Cache.region, "us-east-1")
@@ -176,29 +173,24 @@ class StepBuilderSpec extends FunSuite:
             assertEquals(s3Cache.scope, CacheScope.Global)
             assertEquals(paths.toList, List("lib/"))
           case other => fail(s"Expected S3Cache, but got $other")
-        }
       case other => fail(s"Expected StepLike.RestoreCache, but got $other")
-    }
   }
 
   test("DSL saveGCSCache should create GCS-based SaveCache") {
     import dsl.*
     given StepsBuilder = new StepsBuilder()
     saveGCSCache("my-gcs-bucket", "artifacts", "dist/")
-    
+
     val result = summon[StepsBuilder].result
     assertEquals(result.size, 1)
-    result.head match {
+    result.head match
       case StepLike.SaveCache(cache, paths) =>
-        cache match {
+        cache match
           case gcsCache: GCSCache =>
             assertEquals(gcsCache.bucket, "my-gcs-bucket")
             assertEquals(gcsCache.key.value, "artifacts")
             assertEquals(gcsCache.scope, CacheScope.Global)
             assertEquals(paths.toList, List("dist/"))
           case other => fail(s"Expected GCSCache, but got $other")
-        }
       case other => fail(s"Expected StepLike.SaveCache, but got $other")
-    }
   }
-

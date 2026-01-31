@@ -116,20 +116,24 @@ object Condition:
   val onRegistryPackage: Condition = OnEvent("registry_package")
   val onStatus: Condition          = OnEvent("status")
   val onWatch: Condition           = OnEvent("watch")
+  // Aliases for common helpers
+  val onPR: Condition = onPullRequest
 
   // Common branch patterns
-  def onMainBranch: Condition    = OnBranch("main", PatternKind.Exact)
-  def onMasterBranch: Condition  = OnBranch("master", PatternKind.Exact)
+  def onMainBranch: Condition = OnBranch("main", PatternKind.Exact)
+
+  def onMasterBranch: Condition = OnBranch("master", PatternKind.Exact)
+
   def onDevelopBranch: Condition = OnBranch("develop", PatternKind.Exact)
+
   def onReleaseBranch: Condition = OnBranch("release-*", PatternKind.Wildcard)
+
   def onFeatureBranch: Condition = OnBranch("feature/*", PatternKind.Wildcard)
-  def onHotfixBranch: Condition  = OnBranch("hotfix/*", PatternKind.Wildcard)
+
+  def onHotfixBranch: Condition = OnBranch("hotfix/*", PatternKind.Wildcard)
 
   // Common tag patterns
   def onVersionTag: Condition = OnTag("v*", PatternKind.Wildcard)
-
-  // Aliases for common helpers
-  val onPR: Condition = onPullRequest
 
   // Combinators
   def all(first: Condition, rest: Condition*): Condition =

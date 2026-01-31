@@ -10,15 +10,15 @@
  */
 package com.verschraenkt.ci.core.security
 
-import com.verschraenkt.ci.core.model.{JobId, PipelineId}
 import com.verschraenkt.ci.core.errors.ValidationError
+import com.verschraenkt.ci.core.model.{ JobId, PipelineId }
 
 /** Secret scope levels */
 enum SecretScope:
-  case Job       // Secret is scoped to a specific job
-  case Workflow  // Secret is scoped to a workflow (all jobs in workflow)
-  case Pipeline  // Secret is scoped to a pipeline (all workflows/jobs)
-  case Global    // Secret is globally accessible
+  case Job      // Secret is scoped to a specific job
+  case Workflow // Secret is scoped to a workflow (all jobs in workflow)
+  case Pipeline // Secret is scoped to a pipeline (all workflows/jobs)
+  case Global   // Secret is globally accessible
 
 /** Secret access control information */
 case class SecretAccessControl(
@@ -39,12 +39,16 @@ case class SecretAccessContext(
 
 /** Utility for validating secret access permissions */
 object SecretAccessControl:
-  
+
   /** Check if a job has permission to access a secret
-    * @param secretId The secret identifier
-    * @param accessControl The access control rules for the secret
-    * @param context The context of the access request
-    * @return Either an error or unit on success
+    * @param secretId
+    *   The secret identifier
+    * @param accessControl
+    *   The access control rules for the secret
+    * @param context
+    *   The context of the access request
+    * @return
+    *   Either an error or unit on success
     */
   def validateAccess(
       secretId: String,
@@ -54,10 +58,12 @@ object SecretAccessControl:
     // Check expiration first
     accessControl.expiresAt match
       case Some(exp) if exp < context.timestamp =>
-        return Left(ValidationError(
-          s"Secret '$secretId' has expired (exp=$exp, now=${context.timestamp})",
-          Some("secret.expired")
-        ))
+        return Left(
+          ValidationError(
+            s"Secret '$secretId' has expired (exp=$exp, now=${context.timestamp})",
+            Some("secret.expired")
+          )
+        )
       case _ => ()
 
     // Check scope-based access
@@ -68,43 +74,48 @@ object SecretAccessControl:
 
       case SecretScope.Pipeline =>
         // Check if requesting from allowed pipeline
-        if accessControl.allowedPipelines.isEmpty || 
-           accessControl.allowedPipelines.contains(context.pipelineId) then
-          Right(())
+        if accessControl.allowedPipelines.isEmpty ||
+          accessControl.allowedPipelines.contains(context.pipelineId)
+        then Right(())
         else
-          Left(ValidationError(
-            s"Job '${context.requestingJobId.value}' does not have access to pipeline-scoped secret '$secretId'",
-            Some("secret.access.denied")
-          ))
+          Left(
+            ValidationError(
+              s"Job '${context.requestingJobId.value}' does not have access to pipeline-scoped secret '$secretId'",
+              Some("secret.access.denied")
+            )
+          )
 
       case SecretScope.Workflow =>
         // Check if requesting from allowed workflow
-        if accessControl.allowedWorkflows.isEmpty || 
-           accessControl.allowedWorkflows.contains(context.workflowName) then
-          Right(())
+        if accessControl.allowedWorkflows.isEmpty ||
+          accessControl.allowedWorkflows.contains(context.workflowName)
+        then Right(())
         else
-          Left(ValidationError(
-            s"Job '${context.requestingJobId.value}' in workflow '${context.workflowName}' does not have access to workflow-scoped secret '$secretId'",
-            Some("secret.access.denied")
-          ))
+          Left(
+            ValidationError(
+              s"Job '${context.requestingJobId.value}' in workflow '${context.workflowName}' does not have access to workflow-scoped secret '$secretId'",
+              Some("secret.access.denied")
+            )
+          )
 
       case SecretScope.Job =>
         // Check if requesting job is explicitly allowed
-        if accessControl.allowedJobs.isEmpty || 
-           accessControl.allowedJobs.contains(context.requestingJobId) then
-          Right(())
+        if accessControl.allowedJobs.isEmpty ||
+          accessControl.allowedJobs.contains(context.requestingJobId)
+        then Right(())
         else
-          Left(ValidationError(
-            s"Job '${context.requestingJobId.value}' does not have access to job-scoped secret '$secretId'",
-            Some("secret.access.denied")
-          ))
+          Left(
+            ValidationError(
+              s"Job '${context.requestingJobId.value}' does not have access to job-scoped secret '$secretId'",
+              Some("secret.access.denied")
+            )
+          )
 
-  /** Check access with hierarchical scope inheritance
-    * In hierarchical mode:
-    * - Job scope: only specified jobs
-    * - Workflow scope: all jobs in specified workflows
-    * - Pipeline scope: all jobs in specified pipelines
-    * - Global scope: all jobs everywhere
+  /** Check access with hierarchical scope inheritance In hierarchical mode:
+    *   - Job scope: only specified jobs
+    *   - Workflow scope: all jobs in specified workflows
+    *   - Pipeline scope: all jobs in specified pipelines
+    *   - Global scope: all jobs everywhere
     */
   def validateAccessHierarchical(
       secretId: String,
@@ -114,10 +125,12 @@ object SecretAccessControl:
     // First check expiration
     accessControl.expiresAt match
       case Some(exp) if exp < context.timestamp =>
-        return Left(ValidationError(
-          s"Secret '$secretId' has expired",
-          Some("secret.expired")
-        ))
+        return Left(
+          ValidationError(
+            s"Secret '$secretId' has expired",
+            Some("secret.expired")
+          )
+        )
       case _ => ()
 
     // Hierarchical check: Global > Pipeline > Workflow > Job
@@ -127,39 +140,44 @@ object SecretAccessControl:
 
       case SecretScope.Pipeline =>
         if accessControl.allowedPipelines.isEmpty ||
-           accessControl.allowedPipelines.contains(context.pipelineId) then
-          Right(())
+          accessControl.allowedPipelines.contains(context.pipelineId)
+        then Right(())
         else
-          Left(ValidationError(
-            s"Pipeline '${context.pipelineId.value}' does not have access to secret '$secretId'",
-            Some("secret.access.denied")
-          ))
+          Left(
+            ValidationError(
+              s"Pipeline '${context.pipelineId.value}' does not have access to secret '$secretId'",
+              Some("secret.access.denied")
+            )
+          )
 
       case SecretScope.Workflow =>
         // Allow if either pipeline or workflow matches
         val pipelineMatch = accessControl.allowedPipelines.isEmpty ||
-                           accessControl.allowedPipelines.contains(context.pipelineId)
+          accessControl.allowedPipelines.contains(context.pipelineId)
         val workflowMatch = accessControl.allowedWorkflows.isEmpty ||
-                           accessControl.allowedWorkflows.contains(context.workflowName)
-        
-        if pipelineMatch && workflowMatch then
-          Right(())
+          accessControl.allowedWorkflows.contains(context.workflowName)
+
+        if pipelineMatch && workflowMatch then Right(())
         else
-          Left(ValidationError(
-            s"Workflow '${context.workflowName}' does not have access to secret '$secretId'",
-            Some("secret.access.denied")
-          ))
+          Left(
+            ValidationError(
+              s"Workflow '${context.workflowName}' does not have access to secret '$secretId'",
+              Some("secret.access.denied")
+            )
+          )
 
       case SecretScope.Job =>
         // Most restrictive: must match job explicitly
         if accessControl.allowedJobs.isEmpty ||
-           accessControl.allowedJobs.contains(context.requestingJobId) then
-          Right(())
+          accessControl.allowedJobs.contains(context.requestingJobId)
+        then Right(())
         else
-          Left(ValidationError(
-            s"Job '${context.requestingJobId.value}' does not have access to secret '$secretId'",
-            Some("secret.access.denied")
-          ))
+          Left(
+            ValidationError(
+              s"Job '${context.requestingJobId.value}' does not have access to secret '$secretId'",
+              Some("secret.access.denied")
+            )
+          )
 
   /** Create a default global secret access control */
   def global: SecretAccessControl =

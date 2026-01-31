@@ -13,9 +13,10 @@ package com.verschraenkt.ci.dsl.sc
 import cats.data.NonEmptyVector
 import com.verschraenkt.ci.core.model.*
 import munit.FunSuite
+
 import scala.concurrent.duration.*
 
-class JobBuilderSpec extends FunSuite {
+class JobBuilderSpec extends FunSuite:
 
   test("JobBuilder should build a job with specified properties") {
     val jobBuilder = new JobBuilder("test-job")
@@ -79,4 +80,3 @@ class JobBuilderSpec extends FunSuite {
     val job = jobBuilder.build()
     assertEquals(job.steps.length, 3)
   }
-}

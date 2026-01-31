@@ -407,7 +407,7 @@ class WorkflowSpec extends FunSuite:
 
   // Tests for Issue 2.4: concurrencyGroup propagation in materialize
   test("Workflow.materialize propagates concurrencyGroup to jobs without one") {
-    val jobWithConcurrency = job1.copy(concurrencyGroup = Some("job-group"))
+    val jobWithConcurrency    = job1.copy(concurrencyGroup = Some("job-group"))
     val jobWithoutConcurrency = job2.copy(concurrencyGroup = None)
 
     val workflow = Workflow(

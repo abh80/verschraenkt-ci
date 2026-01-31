@@ -12,22 +12,24 @@
 package com.verschraenkt.ci.core.model
 
 import cats.data.NonEmptyList
-import scala.util.matching.Regex
-import java.security.MessageDigest
+
 import java.nio.charset.StandardCharsets.UTF_8
+import java.security.MessageDigest
+import scala.util.matching.Regex
 
 /** Defines different scoping levels for caches in CI workflows.
- *
- * Each scope represents a different level of cache isolation:
- * - Global: Shared across all workflows
- * - Branch: Isolated to specific branch
- * - PullRequest: Specific to pull requests
- * - Tag: Associated with specific tags
- * - Job: Scoped to a specific job execution
- * - Pipeline: Scoped to a pipeline execution
- *
- * @param intVal Integer value representing the scope level
- */
+  *
+  * Each scope represents a different level of cache isolation:
+  *   - Global: Shared across all workflows
+  *   - Branch: Isolated to specific branch
+  *   - PullRequest: Specific to pull requests
+  *   - Tag: Associated with specific tags
+  *   - Job: Scoped to a specific job execution
+  *   - Pipeline: Scoped to a pipeline execution
+  *
+  * @param intVal
+  *   Integer value representing the scope level
+  */
 enum CacheScope(val intVal: Int):
   /** Global cache scope, available to all workflows */
   case Global extends CacheScope(0)
@@ -48,30 +50,31 @@ enum CacheScope(val intVal: Int):
   case Pipeline extends CacheScope(5)
 
 /** Represents a normalized cache key for identifying cached content.
- *
- * Cache keys are normalized to ensure they:
- * - Contain only valid characters (alphanumeric, dots, underscores, dashes, pipes, colons)
- * - Are within length limits
- * - Have consistent formatting
- *
- * @param value The normalized string value of the cache key
- */
+  *
+  * Cache keys are normalized to ensure they:
+  *   - Contain only valid characters (alphanumeric, dots, underscores, dashes, pipes, colons)
+  *   - Are within length limits
+  *   - Have consistent formatting
+  *
+  * @param value
+  *   The normalized string value of the cache key
+  */
 sealed case class CacheKey private (value: String) extends AnyVal
 
 /** Common trait for cache operations defining core functionality.
- *
- * This trait defines the basic properties that all cache operations must have:
- * - A scope that determines the visibility/isolation level
- * - A key that uniquely identifies the cached content
- * - Methods for generating storage keys
- */
+  *
+  * This trait defines the basic properties that all cache operations must have:
+  *   - A scope that determines the visibility/isolation level
+  *   - A key that uniquely identifies the cached content
+  *   - Methods for generating storage keys
+  */
 trait CacheLike:
   /** The scope this cache operation applies to */
   def scope: CacheScope
 
   /** The key used to identify this cache */
   def key: CacheKey
-  
+
   def getStorageKey: String = s"${scope.toString}/${key.value}"
 
 object CacheLike:
@@ -90,10 +93,6 @@ object CacheKey:
   def fromParts(head: String, tail: String*): CacheKey =
     normalize((head +: tail.toVector).mkString("|"))
 
-  /** Creates a namespaced cache key */
-  def namespace(ns: String, key: CacheKey): CacheKey =
-    normalize(s"$ns:${key.value}")
-
   /** Creates a cache key from a template string with variable substitution */
   def template(tmpl: String, ctx: Map[String, String]): Either[String, CacheKey] =
     val missing = Var.findAllMatchIn(tmpl).map(_.group(1)).filterNot(ctx.contains).toSet
@@ -111,6 +110,10 @@ object CacheKey:
       case CacheScope.Tag         => namespace(ctx.getOrElse("tag", "unknown"), key)
       case CacheScope.Job         => namespace(ctx.getOrElse("job", "unknown"), key)
       case CacheScope.Pipeline    => namespace(ctx.getOrElse("pipeline", "unknown"), key)
+
+  /** Creates a namespaced cache key */
+  def namespace(ns: String, key: CacheKey): CacheKey =
+    normalize(s"$ns:${key.value}")
 
   private def normalize(s: String): CacheKey =
     val trimmed = s.trim
@@ -141,13 +144,13 @@ object CacheScope:
       case _ => None
 
 /** Factory methods for creating various cache operations.
- *
- * Provides convenience methods for:
- * - Creating scoped cache keys for branches, PRs and tags
- * - Building restore operations for different scopes
- * - Building save operations for different scopes
- * - Custom scope operations with context
- */
+  *
+  * Provides convenience methods for:
+  *   - Creating scoped cache keys for branches, PRs and tags
+  *   - Building restore operations for different scopes
+  *   - Building save operations for different scopes
+  *   - Custom scope operations with context
+  */
 object Cache:
   /** Creates a branch-scoped cache key */
   def forBranch(key: CacheKey, branch: String): CacheKey =
@@ -218,11 +221,14 @@ object Cache:
     SaveCache(scopedKey, paths, scope)
 
   /** Represents an operation to restore content from cache.
-   *
-   * @param key   The cache key to restore from
-   * @param paths List of paths to restore
-   * @param scope The scope level for this restore operation
-   */
+    *
+    * @param key
+    *   The cache key to restore from
+    * @param paths
+    *   List of paths to restore
+    * @param scope
+    *   The scope level for this restore operation
+    */
   final case class RestoreCache(
       key: CacheKey,
       paths: NonEmptyList[String],
@@ -230,11 +236,14 @@ object Cache:
   ) extends CacheLike
 
   /** Represents an operation to save content to cache.
-   *
-   * @param key   The cache key to save under
-   * @param paths List of paths to cache
-   * @param scope The scope level for this save operation
-   */
+    *
+    * @param key
+    *   The cache key to save under
+    * @param paths
+    *   List of paths to cache
+    * @param scope
+    *   The scope level for this save operation
+    */
   final case class SaveCache(
       key: CacheKey,
       paths: NonEmptyList[String],

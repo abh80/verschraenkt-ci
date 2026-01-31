@@ -10,12 +10,12 @@
  */
 package com.verschraenkt.ci.dsl.sc
 
+import cats.data.NonEmptyVector
 import cats.syntax.foldable.toUnorderedFoldableOps
 import com.verschraenkt.ci.core.model.*
 import munit.FunSuite
 
 import scala.concurrent.duration.*
-import cats.data.NonEmptyVector
 
 class DslSpec extends FunSuite:
   import dsl.*
@@ -90,7 +90,6 @@ class DslSpec extends FunSuite:
     }
   }
 
-
   test("cache functions create correct Step types and verify properties") {
     val p: Pipeline =
       pipeline("cache-verification") {
@@ -98,11 +97,11 @@ class DslSpec extends FunSuite:
           job("verify-cache-functions") {
             steps {
               checkout()
-               
+
               // Test basic cache
               restoreCache("basic", "path1", "path2")
               saveCache("basic", "path1", "path2")
-               
+
               // Test scoped caches
               restoreBranchCache("branch", "main", "branch-path")
               saveBranchCache("branch", "main", "branch-path")
@@ -110,7 +109,7 @@ class DslSpec extends FunSuite:
               savePRCache("pr", "123", "pr-path")
               restoreTagCache("tag", "v1.0", "tag-path")
               saveTagCache("tag", "v1.0", "tag-path")
-               
+
               // Test external caches
               restoreS3Cache("s3", "us-east-1", "s3-key", "s3-path")
               saveS3Cache("s3", "us-east-1", "s3-key", "s3-path")
@@ -123,69 +122,69 @@ class DslSpec extends FunSuite:
 
     val j = p.workflows.head.jobs.head
     val s = j.steps.toVector
-    
+
     // Should have: 1 checkout + 10 cache operations = 11 total steps
     assertEquals(s.size, 13)
-    
+
     // Verify basic cache restore
     val basicRestore = s(1).asInstanceOf[Step.RestoreCache]
     assertEquals(basicRestore.cache.key.value, "basic")
     assertEquals(basicRestore.cache.scope, CacheScope.Global)
     assertEquals(basicRestore.paths.toList, List("path1", "path2"))
-    
+
     // Verify basic cache save
     val basicSave = s(2).asInstanceOf[Step.SaveCache]
     assertEquals(basicSave.cache.key.value, "basic")
     assertEquals(basicSave.cache.scope, CacheScope.Global)
     assertEquals(basicSave.paths.toList, List("path1", "path2"))
-    
+
     // Verify branch cache restore
     val branchRestore = s(3).asInstanceOf[Step.RestoreCache]
     assertEquals(branchRestore.cache.key.value, "main:branch")
     assertEquals(branchRestore.cache.scope, CacheScope.Branch)
     assertEquals(branchRestore.paths.toList, List("branch-path"))
-    
+
     // Verify branch cache save
     val branchSave = s(4).asInstanceOf[Step.SaveCache]
     assertEquals(branchSave.cache.key.value, "main:branch")
     assertEquals(branchSave.cache.scope, CacheScope.Branch)
     assertEquals(branchSave.paths.toList, List("branch-path"))
-    
+
     // Verify PR cache restore
     val prRestore = s(5).asInstanceOf[Step.RestoreCache]
     assertEquals(prRestore.cache.key.value, "123:pr")
     assertEquals(prRestore.cache.scope, CacheScope.PullRequest)
     assertEquals(prRestore.paths.toList, List("pr-path"))
-    
+
     // Verify PR cache save
     val prSave = s(6).asInstanceOf[Step.SaveCache]
     assertEquals(prSave.cache.key.value, "123:pr")
     assertEquals(prSave.cache.scope, CacheScope.PullRequest)
     assertEquals(prSave.paths.toList, List("pr-path"))
-    
+
     // Verify tag cache restore
     val tagRestore = s(7).asInstanceOf[Step.RestoreCache]
     assertEquals(tagRestore.cache.key.value, "v1.0:tag")
     assertEquals(tagRestore.cache.scope, CacheScope.Tag)
     assertEquals(tagRestore.paths.toList, List("tag-path"))
-    
+
     // Verify tag cache save
     val tagSave = s(8).asInstanceOf[Step.SaveCache]
     assertEquals(tagSave.cache.key.value, "v1.0:tag")
     assertEquals(tagSave.cache.scope, CacheScope.Tag)
     assertEquals(tagSave.paths.toList, List("tag-path"))
-    
+
     // Verify S3 cache restore
-    val s3Restore = s(9).asInstanceOf[Step.RestoreCache]
+    val s3Restore      = s(9).asInstanceOf[Step.RestoreCache]
     val s3RestoreCache = s3Restore.cache.asInstanceOf[S3Cache]
     assertEquals(s3RestoreCache.bucket, "s3")
     assertEquals(s3RestoreCache.region, "us-east-1")
     assertEquals(s3RestoreCache.key.value, "s3-key")
     assertEquals(s3RestoreCache.scope, CacheScope.Global)
     assertEquals(s3Restore.paths.toList, List("s3-path"))
-    
+
     // Verify S3 cache save
-    val s3Save = s(10).asInstanceOf[Step.SaveCache]
+    val s3Save      = s(10).asInstanceOf[Step.SaveCache]
     val s3SaveCache = s3Save.cache.asInstanceOf[S3Cache]
     assertEquals(s3SaveCache.bucket, "s3")
     assertEquals(s3SaveCache.region, "us-east-1")

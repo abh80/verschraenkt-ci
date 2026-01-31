@@ -10,9 +10,10 @@
  */
 package com.verschraenkt.ci.core.utils
 
-import com.verschraenkt.ci.core.model.{ Job, JobId }
-import com.verschraenkt.ci.core.errors.DomainError
 import com.verschraenkt.ci.core.context.ApplicationContext
+import com.verschraenkt.ci.core.errors.DomainError
+import com.verschraenkt.ci.core.model.{ Job, JobId }
+
 import scala.annotation.tailrec
 import scala.collection.immutable.ListMap
 

@@ -1,12 +1,11 @@
 package com.verschraenkt.ci.storage.db.tables
 
-import slick.jdbc.PostgresProfile.api.*
 import com.verschraenkt.ci.core.model.{ Pipeline, PipelineId }
 import com.verschraenkt.ci.storage.db.codecs.ColumnTypes.given
 import com.verschraenkt.ci.storage.db.codecs.User
-import io.circe.{ Decoder, Encoder, Json }
-import io.circe.generic.semiauto.*
 import io.circe.syntax.*
+import io.circe.{ Encoder, Json }
+import slick.jdbc.PostgresProfile.api.{ *, given }
 
 import java.time.Instant
 
@@ -44,20 +43,6 @@ object PipelineRow:
     pipeline.workflows.head.name
 
 class PipelineTable(tag: Tag) extends Table[PipelineRow](tag, "pipelines"):
-  def pipelineId = column[PipelineId]("pipeline_id", O.PrimaryKey)
-  def name       = column[User]("name")
-  def definition = column[Json]("definition")
-  def version    = column[Int]("version")
-
-  def createdAt = column[Instant]("created_at")
-  def updatedAt = column[Instant]("updated_at")
-  def createdBy = column[String]("created_by")
-  def labels    = column[Set[String]]("labels")
-  def isActive  = column[Boolean]("is_active")
-
-  def deletedAt = column[Option[Instant]]("deleted_at")
-  def deletedBy = column[Option[User]]("deleted_by")
-
   def * = (
     pipelineId,
     name,
@@ -71,3 +56,25 @@ class PipelineTable(tag: Tag) extends Table[PipelineRow](tag, "pipelines"):
     deletedAt,
     deletedBy
   ).mapTo[PipelineRow]
+
+  def pipelineId = column[PipelineId]("pipeline_id", O.PrimaryKey)
+
+  def name = column[User]("name")
+
+  def definition = column[Json]("definition")
+
+  def version = column[Int]("version")
+
+  def createdAt = column[Instant]("created_at")
+
+  def updatedAt = column[Instant]("updated_at")
+
+  def createdBy = column[String]("created_by")
+
+  def labels = column[Set[String]]("labels")
+
+  def isActive = column[Boolean]("is_active")
+
+  def deletedAt = column[Option[Instant]]("deleted_at")
+
+  def deletedBy = column[Option[User]]("deleted_by")

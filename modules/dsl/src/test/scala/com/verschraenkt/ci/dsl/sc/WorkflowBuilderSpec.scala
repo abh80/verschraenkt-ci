@@ -13,11 +13,13 @@ package com.verschraenkt.ci.dsl.sc
 import cats.data.NonEmptyVector
 import com.verschraenkt.ci.core.model.*
 import munit.FunSuite
+
 import scala.concurrent.duration.*
 
-class WorkflowBuilderSpec extends FunSuite {
+class WorkflowBuilderSpec extends FunSuite:
 
-  private def createDummyJob(jobId: String): Job = Job.one(id = JobId(jobId), step = Step.Run(Command.Shell("echo 'dummy'"))(using StepMeta()))
+  private def createDummyJob(jobId: String): Job =
+    Job.one(id = JobId(jobId), step = Step.Run(Command.Shell("echo 'dummy'"))(using StepMeta()))
 
   test("WorkflowBuilder should build a workflow with specified properties") {
     val workflowBuilder = new WorkflowBuilder("my-workflow")
@@ -67,4 +69,3 @@ class WorkflowBuilderSpec extends FunSuite {
     val workflow = workflowBuilder.build()
     assertEquals(workflow.jobs.length, 2)
   }
-}
