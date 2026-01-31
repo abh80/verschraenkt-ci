@@ -5,7 +5,7 @@ import com.verschraenkt.ci.storage.db.codecs.ColumnTypes.given
 import com.verschraenkt.ci.storage.db.codecs.User
 import io.circe.syntax.*
 import io.circe.{ Encoder, Json }
-import slick.jdbc.PostgresProfile.api.{ *, given }
+import slick.jdbc.PostgresProfile.api.*
 
 import java.time.Instant
 

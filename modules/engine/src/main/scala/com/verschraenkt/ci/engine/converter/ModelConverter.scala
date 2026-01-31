@@ -3,8 +3,6 @@ package com.verschraenkt.ci.engine.converter
 import com.verschraenkt.ci.core.model.*
 import com.verschraenkt.ci.engine.api.{ JobDefinition, StepDefinition }
 
-import java.util.UUID
-
 object ModelConverter:
 
   def toJobDefinition(job: Job): JobDefinition =
@@ -27,7 +25,7 @@ object ModelConverter:
         flattenCommand(cmdLike).map { cmd =>
           Step.Run(cmd)(using
             cmdLike.asCommand match
-              case c: Command.Composite => r.meta // Use parent logic? Ideally we'd clone meta logic
+              case _: Command.Composite => r.meta // Use parent logic? Ideally we'd clone meta logic
               case _                    => r.meta
           )
         }

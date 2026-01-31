@@ -28,6 +28,6 @@ abstract class DomainError(
 
   override def toString: String =
     val src  = source.fold("")(s => s"[source: $s]")
-    val loc  = location.fold("")(l => s" at $l")
+    val loc  = location.fold("")(l => s" at ${l.toString}")
     val base = s"$message$loc $src".trim
     causeOpt.fold(base)(c => s"$base (caused by ${c.getClass.getSimpleName}: ${c.getMessage})")

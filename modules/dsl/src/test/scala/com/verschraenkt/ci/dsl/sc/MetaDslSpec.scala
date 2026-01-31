@@ -16,17 +16,16 @@ import munit.FunSuite
 import scala.concurrent.duration.*
 
 class MetaDslSpec extends FunSuite:
-  import dsl.*
 
   test("Individual step metadata should be applied via trailing lambda") {
     val p: Pipeline = dsl.pipeline("p") {
       dsl.workflow("w") {
         dsl.job("j") {
           dsl.steps {
-            dsl.run("echo 'default'")
+            val _ = dsl.run("echo 'default'")
             dsl.run("echo 'individual'").withMeta {
               _.timeout(5.minutes).continueOnError(true)
-            }
+            }: Unit
           }
         }
       }
@@ -53,10 +52,10 @@ class MetaDslSpec extends FunSuite:
         dsl.job("j") {
           dsl.steps {
             dsl.meta(_.timeout(10.minutes)) {
-              dsl.run("echo 'group 1'")
-              dsl.run("echo 'group 2'")
+              val _ = dsl.run("echo 'group 1'")
+              dsl.run("echo 'group 2'"): Unit
             }
-            dsl.run("echo 'outside group'")
+            dsl.run("echo 'outside group'"): Unit
           }
         }
       }
@@ -82,10 +81,10 @@ class MetaDslSpec extends FunSuite:
         dsl.job("j") {
           dsl.steps {
             dsl.meta(_.timeout(10.minutes).continueOnError(true)) {
-              dsl.run("echo 'group meta'")
+              val _ = dsl.run("echo 'group meta'")
               dsl.run("echo 'override meta'").withMeta {
                 _.timeout(1.minute).continueOnError(false)
-              }
+              }: Unit
             }
           }
         }

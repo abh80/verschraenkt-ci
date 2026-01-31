@@ -14,7 +14,7 @@ import com.verschraenkt.ci.core.errors.ValidationError
 
 import java.time.Instant
 import java.util.Base64
-import scala.util.{ Failure, Success, Try }
+import scala.util.Try
 
 /** JWT token claims */
 case class JwtClaims(

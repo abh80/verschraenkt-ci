@@ -10,8 +10,6 @@ import com.verschraenkt.ci.core.context.ApplicationContext
 import com.verschraenkt.ci.core.model.*
 import munit.FunSuite
 
-import scala.concurrent.duration.*
-
 class ValidationServiceAdditionalSpec extends FunSuite:
 
   val validStep: Step = Step.Checkout()(using StepMeta())

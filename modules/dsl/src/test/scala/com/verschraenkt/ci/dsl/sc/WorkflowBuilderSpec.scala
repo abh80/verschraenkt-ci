@@ -10,11 +10,8 @@
  */
 package com.verschraenkt.ci.dsl.sc
 
-import cats.data.NonEmptyVector
 import com.verschraenkt.ci.core.model.*
 import munit.FunSuite
-
-import scala.concurrent.duration.*
 
 class WorkflowBuilderSpec extends FunSuite:
 

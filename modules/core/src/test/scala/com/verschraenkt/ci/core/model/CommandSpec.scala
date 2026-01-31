@@ -10,7 +10,6 @@
  */
 package com.verschraenkt.ci.core.model
 
-import cats.data.NonEmptyVector
 import cats.implicits.*
 import munit.FunSuite
 

@@ -10,13 +10,10 @@
  */
 package com.verschraenkt.ci.core.utils
 
-import cats.data.NonEmptyVector
 import com.verschraenkt.ci.core.context.ApplicationContext
 import com.verschraenkt.ci.core.errors.*
 import com.verschraenkt.ci.core.model.*
 import munit.FunSuite
-
-import scala.concurrent.duration.*
 
 class DAGSpec extends FunSuite:
   val dummyStep: Step = Step.Checkout()(using StepMeta())

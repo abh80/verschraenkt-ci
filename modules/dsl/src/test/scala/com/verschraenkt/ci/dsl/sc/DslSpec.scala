@@ -25,7 +25,7 @@ class DslSpec extends FunSuite:
       workflow("w") {
         job("j") {
           steps {
-            run("s")
+            run("s"): Unit
           }
         }
       }
@@ -221,11 +221,11 @@ class DslSpec extends FunSuite:
             steps {
               checkout()
               restoreCache("npm-deps", "node_modules", "package-lock.json")
-              run("npm ci")
+              val _ = run("npm ci")
               saveCache("npm-deps", "node_modules", "package-lock.json")
-              run("sbt scalafmtCheckAll")
-              run("sbt scalafixAll")
-              run("npm run lint", shell = ShellKind.Bash)
+              val _ = run("sbt scalafmtCheckAll")
+              val _ = run("sbt scalafixAll")
+              run("npm run lint", shell = ShellKind.Bash): Unit
             }
           }
 
@@ -244,12 +244,12 @@ class DslSpec extends FunSuite:
             steps {
               checkout()
               restoreBranchCache("sbt-deps", "feature-branch", "target/dependency-cache", ".gradle")
-              run("sbt ++$scala update")
+              val _ = run("sbt ++$scala update")
               saveBranchCache("sbt-deps", "feature-branch", "target/dependency-cache", ".gradle")
               restoreCache("test-data", "target/test-classes")
-              run("scripts/setup-db.sh $db")
+              val _ = run("scripts/setup-db.sh $db")
               saveCache("test-data", "target/test-classes")
-              run("sbt ++$scala clean test")
+              run("sbt ++$scala clean test"): Unit
             }
           }
 
@@ -266,11 +266,11 @@ class DslSpec extends FunSuite:
             steps {
               checkout()
               restoreS3Cache("frontend-assets", "us-east-1", "npm-frontend-$node", "node_modules")
-              run("nvm use $node && npm ci")
+              val _ = run("nvm use $node && npm ci")
               saveS3Cache("frontend-assets", "us-east-1", "npm-frontend-$node", "node_modules")
               restorePRCache("build-cache", "123", "dist", ".next")
-              run("nvm use $node && npm test")
-              run("nvm use $node && npm run build")
+              val _ = run("nvm use $node && npm test")
+              val _ = run("nvm use $node && npm run build")
               savePRCache("build-cache", "123", "dist", ".next")
             }
           }
@@ -284,11 +284,11 @@ class DslSpec extends FunSuite:
             steps {
               checkout()
               restoreGCSCache("e2e-deps", "e2e-test-bucket", "test-data", "fixtures")
-              run("docker compose pull")
-              run("docker compose up -d")
-              run("npm run e2e")
-              run("docker compose logs")
-              run("docker compose down --volumes")
+              val _ = run("docker compose pull")
+              val _ = run("docker compose up -d")
+              val _ = run("npm run e2e")
+              val _ = run("docker compose logs")
+              val _ = run("docker compose down --volumes")
               saveGCSCache("e2e-deps", "e2e-test-bucket", "test-results", "reports")
             }
           }
@@ -316,10 +316,10 @@ class DslSpec extends FunSuite:
             steps {
               checkout()
               restoreTagCache("deploy-config", "v1.2.3", "k8s-manifests", "helm-values")
-              run("scripts/render-config.sh staging")
-              run("scripts/apply-k8s.sh staging")
+              val _ = run("scripts/render-config.sh staging")
+              val _ = run("scripts/apply-k8s.sh staging")
               saveTagCache("deploy-status", "staging-deploy-123", "deploy-logs", "status-files")
-              run("kubectl rollout status deploy/monorepo-api -n staging")
+              run("kubectl rollout status deploy/monorepo-api -n staging"): Unit
             }
           }
 
@@ -329,7 +329,7 @@ class DslSpec extends FunSuite:
             jobLabels("deploy", "staging", "smoke")
             resources(cpuMilli = 1000, memoryMiB = 1024, diskMiB = 2.GB.toInt)
             steps {
-              run("scripts/smoke.sh staging")
+              run("scripts/smoke.sh staging"): Unit
             }
           }
 
@@ -343,9 +343,9 @@ class DslSpec extends FunSuite:
             resources(cpuMilli = 2000, memoryMiB = 3072, diskMiB = 5.GB.toInt)
             steps {
               checkout()
-              run("scripts/render-config.sh production")
-              run("scripts/apply-k8s.sh production")
-              run("kubectl rollout status deploy/monorepo-api -n production")
+              val _ = run("scripts/render-config.sh production")
+              val _ = run("scripts/apply-k8s.sh production")
+              run("kubectl rollout status deploy/monorepo-api -n production"): Unit
             }
           }
 
@@ -355,7 +355,7 @@ class DslSpec extends FunSuite:
             jobLabels("deploy", "production", "smoke")
             resources(cpuMilli = 1000, memoryMiB = 1024, diskMiB = 2.GB.toInt)
             steps {
-              run("scripts/smoke.sh production")
+              run("scripts/smoke.sh production"): Unit
             }
           }
         }
@@ -374,7 +374,7 @@ class DslSpec extends FunSuite:
             resources(cpuMilli = 1000, memoryMiB = 1024, diskMiB = 2.GB.toInt)
             steps {
               checkout()
-              run("scripts/migrate.sh --dry-run")
+              run("scripts/migrate.sh --dry-run"): Unit
             }
           }
 
@@ -385,7 +385,7 @@ class DslSpec extends FunSuite:
             resources(cpuMilli = 1000, memoryMiB = 1024, diskMiB = 2.GB.toInt)
             steps {
               checkout()
-              run("scripts/migrate.sh --apply")
+              run("scripts/migrate.sh --apply"): Unit
             }
           }
 
@@ -394,7 +394,7 @@ class DslSpec extends FunSuite:
             jobLabels("maintenance", "cleanup")
             resources(cpuMilli = 500, memoryMiB = 512, diskMiB = 1.GB.toInt)
             steps {
-              run("scripts/cleanup-artifacts.sh 30")
+              run("scripts/cleanup-artifacts.sh 30"): Unit
             }
           }
         }

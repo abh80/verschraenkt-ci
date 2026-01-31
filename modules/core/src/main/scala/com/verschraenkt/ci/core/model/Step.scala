@@ -11,7 +11,6 @@
 package com.verschraenkt.ci.core.model
 
 import cats.data.{ NonEmptyList, NonEmptyVector }
-import cats.syntax.all.*
 
 import scala.concurrent.duration.FiniteDuration
 

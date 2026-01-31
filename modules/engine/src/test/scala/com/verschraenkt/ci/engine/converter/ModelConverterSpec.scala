@@ -2,10 +2,7 @@ package com.verschraenkt.ci.engine.converter
 
 import cats.data.NonEmptyVector
 import com.verschraenkt.ci.core.model.*
-import com.verschraenkt.ci.engine.api.{ JobDefinition, StepDefinition }
 import munit.FunSuite
-
-import scala.concurrent.duration.*
 
 class ModelConverterSpec extends FunSuite:
 

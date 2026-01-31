@@ -149,7 +149,8 @@ extension (c: CommandLike)
   infix def ~>(commands: Tuple): Composite =
     val commandList = commands.toList.map {
       case cmd: CommandLike => cmd
-      case other => throw new IllegalArgumentException(s"Element '$other' in tuple is not a CommandLike")
+      case other =>
+        throw new IllegalArgumentException("Element '" + other.toString + "' in tuple is not a CommandLike")
     }
     val allCommands = c +: commandList
     Composite(NonEmptyVector.fromVectorUnsafe(allCommands.toVector.map(_.asCommand)))

@@ -10,7 +10,6 @@
  */
 package com.verschraenkt.ci.dsl.sc
 
-import com.verschraenkt.ci.core.model.Container
 import munit.FunSuite
 
 class ExecutorSpec extends FunSuite:

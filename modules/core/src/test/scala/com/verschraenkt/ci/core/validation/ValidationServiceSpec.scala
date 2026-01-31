@@ -12,7 +12,6 @@ package com.verschraenkt.ci.core.validation
 
 import cats.data.{ NonEmptyList, NonEmptyVector }
 import com.verschraenkt.ci.core.context.ApplicationContext
-import com.verschraenkt.ci.core.errors.{ CompositeError, ValidationError }
 import com.verschraenkt.ci.core.model.*
 import munit.FunSuite
 
@@ -32,7 +31,7 @@ class ValidationServiceSpec extends FunSuite:
 
     ValidationService.validatePipeline(pipeline) match
       case Right(p) => assertEquals(p.id, PipelineId("test-pipeline"))
-      case Left(e)  => fail(s"Expected valid pipeline but got: $e")
+      case Left(e)  => fail(s"Expected valid pipeline but got: ${e.toString}")
   }
 
   test("validatePipeline - empty ID fails") {
@@ -79,7 +78,7 @@ class ValidationServiceSpec extends FunSuite:
 
     ValidationService.validateWorkflow(workflow) match
       case cats.data.Validated.Valid(w)   => assertEquals(w.name, "test-workflow")
-      case cats.data.Validated.Invalid(e) => fail(s"Expected valid workflow but got: $e")
+      case cats.data.Validated.Invalid(e) => fail(s"Expected valid workflow but got: ${e.toString}")
   }
 
   test("validateWorkflow - empty name fails") {
@@ -107,7 +106,7 @@ class ValidationServiceSpec extends FunSuite:
 
     ValidationService.validateJob(job) match
       case cats.data.Validated.Valid(j)   => assertEquals(j.id, JobId("valid-job"))
-      case cats.data.Validated.Invalid(e) => fail(s"Expected valid job but got: $e")
+      case cats.data.Validated.Invalid(e) => fail(s"Expected valid job but got: ${e.toString}")
   }
 
   test("validateJob - empty ID fails") {
@@ -207,7 +206,7 @@ class ValidationServiceSpec extends FunSuite:
 
     ValidationService.validateWorkflow(workflow) match
       case cats.data.Validated.Valid(_)   => assert(true)
-      case cats.data.Validated.Invalid(e) => fail(s"Expected valid dependencies but got: $e")
+      case cats.data.Validated.Invalid(e) => fail(s"Expected valid dependencies but got: ${e.toString}")
   }
 
   // Matrix Tests
@@ -290,7 +289,7 @@ class ValidationServiceSpec extends FunSuite:
 
     ValidationService.validateStep(step) match
       case cats.data.Validated.Valid(_)   => assert(true)
-      case cats.data.Validated.Invalid(e) => fail(s"Expected valid checkout step but got: $e")
+      case cats.data.Validated.Invalid(e) => fail(s"Expected valid checkout step but got: ${e.toString}")
   }
 
   test("validateStep - valid run with exec passes") {
@@ -298,7 +297,7 @@ class ValidationServiceSpec extends FunSuite:
 
     ValidationService.validateStep(step) match
       case cats.data.Validated.Valid(_)   => assert(true)
-      case cats.data.Validated.Invalid(e) => fail(s"Expected valid run step but got: $e")
+      case cats.data.Validated.Invalid(e) => fail(s"Expected valid run step but got: ${e.toString}")
   }
 
   test("validateStep - empty exec program fails") {
@@ -367,8 +366,9 @@ class ValidationServiceSpec extends FunSuite:
     val step = Step.Checkout()(using meta)
 
     ValidationService.validateStep(step) match
-      case cats.data.Validated.Valid(_)   => assert(true)
-      case cats.data.Validated.Invalid(e) => fail(s"Expected valid retry configuration but got: $e")
+      case cats.data.Validated.Valid(_) => assert(true)
+      case cats.data.Validated.Invalid(e) =>
+        fail(s"Expected valid retry configuration but got: ${e.toString}")
   }
 
   // Cache Tests
@@ -378,7 +378,7 @@ class ValidationServiceSpec extends FunSuite:
 
     ValidationService.validateStep(step) match
       case cats.data.Validated.Valid(_)   => assert(true)
-      case cats.data.Validated.Invalid(e) => fail(s"Expected valid restore cache but got: $e")
+      case cats.data.Validated.Invalid(e) => fail(s"Expected valid restore cache but got: ${e.toString}")
   }
 
   test("validateStep - valid save cache passes") {
@@ -387,7 +387,7 @@ class ValidationServiceSpec extends FunSuite:
 
     ValidationService.validateStep(step) match
       case cats.data.Validated.Valid(_)   => assert(true)
-      case cats.data.Validated.Invalid(e) => fail(s"Expected valid save cache but got: $e")
+      case cats.data.Validated.Invalid(e) => fail(s"Expected valid save cache but got: ${e.toString}")
   }
 
   test("validateStep - empty cache path fails") {
@@ -417,7 +417,7 @@ class ValidationServiceSpec extends FunSuite:
 
     ValidationService.validateStep(composite) match
       case cats.data.Validated.Valid(_)   => assert(true)
-      case cats.data.Validated.Invalid(e) => fail(s"Expected valid composite step but got: $e")
+      case cats.data.Validated.Invalid(e) => fail(s"Expected valid composite step but got: ${e.toString}")
   }
 
   test("validateStep - composite with invalid step fails") {
@@ -471,7 +471,7 @@ class ValidationServiceSpec extends FunSuite:
       case Right(p) =>
         assertEquals(p.id, PipelineId("main-pipeline"))
         assertEquals(p.workflows.length, 1)
-      case Left(e) => fail(s"Expected valid complex pipeline but got: $e")
+      case Left(e) => fail(s"Expected valid complex pipeline but got: ${e.toString}")
   }
 
   test("validatePipeline - complex invalid pipeline accumulates all errors") {

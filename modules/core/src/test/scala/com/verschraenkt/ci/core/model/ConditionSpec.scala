@@ -91,7 +91,7 @@ class ConditionSpec extends AnyFunSuite with Matchers:
     val cond = Condition.EnvEquals("NODE_ENV", "production")
     cond match
       case Condition.EnvEquals(key, value) =>
-        key shouldBe "NODE_ENV"
+        val _ = key shouldBe "NODE_ENV"
         value shouldBe "production"
       case _ => fail("Expected EnvEquals")
   }
@@ -100,7 +100,7 @@ class ConditionSpec extends AnyFunSuite with Matchers:
     val cond = Condition.EnvNotEquals("DEBUG", "true")
     cond match
       case Condition.EnvNotEquals(key, value) =>
-        key shouldBe "DEBUG"
+        val _ = key shouldBe "DEBUG"
         value shouldBe "true"
       case _ => fail("Expected EnvNotEquals")
   }
@@ -362,7 +362,7 @@ class ConditionSpec extends AnyFunSuite with Matchers:
     val right = !cond1 || !cond2
 
     // We verify structure, not logical equivalence
-    left shouldBe a[Condition.Not]
+    val _ = left shouldBe a[Condition.Not]
     right shouldBe a[Condition.Or]
   }
 
@@ -374,10 +374,10 @@ class ConditionSpec extends AnyFunSuite with Matchers:
 
     val simplified = notAnd.simplify
     // Should become Or(Not(cond1), Not(cond2))
-    simplified shouldBe a[Condition.Or]
+    val _ = simplified shouldBe a[Condition.Or]
     simplified match
       case Condition.Or(cs) =>
-        cs.length shouldBe 2
+        val _ = cs.length shouldBe 2
         cs.toVector.foreach { c => c shouldBe a[Condition.Not] }
       case _ => fail("Expected Or condition")
   }
@@ -389,10 +389,10 @@ class ConditionSpec extends AnyFunSuite with Matchers:
 
     val simplified = notOr.simplify
     // Should become And(Not(cond1), Not(cond2))
-    simplified shouldBe a[Condition.And]
+    val _ = simplified shouldBe a[Condition.And]
     simplified match
       case Condition.And(cs) =>
-        cs.length shouldBe 2
+        val _ = cs.length shouldBe 2
         cs.toVector.foreach { c => c shouldBe a[Condition.Not] }
       case _ => fail("Expected And condition")
   }

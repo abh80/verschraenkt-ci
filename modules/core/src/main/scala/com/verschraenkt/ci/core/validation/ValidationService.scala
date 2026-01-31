@@ -100,7 +100,7 @@ object ValidationService:
   private def validateJobs(jobs: NonEmptyVector[Job])(using
       ctx: ApplicationContext
   ): ValidationResult[NonEmptyVector[Job]] =
-    val validated = jobs.toVector.zipWithIndex.map { case (j, idx) =>
+    val validated = jobs.toVector.zipWithIndex.map { case (j, _) =>
       validateJob(j)(using ctx.child(s"job[${j.id.value}]"))
     }
 
@@ -137,7 +137,12 @@ object ValidationService:
   ): ValidationResult[NonEmptyVector[Job]] =
     DAG.order(jobs.toVector.toList) match
       case Right(_)  => jobs.validNel
-      case Left(err) => err.asInstanceOf[ValidationError].invalidNel
+      case Left(err) =>
+        // Convert DomainError to ValidationError safely
+        val validationError = err match
+          case ve: ValidationError => ve
+          case other => ValidationError(other.message, other.source, other.location, other.causeOpt)
+        validationError.invalidNel
 
   private def validateResource(resource: Resource)(using
       ctx: ApplicationContext

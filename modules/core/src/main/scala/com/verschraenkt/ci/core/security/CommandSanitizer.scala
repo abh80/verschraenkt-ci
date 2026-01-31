@@ -16,7 +16,7 @@ import com.verschraenkt.ci.core.context.ApplicationContext
 import com.verschraenkt.ci.core.errors.ValidationError
 import com.verschraenkt.ci.core.model.{ Command, Policy, ShellKind }
 
-import scala.util.matching.Regex
+import scala.annotation.unused
 
 /** Utility for sanitizing and validating commands against security policies */
 object CommandSanitizer:
@@ -79,7 +79,9 @@ object CommandSanitizer:
 
     deniedPatterns.find(pattern => pattern.findFirstIn(script).isDefined) match
       case Some(matchedPattern) =>
-        ctx.validation(s"Shell script contains forbidden pattern: ${matchedPattern.pattern}").invalidNel
+        ctx
+          .validation(s"Shell script contains forbidden pattern: ${matchedPattern.pattern.pattern}")
+          .invalidNel
       case None =>
         // Additional shell-specific checks
         validateShellInjection(script, shell)
@@ -99,10 +101,11 @@ object CommandSanitizer:
         ().validNel
 
   /** Detect common shell injection patterns */
-  private def validateShellInjection(script: String, shell: ShellKind)(using
-      ctx: ApplicationContext
+  private def validateShellInjection(@unused script: String, @unused shell: ShellKind)(using
+      @unused ctx: ApplicationContext
   ): ValidationResult[Unit] =
-    val dangerousPatterns = List(
+    /*
+    List(
       """\$\(.*\)""".r, // Command substitution $(...)
       "`.*`".r,         // Backtick command substitution
       """;.*""".r,      // Command chaining with semicolon
@@ -113,6 +116,7 @@ object CommandSanitizer:
       """<""".r,        // Input redirection
       """\$\{.*\}""".r  // Variable expansion
     )
+     */
 
     // These patterns are informational warnings, not hard blocks
     // The deny patterns in Policy should be used for strict enforcement

@@ -40,7 +40,7 @@ class StepBuilderSpec extends FunSuite:
         assertEquals(env, Map.empty)
         assertEquals(cwd, None)
         assertEquals(timeoutSec, None)
-      case other => fail(s"Expected Step.Run, but got $other")
+      case other => fail(s"Expected Step.Run, but got ${other.toString}")
   }
 
   test("StepBuilder should convert StepLike.Run to Step.Run with custom meta from builder function") {
@@ -58,7 +58,7 @@ class StepBuilderSpec extends FunSuite:
         assertEquals(env, Map("BUILD_ENV" -> "production"))
         assertEquals(cwd, Some("/app"))
         assertEquals(timeoutSec, Some(300)) // 5.minutes to seconds
-      case other => fail(s"Expected Step.Run, but got $other")
+      case other => fail(s"Expected Step.Run, but got ${other.toString}")
   }
 
   test("StepBuilder should convert StepLike.Run to Step.Run with custom shell") {
@@ -70,7 +70,7 @@ class StepBuilderSpec extends FunSuite:
       case Step.Run(Command.Shell(script, shell, _, _, _)) =>
         assertEquals(script, "pwsh -Command 'Write-Host \"Hello\"'")
         assertEquals(shell, ShellKind.Pwsh)
-      case other => fail(s"Expected Step.Run, but got $other")
+      case other => fail(s"Expected Step.Run, but got ${other.toString}")
   }
 
   test("StepBuilder should convert StepLike.Checkout to Step.Checkout") {
@@ -109,7 +109,7 @@ class StepBuilderSpec extends FunSuite:
       case StepLike.RestoreCache(cache, paths) =>
         assertEquals(cache.key.value, "deps")
         assertEquals(paths.toList, List("node_modules", "package-lock.json"))
-      case other => fail(s"Expected StepLike.RestoreCache, but got $other")
+      case other => fail(s"Expected StepLike.RestoreCache, but got ${other.toString}")
   }
 
   test("DSL saveCache should create SaveCache StepLike") {
@@ -123,7 +123,7 @@ class StepBuilderSpec extends FunSuite:
       case StepLike.SaveCache(cache, paths) =>
         assertEquals(cache.key.value, "build")
         assertEquals(paths.toList, List("target", "dist"))
-      case other => fail(s"Expected StepLike.SaveCache, but got $other")
+      case other => fail(s"Expected StepLike.SaveCache, but got ${other.toString}")
   }
 
   test("DSL restoreBranchCache should create branch-scoped RestoreCache") {
@@ -138,7 +138,7 @@ class StepBuilderSpec extends FunSuite:
         assertEquals(cache.key.value, "main:deps")
         assertEquals(cache.scope, CacheScope.Branch)
         assertEquals(paths.toList, List("node_modules"))
-      case other => fail(s"Expected StepLike.RestoreCache, but got $other")
+      case other => fail(s"Expected StepLike.RestoreCache, but got ${other.toString}")
   }
 
   test("DSL savePRCache should create PR-scoped SaveCache") {
@@ -153,7 +153,7 @@ class StepBuilderSpec extends FunSuite:
         assertEquals(cache.key.value, "123:build")
         assertEquals(cache.scope, CacheScope.PullRequest)
         assertEquals(paths.toList, List("target"))
-      case other => fail(s"Expected StepLike.SaveCache, but got $other")
+      case other => fail(s"Expected StepLike.SaveCache, but got ${other.toString}")
   }
 
   test("DSL restoreS3Cache should create S3-based RestoreCache") {
@@ -172,8 +172,8 @@ class StepBuilderSpec extends FunSuite:
             assertEquals(s3Cache.key.value, "libs")
             assertEquals(s3Cache.scope, CacheScope.Global)
             assertEquals(paths.toList, List("lib/"))
-          case other => fail(s"Expected S3Cache, but got $other")
-      case other => fail(s"Expected StepLike.RestoreCache, but got $other")
+          case other => fail(s"Expected S3Cache, but got ${other.toString}")
+      case other => fail(s"Expected StepLike.RestoreCache, but got ${other.toString}")
   }
 
   test("DSL saveGCSCache should create GCS-based SaveCache") {
@@ -191,6 +191,6 @@ class StepBuilderSpec extends FunSuite:
             assertEquals(gcsCache.key.value, "artifacts")
             assertEquals(gcsCache.scope, CacheScope.Global)
             assertEquals(paths.toList, List("dist/"))
-          case other => fail(s"Expected GCSCache, but got $other")
-      case other => fail(s"Expected StepLike.SaveCache, but got $other")
+          case other => fail(s"Expected GCSCache, but got ${other.toString}")
+      case other => fail(s"Expected StepLike.SaveCache, but got ${other.toString}")
   }
