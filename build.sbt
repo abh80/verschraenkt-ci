@@ -10,7 +10,9 @@ lazy val commonSettings = Seq(
     "-unchecked",
     "-deprecation",
     "-Werror",
-    "-source:3.8"
+    "-source:3.8",
+    "-Wall",
+    "-Wunused:imports"
   ),
   resolvers += "Akka library repository".at("https://repo.akka.io/maven"),
   semanticdbEnabled := true,

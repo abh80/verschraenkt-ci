@@ -12,6 +12,7 @@
         <parameter value="UTF-8" />
         <parameter value="-Werror" />
         <parameter value="-source:3.8" />
+        <parameter value="-Wunused:all" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
         <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\core\target\scala-3.8.1\test-meta" />
@@ -26,6 +27,7 @@
         <parameter value="UTF-8" />
         <parameter value="-Werror" />
         <parameter value="-source:3.8" />
+        <parameter value="-Wunused:all" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
         <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\core\target\scala-3.8.1\meta" />
@@ -40,6 +42,7 @@
         <parameter value="UTF-8" />
         <parameter value="-Werror" />
         <parameter value="-source:3.8" />
+        <parameter value="-Wunused:all" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
         <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\dsl\target\scala-3.8.1\test-meta" />
@@ -54,6 +57,7 @@
         <parameter value="UTF-8" />
         <parameter value="-Werror" />
         <parameter value="-source:3.8" />
+        <parameter value="-Wunused:all" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
         <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\dsl\target\scala-3.8.1\meta" />
@@ -68,6 +72,7 @@
         <parameter value="UTF-8" />
         <parameter value="-Werror" />
         <parameter value="-source:3.8" />
+        <parameter value="-Wunused:all" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
         <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\engine\target\scala-3.8.1\test-meta" />
@@ -82,6 +87,7 @@
         <parameter value="UTF-8" />
         <parameter value="-Werror" />
         <parameter value="-source:3.8" />
+        <parameter value="-Wunused:all" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
         <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\engine\target\scala-3.8.1\meta" />
@@ -96,6 +102,7 @@
         <parameter value="UTF-8" />
         <parameter value="-Werror" />
         <parameter value="-source:3.8" />
+        <parameter value="-Wunused:all" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
         <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\engine-api\target\scala-3.8.1\test-meta" />
@@ -110,6 +117,7 @@
         <parameter value="UTF-8" />
         <parameter value="-Werror" />
         <parameter value="-source:3.8" />
+        <parameter value="-Wunused:all" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
         <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\engine-api\target\scala-3.8.1\meta" />
@@ -124,6 +132,7 @@
         <parameter value="UTF-8" />
         <parameter value="-Werror" />
         <parameter value="-source:3.8" />
+        <parameter value="-Wunused:all" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
         <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\executor\target\scala-3.8.1\test-meta" />
@@ -138,6 +147,7 @@
         <parameter value="UTF-8" />
         <parameter value="-Werror" />
         <parameter value="-source:3.8" />
+        <parameter value="-Wunused:all" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
         <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\executor\target\scala-3.8.1\meta" />
@@ -164,6 +174,7 @@
         <parameter value="UTF-8" />
         <parameter value="-Werror" />
         <parameter value="-source:3.8" />
+        <parameter value="-Wunused:all" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
         <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\observability\target\scala-3.8.1\test-meta" />
@@ -178,6 +189,7 @@
         <parameter value="UTF-8" />
         <parameter value="-Werror" />
         <parameter value="-source:3.8" />
+        <parameter value="-Wunused:all" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
         <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\observability\target\scala-3.8.1\meta" />
@@ -192,6 +204,7 @@
         <parameter value="UTF-8" />
         <parameter value="-Werror" />
         <parameter value="-source:3.8" />
+        <parameter value="-Wunused:all" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
         <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\security\target\scala-3.8.1\test-meta" />
@@ -206,6 +219,7 @@
         <parameter value="UTF-8" />
         <parameter value="-Werror" />
         <parameter value="-source:3.8" />
+        <parameter value="-Wunused:all" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
         <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\security\target\scala-3.8.1\meta" />
@@ -220,6 +234,7 @@
         <parameter value="UTF-8" />
         <parameter value="-Werror" />
         <parameter value="-source:3.8" />
+        <parameter value="-Wunused:all" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
         <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\server\target\scala-3.8.1\test-meta" />
@@ -234,6 +249,7 @@
         <parameter value="UTF-8" />
         <parameter value="-Werror" />
         <parameter value="-source:3.8" />
+        <parameter value="-Wunused:all" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
         <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\server\target\scala-3.8.1\meta" />
@@ -248,6 +264,7 @@
         <parameter value="UTF-8" />
         <parameter value="-Werror" />
         <parameter value="-source:3.8" />
+        <parameter value="-Wunused:all" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
         <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\storage\target\scala-3.8.1\test-meta" />
@@ -262,6 +279,7 @@
         <parameter value="UTF-8" />
         <parameter value="-Werror" />
         <parameter value="-source:3.8" />
+        <parameter value="-Wunused:all" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
         <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\storage\target\scala-3.8.1\meta" />
@@ -276,6 +294,7 @@
         <parameter value="UTF-8" />
         <parameter value="-Werror" />
         <parameter value="-source:3.8" />
+        <parameter value="-Wunused:all" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
         <parameter value="C:\Users\abh80\dev\VerschraenktCI\target\scala-3.8.1\test-meta" />
@@ -290,6 +309,7 @@
         <parameter value="UTF-8" />
         <parameter value="-Werror" />
         <parameter value="-source:3.8" />
+        <parameter value="-Wunused:all" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
         <parameter value="C:\Users\abh80\dev\VerschraenktCI\target\scala-3.8.1\meta" />
@@ -304,6 +324,7 @@
         <parameter value="UTF-8" />
         <parameter value="-Werror" />
         <parameter value="-source:3.8" />
+        <parameter value="-Wunused:all" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
         <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\api\target\scala-3.8.1\test-meta" />
@@ -318,6 +339,7 @@
         <parameter value="UTF-8" />
         <parameter value="-Werror" />
         <parameter value="-source:3.8" />
+        <parameter value="-Wunused:all" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
         <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\api\target\scala-3.8.1\meta" />
@@ -332,6 +354,7 @@
         <parameter value="UTF-8" />
         <parameter value="-Werror" />
         <parameter value="-source:3.8" />
+        <parameter value="-Wunused:all" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
         <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\cli\target\scala-3.8.1\test-meta" />
@@ -346,6 +369,7 @@
         <parameter value="UTF-8" />
         <parameter value="-Werror" />
         <parameter value="-source:3.8" />
+        <parameter value="-Wunused:all" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
         <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\cli\target\scala-3.8.1\meta" />
