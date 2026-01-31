@@ -1,0 +1,34 @@
+image: sbtscala/scala-sbt:eclipse-temurin-17.0.15_6_1.12.1_3.8.1
+
+variables:
+  # Reduce memory usage for sbt
+  SBT_OPTS: "-Xmx2G -Dfile.encoding=UTF-8"
+
+stages:
+  - lint
+  - build
+  - static-analysis
+
+# Cache downloaded dependencies and sbt artifacts using the build.sbt checksum as key
+cache:
+  key:
+    files:
+      - build.sbt
+  paths:
+    - .cache/coursier
+    - .sbt
+
+lint:
+  stage: lint
+  script:
+    - sbt scalafmtCheckAll scalafmtSbtCheck
+
+build_and_test:
+  stage: build
+  script:
+    - sbt compile test
+
+static_analysis:
+  stage: static-analysis
+  script:
+    - sbt "scalafixAll --check"

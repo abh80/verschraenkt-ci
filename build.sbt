@@ -1,17 +1,20 @@
 ThisBuild / version      := "1.0.0-SNAPSHOT"
 ThisBuild / organization := "com.verschraenkt.ci"
-ThisBuild / scalaVersion := "3.3.7"
+ThisBuild / scalaVersion := "3.8.1"
 
 lazy val commonSettings = Seq(
   scalacOptions ++= Seq(
-    "-encoding", "UTF-8",
+    "-encoding",
+    "UTF-8",
     "-feature",
     "-unchecked",
     "-deprecation",
-    "-Xfatal-warnings",
-    "-source:3.3"
+    "-Werror",
+    "-source:3.8"
   ),
-  resolvers += "Akka library repository".at("https://repo.akka.io/maven")
+  resolvers += "Akka library repository".at("https://repo.akka.io/maven"),
+  semanticdbEnabled := true,
+  semanticdbVersion := scalafixSemanticdb.revision
 )
 
 /* =========================
@@ -59,16 +62,17 @@ lazy val jsonDeps = Seq(
 )
 
 lazy val configDeps = Seq(
-  "is.cir"        %% "ciris"      % "3.6.0",
-  "com.typesafe"   % "config"     % "1.4.3"
+  "is.cir"      %% "ciris"  % "3.6.0",
+  "com.typesafe" % "config" % "1.4.3"
 )
 
 lazy val storageDeps = Seq(
-  "com.typesafe.slick" %% "slick"          % "3.5.1",
-  "com.typesafe.slick" %% "slick-hikaricp" % "3.5.1",
-  "org.postgresql"      % "postgresql"     % "42.7.8",
-  "software.amazon.awssdk" % "s3"           % V.awsSdk,
-  "io.minio"               % "minio"        % V.minio
+  "com.typesafe.slick"    %% "slick"          % "3.5.1",
+  "com.typesafe.slick"    %% "slick-hikaricp" % "3.5.1",
+  "org.postgresql"         % "postgresql"     % "42.7.8",
+  "com.github.tminglei"    % "slick-pg_3"     % "0.22.2",
+  "software.amazon.awssdk" % "s3"             % V.awsSdk,
+  "io.minio"               % "minio"          % V.minio
 )
 
 lazy val executorDeps = Seq(
@@ -78,15 +82,15 @@ lazy val executorDeps = Seq(
 )
 
 lazy val observabilityDeps = Seq(
-  "io.opentelemetry" % "opentelemetry-api"           % V.opentelemetry,
-  "io.opentelemetry" % "opentelemetry-sdk"           % V.opentelemetry,
-  "io.prometheus"    % "prometheus-metrics-core"     % V.prometheus
+  "io.opentelemetry" % "opentelemetry-api"       % V.opentelemetry,
+  "io.opentelemetry" % "opentelemetry-sdk"       % V.opentelemetry,
+  "io.prometheus"    % "prometheus-metrics-core" % V.prometheus
 )
 
 lazy val testDeps = Seq(
   "org.apache.pekko" %% "pekko-actor-testkit-typed" % V.pekko     % Test,
-  "org.scalatest"    %% "scalatest"                  % V.scalaTest % Test,
-  "org.typelevel"    %% "munit-cats-effect"          % V.munit     % Test
+  "org.scalatest"    %% "scalatest"                 % V.scalaTest % Test,
+  "org.typelevel"    %% "munit-cats-effect"         % V.munit     % Test
 )
 
 /* =========================
