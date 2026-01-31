@@ -3,6 +3,146 @@
   <component name="ScalaCompilerConfiguration">
     <option name="separateProdTestSources" value="true" />
     <profile name="sbt 1" modules="VerschraenktCI,VerschraenktCI.main,VerschraenktCI.test,verschraenkt-ci,verschraenkt-ci.verschraenkt-ci-api,verschraenkt-ci.verschraenkt-ci-cli,verschraenkt-ci.verschraenkt-ci-core,verschraenkt-ci.verschraenkt-ci-dsl,verschraenkt-ci.verschraenkt-ci-engine,verschraenkt-ci.verschraenkt-ci-engine-api,verschraenkt-ci.verschraenkt-ci-executor,verschraenkt-ci.verschraenkt-ci-observability,verschraenkt-ci.verschraenkt-ci-plugin,verschraenkt-ci.verschraenkt-ci-security,verschraenkt-ci.verschraenkt-ci-server,verschraenkt-ci.verschraenkt-ci-storage,verschraenktci" />
+    <profile name="sbt 10" modules="verschraenkt-ci.verschraenkt-ci-core.test">
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-encoding" />
+        <parameter value="UTF-8" />
+        <parameter value="-Werror" />
+        <parameter value="-source:3.8" />
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\core\target\scala-3.8.1\test-meta" />
+      </parameters>
+    </profile>
+    <profile name="sbt 11" modules="verschraenkt-ci.verschraenkt-ci-core.main">
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-encoding" />
+        <parameter value="UTF-8" />
+        <parameter value="-Werror" />
+        <parameter value="-source:3.8" />
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\core\target\scala-3.8.1\meta" />
+      </parameters>
+    </profile>
+    <profile name="sbt 12" modules="verschraenkt-ci.verschraenkt-ci-dsl.test">
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-encoding" />
+        <parameter value="UTF-8" />
+        <parameter value="-Werror" />
+        <parameter value="-source:3.8" />
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\dsl\target\scala-3.8.1\test-meta" />
+      </parameters>
+    </profile>
+    <profile name="sbt 13" modules="verschraenkt-ci.verschraenkt-ci-dsl.main">
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-encoding" />
+        <parameter value="UTF-8" />
+        <parameter value="-Werror" />
+        <parameter value="-source:3.8" />
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\dsl\target\scala-3.8.1\meta" />
+      </parameters>
+    </profile>
+    <profile name="sbt 14" modules="verschraenkt-ci.verschraenkt-ci-engine.test">
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-encoding" />
+        <parameter value="UTF-8" />
+        <parameter value="-Werror" />
+        <parameter value="-source:3.8" />
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\engine\target\scala-3.8.1\test-meta" />
+      </parameters>
+    </profile>
+    <profile name="sbt 15" modules="verschraenkt-ci.verschraenkt-ci-engine.main">
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-encoding" />
+        <parameter value="UTF-8" />
+        <parameter value="-Werror" />
+        <parameter value="-source:3.8" />
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\engine\target\scala-3.8.1\meta" />
+      </parameters>
+    </profile>
+    <profile name="sbt 16" modules="verschraenkt-ci.verschraenkt-ci-engine-api.test">
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-encoding" />
+        <parameter value="UTF-8" />
+        <parameter value="-Werror" />
+        <parameter value="-source:3.8" />
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\engine-api\target\scala-3.8.1\test-meta" />
+      </parameters>
+    </profile>
+    <profile name="sbt 17" modules="verschraenkt-ci.verschraenkt-ci-engine-api.main">
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-encoding" />
+        <parameter value="UTF-8" />
+        <parameter value="-Werror" />
+        <parameter value="-source:3.8" />
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\engine-api\target\scala-3.8.1\meta" />
+      </parameters>
+    </profile>
+    <profile name="sbt 18" modules="verschraenkt-ci.verschraenkt-ci-executor.test">
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-encoding" />
+        <parameter value="UTF-8" />
+        <parameter value="-Werror" />
+        <parameter value="-source:3.8" />
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\executor\target\scala-3.8.1\test-meta" />
+      </parameters>
+    </profile>
+    <profile name="sbt 19" modules="verschraenkt-ci.verschraenkt-ci-executor.main">
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-encoding" />
+        <parameter value="UTF-8" />
+        <parameter value="-Werror" />
+        <parameter value="-source:3.8" />
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\executor\target\scala-3.8.1\meta" />
+      </parameters>
+    </profile>
     <profile name="sbt 2" modules="verschraenkt-ci.verschraenkt-ci-plugin.main,verschraenkt-ci.verschraenkt-ci-plugin.test">
       <option name="deprecationWarnings" value="true" />
       <option name="uncheckedWarnings" value="true" />
@@ -15,15 +155,200 @@
         <parameter value="-rewrite" />
       </parameters>
     </profile>
-    <profile name="sbt 3" modules="verschraenkt-ci.main,verschraenkt-ci.test,verschraenkt-ci.verschraenkt-ci-api.main,verschraenkt-ci.verschraenkt-ci-api.test,verschraenkt-ci.verschraenkt-ci-cli.main,verschraenkt-ci.verschraenkt-ci-cli.test,verschraenkt-ci.verschraenkt-ci-core.main,verschraenkt-ci.verschraenkt-ci-core.test,verschraenkt-ci.verschraenkt-ci-dsl.main,verschraenkt-ci.verschraenkt-ci-dsl.test,verschraenkt-ci.verschraenkt-ci-engine-api.main,verschraenkt-ci.verschraenkt-ci-engine-api.test,verschraenkt-ci.verschraenkt-ci-engine.main,verschraenkt-ci.verschraenkt-ci-engine.test,verschraenkt-ci.verschraenkt-ci-executor.main,verschraenkt-ci.verschraenkt-ci-executor.test,verschraenkt-ci.verschraenkt-ci-observability.main,verschraenkt-ci.verschraenkt-ci-observability.test,verschraenkt-ci.verschraenkt-ci-security.main,verschraenkt-ci.verschraenkt-ci-security.test,verschraenkt-ci.verschraenkt-ci-server.main,verschraenkt-ci.verschraenkt-ci-server.test,verschraenkt-ci.verschraenkt-ci-storage.main,verschraenkt-ci.verschraenkt-ci-storage.test">
+    <profile name="sbt 20" modules="verschraenkt-ci.verschraenkt-ci-observability.test">
       <option name="deprecationWarnings" value="true" />
       <option name="uncheckedWarnings" value="true" />
       <option name="featureWarnings" value="true" />
       <parameters>
         <parameter value="-encoding" />
         <parameter value="UTF-8" />
-        <parameter value="-Xfatal-warnings" />
-        <parameter value="-source:3.3" />
+        <parameter value="-Werror" />
+        <parameter value="-source:3.8" />
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\observability\target\scala-3.8.1\test-meta" />
+      </parameters>
+    </profile>
+    <profile name="sbt 21" modules="verschraenkt-ci.verschraenkt-ci-observability.main">
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-encoding" />
+        <parameter value="UTF-8" />
+        <parameter value="-Werror" />
+        <parameter value="-source:3.8" />
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\observability\target\scala-3.8.1\meta" />
+      </parameters>
+    </profile>
+    <profile name="sbt 22" modules="verschraenkt-ci.verschraenkt-ci-security.test">
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-encoding" />
+        <parameter value="UTF-8" />
+        <parameter value="-Werror" />
+        <parameter value="-source:3.8" />
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\security\target\scala-3.8.1\test-meta" />
+      </parameters>
+    </profile>
+    <profile name="sbt 23" modules="verschraenkt-ci.verschraenkt-ci-security.main">
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-encoding" />
+        <parameter value="UTF-8" />
+        <parameter value="-Werror" />
+        <parameter value="-source:3.8" />
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\security\target\scala-3.8.1\meta" />
+      </parameters>
+    </profile>
+    <profile name="sbt 24" modules="verschraenkt-ci.verschraenkt-ci-server.test">
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-encoding" />
+        <parameter value="UTF-8" />
+        <parameter value="-Werror" />
+        <parameter value="-source:3.8" />
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\server\target\scala-3.8.1\test-meta" />
+      </parameters>
+    </profile>
+    <profile name="sbt 25" modules="verschraenkt-ci.verschraenkt-ci-server.main">
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-encoding" />
+        <parameter value="UTF-8" />
+        <parameter value="-Werror" />
+        <parameter value="-source:3.8" />
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\server\target\scala-3.8.1\meta" />
+      </parameters>
+    </profile>
+    <profile name="sbt 26" modules="verschraenkt-ci.verschraenkt-ci-storage.test">
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-encoding" />
+        <parameter value="UTF-8" />
+        <parameter value="-Werror" />
+        <parameter value="-source:3.8" />
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\storage\target\scala-3.8.1\test-meta" />
+      </parameters>
+    </profile>
+    <profile name="sbt 3" modules="verschraenkt-ci.verschraenkt-ci-storage.main">
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-encoding" />
+        <parameter value="UTF-8" />
+        <parameter value="-Werror" />
+        <parameter value="-source:3.8" />
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\storage\target\scala-3.8.1\meta" />
+      </parameters>
+    </profile>
+    <profile name="sbt 4" modules="verschraenkt-ci.test">
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-encoding" />
+        <parameter value="UTF-8" />
+        <parameter value="-Werror" />
+        <parameter value="-source:3.8" />
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="C:\Users\abh80\dev\VerschraenktCI\target\scala-3.8.1\test-meta" />
+      </parameters>
+    </profile>
+    <profile name="sbt 5" modules="verschraenkt-ci.main">
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-encoding" />
+        <parameter value="UTF-8" />
+        <parameter value="-Werror" />
+        <parameter value="-source:3.8" />
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="C:\Users\abh80\dev\VerschraenktCI\target\scala-3.8.1\meta" />
+      </parameters>
+    </profile>
+    <profile name="sbt 6" modules="verschraenkt-ci.verschraenkt-ci-api.test">
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-encoding" />
+        <parameter value="UTF-8" />
+        <parameter value="-Werror" />
+        <parameter value="-source:3.8" />
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\api\target\scala-3.8.1\test-meta" />
+      </parameters>
+    </profile>
+    <profile name="sbt 7" modules="verschraenkt-ci.verschraenkt-ci-api.main">
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-encoding" />
+        <parameter value="UTF-8" />
+        <parameter value="-Werror" />
+        <parameter value="-source:3.8" />
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\api\target\scala-3.8.1\meta" />
+      </parameters>
+    </profile>
+    <profile name="sbt 8" modules="verschraenkt-ci.verschraenkt-ci-cli.test">
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-encoding" />
+        <parameter value="UTF-8" />
+        <parameter value="-Werror" />
+        <parameter value="-source:3.8" />
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\cli\target\scala-3.8.1\test-meta" />
+      </parameters>
+    </profile>
+    <profile name="sbt 9" modules="verschraenkt-ci.verschraenkt-ci-cli.main">
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-encoding" />
+        <parameter value="UTF-8" />
+        <parameter value="-Werror" />
+        <parameter value="-source:3.8" />
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\cli\target\scala-3.8.1\meta" />
       </parameters>
     </profile>
   </component>
