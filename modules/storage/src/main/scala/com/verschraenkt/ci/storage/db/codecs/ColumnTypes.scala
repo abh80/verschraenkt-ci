@@ -4,7 +4,7 @@ import com.verschraenkt.ci.core.model.*
 import com.verschraenkt.ci.storage.db.PostgresProfile.api.*
 import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.simpleStrListTypeMapper
 import com.verschraenkt.ci.storage.db.codecs.Enums.*
-import io.circe.{Json, parser}
+import io.circe.{ Json, parser }
 
 import java.util.UUID
 
@@ -41,7 +41,8 @@ object ColumnTypes:
 
   /** UUID v7 mapper (time-ordered UUIDs)
     *
-    * Note: The database uses uuid_generate_v7() function for default values. This mapper just handles the UUID type.
+    * Note: The database uses uuid_generate_v7() function for default values. This mapper just handles the
+    * UUID type.
     */
   given uuidMapper: BaseColumnType[UUID] =
     MappedColumnType.base[UUID, UUID](identity, identity)

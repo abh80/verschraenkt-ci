@@ -1,12 +1,12 @@
 package com.verschraenkt.ci.storage.repository
 
 import cats.effect.IO
-import com.verschraenkt.ci.core.model.{Pipeline, PipelineId}
+import com.verschraenkt.ci.core.model.{ Pipeline, PipelineId }
 import com.verschraenkt.ci.core.context.ApplicationContext
 import com.verschraenkt.ci.storage.context.StorageContext
 import com.verschraenkt.ci.storage.db.DatabaseModule
-import com.verschraenkt.ci.storage.db.tables.{PipelineRow, PipelineTable}
-import com.verschraenkt.ci.storage.db.codecs.{User, JsonCodecs}
+import com.verschraenkt.ci.storage.db.tables.{ PipelineRow, PipelineTable }
+import com.verschraenkt.ci.storage.db.codecs.{ User, JsonCodecs }
 import com.verschraenkt.ci.storage.errors.StorageError
 import JsonCodecs.given
 import org.postgresql.util.PSQLException
@@ -37,8 +37,7 @@ trait IPipelineRepository:
 /** Slick-based implementation */
 class PipelineRepository(
     protected val dbModule: DatabaseModule
-)
-    extends IPipelineRepository
+) extends IPipelineRepository
     with StorageContext
     with DatabaseOperations:
 
@@ -60,7 +59,7 @@ class PipelineRepository(
     given ctx: ApplicationContext = withOperation("save")
 
     val user = User(createdBy)
-    val row = PipelineRow.fromDomain(pipeline, user, version = 1)
+    val row  = PipelineRow.fromDomain(pipeline, user, version = 1)
 
     val insertAction = pipelines += row
 

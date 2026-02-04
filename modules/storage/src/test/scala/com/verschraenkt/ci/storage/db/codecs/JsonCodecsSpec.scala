@@ -478,7 +478,7 @@ class JsonCodecsSpec extends FunSuite:
     )
 
     val step: Step = Step.Checkout()
-    val json = step.asJson
+    val json       = step.asJson
 
     assertEquals(json.hcursor.downField("type").as[String], Right("Checkout"))
 
@@ -495,9 +495,9 @@ class JsonCodecsSpec extends FunSuite:
       timeout = None
     )
 
-    val cmd  = Command.Exec("npm", List("test"))
+    val cmd        = Command.Exec("npm", List("test"))
     val step: Step = Step.Run(cmd)
-    val json = step.asJson
+    val json       = step.asJson
 
     assertEquals(json.hcursor.downField("type").as[String], Right("Run"))
 
@@ -517,7 +517,7 @@ class JsonCodecsSpec extends FunSuite:
       scope = CacheScope.Pipeline
     )
     val step: Step = Step.RestoreCache(cache, NonEmptyList.of("/node_modules"))
-    val json = step.asJson
+    val json       = step.asJson
 
     assertEquals(json.hcursor.downField("type").as[String], Right("RestoreCache"))
 
@@ -529,7 +529,7 @@ class JsonCodecsSpec extends FunSuite:
     given StepMeta = StepMeta(
       id = Some("Save cache"),
       continueOnError = true,
-      when= When.OnSuccess,
+      when = When.OnSuccess,
       timeout = None
     )
 
@@ -539,7 +539,7 @@ class JsonCodecsSpec extends FunSuite:
       scope = CacheScope.Pipeline
     )
     val step: Step = Step.SaveCache(cache, NonEmptyList.of("/node_modules"))
-    val json = step.asJson
+    val json       = step.asJson
 
     assertEquals(json.hcursor.downField("type").as[String], Right("SaveCache"))
 

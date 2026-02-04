@@ -54,14 +54,14 @@ object Enums:
 
   object StepType:
     def fromString(s: String): StepType = s.toLowerCase match
-      case "checkout"           => Checkout
-      case "run"                => Run
-      case "cache_restore"      => CacheRestore
-      case "cache_save"         => CacheSave
-      case "artifact_upload"    => ArtifactUpload
-      case "artifact_download"  => ArtifactDownload
-      case "composite"          => Composite
-      case _                    => throw new IllegalArgumentException(s"Unknown step type: $s")
+      case "checkout"          => Checkout
+      case "run"               => Run
+      case "cache_restore"     => CacheRestore
+      case "cache_save"        => CacheSave
+      case "artifact_upload"   => ArtifactUpload
+      case "artifact_download" => ArtifactDownload
+      case "composite"         => Composite
+      case _                   => throw new IllegalArgumentException(s"Unknown step type: $s")
 
     extension (stepType: StepType)
       def toDbString: String = stepType match

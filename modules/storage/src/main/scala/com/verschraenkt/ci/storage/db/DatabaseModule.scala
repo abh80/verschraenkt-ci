@@ -1,17 +1,17 @@
 package com.verschraenkt.ci.storage.db
 
-import cats.effect.{IO, Resource}
+import cats.effect.{ IO, Resource }
 import com.typesafe.config.ConfigFactory
 import com.verschraenkt.ci.storage.config.DatabaseConfig
-import com.zaxxer.hikari.{HikariConfig as HConfig, HikariDataSource}
+import com.zaxxer.hikari.{ HikariConfig as HConfig, HikariDataSource }
 import slick.jdbc.JdbcBackend.Database
 
 import scala.concurrent.duration.*
 
 /** Database module providing connection pool and database instance
   *
-  * This module manages the lifecycle of the database connection pool using HikariCP and provides a Slick database
-  * instance for executing queries.
+  * This module manages the lifecycle of the database connection pool using HikariCP and provides a Slick
+  * database instance for executing queries.
   */
 final class DatabaseModule private (
     val database: Database,
@@ -76,7 +76,7 @@ object DatabaseModule:
 
       // Create data source and database
       val dataSource = new HikariDataSource(hikariConfig)
-      val database   = Database.forDataSource(dataSource, maxConnections = Some(config.poolConfig.maxPoolSize))
+      val database = Database.forDataSource(dataSource, maxConnections = Some(config.poolConfig.maxPoolSize))
 
       new DatabaseModule(database, dataSource)
     }
@@ -108,31 +108,34 @@ object DatabaseModule:
     * }}}
     */
   def fromConfig(configPath: String = "database"): Resource[IO, DatabaseModule] =
-    Resource.eval(IO.blocking {
-      val config     = ConfigFactory.load().getConfig(configPath)
-      val poolConfig = config.getConfig("pool")
-      val pgConfig   = config.getConfig("postgres")
+    Resource
+      .eval(IO.blocking {
+        val config     = ConfigFactory.load().getConfig(configPath)
+        val poolConfig = config.getConfig("pool")
+        val pgConfig   = config.getConfig("postgres")
 
-      import scala.concurrent.duration.*
+        import scala.concurrent.duration.*
 
-      DatabaseConfig(
-        url = config.getString("url"),
-        user = config.getString("user"),
-        password = config.getString("password"),
-        driver = if config.hasPath("driver") then config.getString("driver") else "org.postgresql.Driver",
-        poolConfig = com.verschraenkt.ci.storage.config.HikariConfig(
-          maxPoolSize = poolConfig.getInt("maxPoolSize"),
-          minIdle = poolConfig.getInt("minIdle"),
-          connectionTimeout = Duration(poolConfig.getDuration("connectionTimeout").toMillis, MILLISECONDS),
-          idleTimeout = Duration(poolConfig.getDuration("idleTimeout").toMillis, MILLISECONDS),
-          maxLifetime = Duration(poolConfig.getDuration("maxLifetime").toMillis, MILLISECONDS),
-          leakDetectionThreshold = Duration(poolConfig.getDuration("leakDetectionThreshold").toMillis, MILLISECONDS)
-        ),
-        postgresConfig = com.verschraenkt.ci.storage.config.PostgresConfig(
-          schema = pgConfig.getString("schema"),
-          sslMode = pgConfig.getString("sslMode"),
-          applicationName = pgConfig.getString("applicationName"),
-          prepareThreshold = pgConfig.getInt("prepareThreshold")
+        DatabaseConfig(
+          url = config.getString("url"),
+          user = config.getString("user"),
+          password = config.getString("password"),
+          driver = if config.hasPath("driver") then config.getString("driver") else "org.postgresql.Driver",
+          poolConfig = com.verschraenkt.ci.storage.config.HikariConfig(
+            maxPoolSize = poolConfig.getInt("maxPoolSize"),
+            minIdle = poolConfig.getInt("minIdle"),
+            connectionTimeout = Duration(poolConfig.getDuration("connectionTimeout").toMillis, MILLISECONDS),
+            idleTimeout = Duration(poolConfig.getDuration("idleTimeout").toMillis, MILLISECONDS),
+            maxLifetime = Duration(poolConfig.getDuration("maxLifetime").toMillis, MILLISECONDS),
+            leakDetectionThreshold =
+              Duration(poolConfig.getDuration("leakDetectionThreshold").toMillis, MILLISECONDS)
+          ),
+          postgresConfig = com.verschraenkt.ci.storage.config.PostgresConfig(
+            schema = pgConfig.getString("schema"),
+            sslMode = pgConfig.getString("sslMode"),
+            applicationName = pgConfig.getString("applicationName"),
+            prepareThreshold = pgConfig.getInt("prepareThreshold")
+          )
         )
-      )
-    }).flatMap(resource)
+      })
+      .flatMap(resource)
