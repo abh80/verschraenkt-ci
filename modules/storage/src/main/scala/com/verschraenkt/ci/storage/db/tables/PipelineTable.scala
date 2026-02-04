@@ -55,11 +55,11 @@ class PipelineTable(tag: Tag) extends Table[PipelineRow](tag, "pipelines"):
     isActive,
     deletedAt,
     deletedBy
-  ).mapTo[PipelineRow]
+  ) <> ((PipelineRow.apply).tupled, PipelineRow.unapply)
 
   def pipelineId = column[PipelineId]("pipeline_id", O.PrimaryKey)
 
-  def name = column[User]("name")
+  def name = column[String]("name")
 
   def definition = column[Json]("definition")
 
@@ -69,7 +69,7 @@ class PipelineTable(tag: Tag) extends Table[PipelineRow](tag, "pipelines"):
 
   def updatedAt = column[Instant]("updated_at")
 
-  def createdBy = column[String]("created_by")
+  def createdBy = column[User]("created_by")
 
   def labels = column[Set[String]]("labels")
 

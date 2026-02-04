@@ -103,8 +103,8 @@ $$ LANGUAGE plpgsql VOLATILE;
 CREATE TABLE pipelines (
   pipeline_id VARCHAR(255) PRIMARY KEY,
   name VARCHAR(500) NOT NULL,
+  current_version INT NOT NULL DEFAULT 1,
   definition JSONB NOT NULL,
-  version INT NOT NULL DEFAULT 1,
   
   -- Timestamps
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -124,9 +124,7 @@ CREATE TABLE pipelines (
   CONSTRAINT valid_definition CHECK (
     definition ? 'workflows' AND 
     jsonb_typeof(definition->'workflows') = 'array'
-  ),
-  
-  CONSTRAINT unique_pipeline_version UNIQUE (pipeline_id, version)
+  )
 );
 
 CREATE INDEX idx_pipelines_labels ON pipelines USING GIN(labels);
@@ -244,7 +242,7 @@ CREATE TABLE executions (
   deleted_at TIMESTAMPTZ,
   
   FOREIGN KEY (pipeline_id, pipeline_version) 
-    REFERENCES pipelines(pipeline_id, version)
+    REFERENCES pipeline_versions(pipeline_id, version)
     ON DELETE RESTRICT,
     
   -- Ensure timing consistency
