@@ -7,19 +7,19 @@
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="modules">
           <set>
-            <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/modules/api" />
-            <option value="$PROJECT_DIR$/modules/cli" />
-            <option value="$PROJECT_DIR$/modules/core" />
-            <option value="$PROJECT_DIR$/modules/dsl" />
-            <option value="$PROJECT_DIR$/modules/engine" />
-            <option value="$PROJECT_DIR$/modules/engine-api" />
-            <option value="$PROJECT_DIR$/modules/executor" />
-            <option value="$PROJECT_DIR$/modules/observability" />
-            <option value="$PROJECT_DIR$/modules/security" />
-            <option value="$PROJECT_DIR$/modules/server" />
-            <option value="$PROJECT_DIR$/modules/storage" />
-            <option value="$PROJECT_DIR$/project" />
+            <option value="C:\Users\abh80\dev\VerschraenktCI" />
+            <option value="C:\Users\abh80\dev\VerschraenktCI\modules\api" />
+            <option value="C:\Users\abh80\dev\VerschraenktCI\modules\cli" />
+            <option value="C:\Users\abh80\dev\VerschraenktCI\modules\core" />
+            <option value="C:\Users\abh80\dev\VerschraenktCI\modules\dsl" />
+            <option value="C:\Users\abh80\dev\VerschraenktCI\modules\engine" />
+            <option value="C:\Users\abh80\dev\VerschraenktCI\modules\engine-api" />
+            <option value="C:\Users\abh80\dev\VerschraenktCI\modules\executor" />
+            <option value="C:\Users\abh80\dev\VerschraenktCI\modules\observability" />
+            <option value="C:\Users\abh80\dev\VerschraenktCI\modules\security" />
+            <option value="C:\Users\abh80\dev\VerschraenktCI\modules\server" />
+            <option value="C:\Users\abh80\dev\VerschraenktCI\modules\storage" />
+            <option value="C:\Users\abh80\dev\VerschraenktCI\project" />
           </set>
         </option>
         <option name="resolveSbtClassifiers" value="true" />
