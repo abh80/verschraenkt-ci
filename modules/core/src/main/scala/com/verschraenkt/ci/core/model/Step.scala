@@ -82,7 +82,7 @@ extension (step: Step)
     case c: Step.Composite => c
 
 enum When:
-  case Always, OnSuccess, OnFailure
+  case Always, OnSuccess, OnFailure, Never
 
 enum RetryMode:
   case Linear, Exponential
