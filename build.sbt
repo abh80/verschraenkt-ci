@@ -58,10 +58,10 @@ lazy val pekkoDeps = Seq(
 )
 
 lazy val jsonDeps = Seq(
-  "io.circe" %% "circe-core"    % V.circe,
-  "io.circe" %% "circe-generic" % V.circe,
-  "io.circe" %% "circe-parser"  % V.circe,
-  "org.typelevel" %% "cats-core" % "2.13.0"
+  "io.circe"      %% "circe-core"    % V.circe,
+  "io.circe"      %% "circe-generic" % V.circe,
+  "io.circe"      %% "circe-parser"  % V.circe,
+  "org.typelevel" %% "cats-core"     % "2.13.0"
 )
 
 lazy val configDeps = Seq(
