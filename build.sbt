@@ -60,7 +60,8 @@ lazy val pekkoDeps = Seq(
 lazy val jsonDeps = Seq(
   "io.circe" %% "circe-core"    % V.circe,
   "io.circe" %% "circe-generic" % V.circe,
-  "io.circe" %% "circe-parser"  % V.circe
+  "io.circe" %% "circe-parser"  % V.circe,
+  "org.typelevel" %% "cats-core" % "2.13.0"
 )
 
 lazy val configDeps = Seq(
@@ -74,7 +75,8 @@ lazy val storageDeps = Seq(
   "org.postgresql"         % "postgresql"     % "42.7.8",
   "com.github.tminglei"    % "slick-pg_3"     % "0.22.2",
   "software.amazon.awssdk" % "s3"             % V.awsSdk,
-  "io.minio"               % "minio"          % V.minio
+  "io.minio"               % "minio"          % V.minio,
+  "org.typelevel"         %% "cats-effect"    % V.catsEffect
 )
 
 lazy val executorDeps = Seq(
