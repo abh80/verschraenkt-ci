@@ -1,8 +1,8 @@
 package com.verschraenkt.ci.storage.db.codecs
 
 import com.verschraenkt.ci.core.model.*
-import com.verschraenkt.ci.storage.db.PostgresProfile.api.*
 import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.simpleStrListTypeMapper
+import com.verschraenkt.ci.storage.db.PostgresProfile.api.*
 import com.verschraenkt.ci.storage.db.codecs.Enums.*
 import io.circe.{ Json, parser }
 

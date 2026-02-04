@@ -1,14 +1,14 @@
 package com.verschraenkt.ci.storage.repository
 
 import cats.effect.IO
-import com.verschraenkt.ci.core.model.{ Pipeline, PipelineId }
 import com.verschraenkt.ci.core.context.ApplicationContext
+import com.verschraenkt.ci.core.model.{ Pipeline, PipelineId }
 import com.verschraenkt.ci.storage.context.StorageContext
 import com.verschraenkt.ci.storage.db.DatabaseModule
+import com.verschraenkt.ci.storage.db.codecs.JsonCodecs.given
+import com.verschraenkt.ci.storage.db.codecs.{ JsonCodecs, User }
 import com.verschraenkt.ci.storage.db.tables.{ PipelineRow, PipelineTable }
-import com.verschraenkt.ci.storage.db.codecs.{ User, JsonCodecs }
 import com.verschraenkt.ci.storage.errors.StorageError
-import JsonCodecs.given
 import org.postgresql.util.PSQLException
 
 /** Repository for pipeline persistence operations */
