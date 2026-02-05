@@ -149,7 +149,7 @@ lazy val storage = (project in file("modules/storage"))
   .settings(Defaults.itSettings)
   .settings(
     name := "verschraenkt-ci-storage",
-    libraryDependencies ++= storageDeps ++ testDeps
+    libraryDependencies ++= storageDeps ++ testDeps ++ integrationTestDeps
   )
 
 /* =========================
