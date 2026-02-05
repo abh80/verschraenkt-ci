@@ -27,7 +27,7 @@ trait StorageContext:
     IO.raiseError(contextualize(error))
 
   /** Wraps a block that might throw, converting to StorageError */
-  protected def wrapDbError[A](operation: String)(block: ApplicationContext ?=> A): IO[A] =
+  protected[context] def wrapDbError[A](operation: String)(block: ApplicationContext ?=> A): IO[A] =
     given ctx: ApplicationContext = withOperation(operation)
     IO.defer(IO(block)).handleErrorWith {
       case e: java.sql.SQLException =>

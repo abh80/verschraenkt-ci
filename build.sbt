@@ -43,6 +43,7 @@ lazy val V = new {
   val testcontainers = "0.43.6"
   val scalaTest      = "3.2.19"
   val munit          = "2.1.0"
+  val mockito        = "5.11.0"
 }
 
 /* =========================
@@ -94,7 +95,13 @@ lazy val observabilityDeps = Seq(
 lazy val testDeps = Seq(
   "org.apache.pekko" %% "pekko-actor-testkit-typed" % V.pekko     % Test,
   "org.scalatest"    %% "scalatest"                 % V.scalaTest % Test,
-  "org.typelevel"    %% "munit-cats-effect"         % V.munit     % Test
+  "org.typelevel"    %% "munit-cats-effect"         % V.munit     % Test,
+  "org.mockito"       % "mockito-core"              % V.mockito   % Test
+)
+
+lazy val integrationTestDeps = Seq(
+  "com.dimafeng" %% "testcontainers-scala-postgresql" % V.testcontainers % "it,test",
+  "com.dimafeng" %% "testcontainers-scala-munit"      % V.testcontainers % "it,test"
 )
 
 /* =========================
@@ -137,7 +144,9 @@ lazy val engineApi = (project in file("modules/engine-api"))
 
 lazy val storage = (project in file("modules/storage"))
   .dependsOn(core)
+  .configs(IntegrationTest)
   .settings(commonSettings)
+  .settings(Defaults.itSettings)
   .settings(
     name := "verschraenkt-ci-storage",
     libraryDependencies ++= storageDeps ++ testDeps

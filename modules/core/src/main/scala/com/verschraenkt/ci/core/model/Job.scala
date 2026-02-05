@@ -52,7 +52,8 @@ final case class Job(
     container: Option[Container],
     labels: Set[String] = Set.empty,
     concurrencyGroup: Option[String] = None,
-    condition: Condition = Condition.Always
+    condition: Condition = Condition.Always,
+    env: Map[String, String] = Map.empty
 ):
   def ~>(step: Step): Job =
     this.copy(steps = NonEmptyVector.fromVectorUnsafe(this.steps.toVector :+ step))

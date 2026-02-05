@@ -18,7 +18,8 @@ final case class Workflow(
     defaultContainer: Option[Container] = None,
     concurrencyGroup: Option[String] = None,
     labels: Set[String] = Set.empty,
-    condition: Condition = Condition.Always
+    condition: Condition = Condition.Always,
+    env: Map[String, String] = Map.empty
 )
 
 object Workflow:
