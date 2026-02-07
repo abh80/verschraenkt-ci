@@ -15,8 +15,9 @@ lazy val commonSettings = Seq(
     "-Wunused:imports"
   ),
   resolvers += "Akka library repository".at("https://repo.akka.io/maven"),
-  semanticdbEnabled := true,
-  semanticdbVersion := scalafixSemanticdb.revision
+  semanticdbEnabled                 := true,
+  semanticdbVersion                 := scalafixSemanticdb.revision,
+  libraryDependencies += "org.slf4j" % "slf4j-simple" % "2.0.12"
 )
 
 /* =========================
@@ -40,7 +41,7 @@ lazy val V = new {
   val scalapb        = "0.11.20"
   val jwt            = "11.0.3"
   val logback        = "1.5.20"
-  val testcontainers = "0.43.6"
+  val testcontainers = "0.44.1"
   val scalaTest      = "3.2.19"
   val munit          = "2.1.0"
   val mockito        = "5.11.0"
