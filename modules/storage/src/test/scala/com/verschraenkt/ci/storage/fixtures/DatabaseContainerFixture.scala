@@ -14,11 +14,10 @@ import scala.concurrent.duration.*
   *
   * Provides a reusable PostgreSQL container and database configuration for integration tests.
   */
-trait DatabaseContainerFixture extends TestContainersFixtures:
-  self: CatsEffectSuite =>
+trait DatabaseContainerFixture extends CatsEffectSuite with TestContainersFixtures:
 
   /** PostgreSQL container fixture */
-  val postgresContainer: Fixture[PostgreSQLContainer] = ForEachContainerFixture(
+  def postgresContainer: Fixture[PostgreSQLContainer] = ForEachContainerFixture(
     PostgreSQLContainer
       .Def(
         dockerImageName = DockerImageName.parse("postgres:16-alpine"),
