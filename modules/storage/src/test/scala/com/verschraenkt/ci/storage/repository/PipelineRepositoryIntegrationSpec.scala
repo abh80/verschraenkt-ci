@@ -9,8 +9,10 @@ import munit.CatsEffectSuite
   *
   * These tests use Testcontainers to spin up a real PostgreSQL instance
   */
-class PipelineRepositoryIntegrationSpec extends DatabaseContainerFixture with TestDatabaseFixture:
-  self: CatsEffectSuite =>
+class PipelineRepositoryIntegrationSpec
+    extends CatsEffectSuite
+    with DatabaseContainerFixture
+    with TestDatabaseFixture:
 
   test("save inserts pipeline into database") {
     withDatabase { dbModule =>
