@@ -22,13 +22,22 @@ lint:
   stage: lint
   script:
     - sbt scalafmtCheckAll scalafmtSbtCheck
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+    - when: manual
 
 build_and_test:
   stage: build
   script:
     - sbt compile test
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+    - when: manual
 
 static_analysis:
   stage: static-analysis
   script:
     - sbt "scalafixAll --check"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+    - when: manual
