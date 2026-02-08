@@ -1,7 +1,7 @@
 package com.verschraenkt.ci.storage.fixtures
 
-import cats.effect.{ IO, Resource }
 import cats.data.NonEmptyList
+import cats.effect.{ IO, Resource }
 import com.verschraenkt.ci.storage.db.DatabaseModule
 import fly4s.Fly4s
 import fly4s.data.*

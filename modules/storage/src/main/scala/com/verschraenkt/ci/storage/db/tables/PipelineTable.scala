@@ -1,9 +1,9 @@
 package com.verschraenkt.ci.storage.db.tables
 
 import com.verschraenkt.ci.core.model.{ Pipeline, PipelineId }
+import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.circeJsonTypeMapper
 import com.verschraenkt.ci.storage.db.codecs.ColumnTypes.given
 import com.verschraenkt.ci.storage.db.codecs.User
-import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.circeJsonTypeMapper
 import io.circe.syntax.*
 import io.circe.{ Encoder, Json }
 import slick.jdbc.PostgresProfile.api.*
