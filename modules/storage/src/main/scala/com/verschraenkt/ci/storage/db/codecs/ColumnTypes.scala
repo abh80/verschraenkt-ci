@@ -4,7 +4,6 @@ import com.verschraenkt.ci.core.model.*
 import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.simpleStrListTypeMapper
 import com.verschraenkt.ci.storage.db.PostgresProfile.api.*
 import com.verschraenkt.ci.storage.db.codecs.Enums.*
-import io.circe.{ Json, parser }
 
 import java.util.UUID
 
@@ -111,13 +110,10 @@ object ColumnTypes:
 
   /** JSONB column mapper using Circe
     *
-    * Note: We use manual string-based mapping for maximum compatibility.
+    * Note: JSON/JSONB support is provided by PgCirceJsonSupport trait mixed into PostgresProfile. The
+    * CirceJsonImplicits in MyAPI provides the proper column type mapping for io.circe.Json. This maps to
+    * PostgreSQL's JSONB type (not string/varchar).
     */
-  given jsonMapper: BaseColumnType[Json] =
-    MappedColumnType.base[Json, String](
-      _.noSpaces,
-      str => parser.parse(str).getOrElse(Json.Null)
-    )
 
   // ============================================================================
   // Array Type Mappers

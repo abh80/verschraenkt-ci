@@ -1,76 +1,76 @@
 package com.verschraenkt.ci.storage.fixtures
 
-import cats.effect.IO
+import cats.effect.{ IO, Resource }
+import cats.data.NonEmptyList
 import com.verschraenkt.ci.storage.db.DatabaseModule
+import fly4s.Fly4s
+import fly4s.data.*
+import org.flywaydb.core.api.output.MigrateErrorResult
+import org.slf4j.LoggerFactory
 
-import scala.io.Source
-
-/** Test utilities for database schema setup and cleanup
-  *
-  * Provides helpers for running migrations and cleaning the database between tests.
-  */
+/** Test utilities for database schema setup and cleanup */
 trait TestDatabaseFixture:
+  private val logger = LoggerFactory.getLogger(getClass)
 
-  /** Run database migrations from the migration SQL file */
-  def runMigrations(dbModule: DatabaseModule): IO[Unit] =
-    IO.blocking {
-      val migrationSql = Source
-        .fromResource("db/migration/1.sql")
-        .getLines()
-        .mkString("\n")
-
-      // Split by semicolons and execute each statement
-      val statements = migrationSql
-        .split(";")
-        .map(_.trim)
-        .filter(_.nonEmpty)
-
-      val connection = dbModule.database.source.createConnection()
-      try
-        val stmt = connection.createStatement()
-        try
-          statements.foreach { sql =>
-            if sql.nonEmpty then
-              stmt.execute(sql): Unit // Ignore lint errors due to discarding of boolean value
-          }
-        finally
-          stmt.close()
-      finally connection.close()
-    }
-
-  /** Clean all tables in the database (for test isolation) */
-  def cleanDatabase(dbModule: DatabaseModule): IO[Unit] =
-    IO.blocking {
-      val connection = dbModule.database.source.createConnection()
-      try
-        val stmt = connection.createStatement()
-        try
-          // Disable foreign key checks temporarily
-          stmt.execute("SET session_replication_role = 'replica'")
-
-          // Get all table names
-          val rs = stmt.executeQuery(
-            """
-            SELECT tablename 
-            FROM pg_tables 
-            WHERE schemaname = 'public'
-            """
+  private def createFlyway(dbModule: DatabaseModule): Resource[IO, Fly4s[IO]] =
+    Resource
+      .eval(IO.blocking {
+        val connection = dbModule.database.source.createConnection()
+        val url        = connection.getMetaData.getURL
+        val user       = connection.getMetaData.getUserName
+        connection.close()
+        logger.info(s"Flyway connecting to: $url (user: $user)")
+        (url, user)
+      })
+      .flatMap { case (url, user) =>
+        Fly4s.make[IO](
+          url = url,
+          user = Some(user),
+          password = Some("test").map(_.toCharArray),
+          config = Fly4sConfig(
+            table = "flyway_schema_history",
+            locations = Locations("classpath:db/migration"),
+            connectRetries = 0,
+            schemaNames = Some(NonEmptyList.of("public")),
+            createSchemas = true,
+            baselineOnMigrate = true,
+            cleanDisabled = false,
+            group = false,
+            mixed = false,
+            outOfOrder = false,
+            skipDefaultCallbacks = false,
+            skipDefaultResolvers = false,
+            validateMigrationNaming = true,
+            validateOnMigrate = true,
+            placeholderReplacement = false
           )
+        )
+      }
 
-          val tables = scala.collection.mutable.ListBuffer[String]()
-          while rs.next() do tables += rs.getString("tablename")
-          rs.close()
+  /** Run database migrations using Flyway */
+  def runMigrations(dbModule: DatabaseModule): IO[Unit] =
+    logger.info("Starting database migrations...")
+    createFlyway(dbModule).use { fly4s =>
+      fly4s.migrate.flatMap {
+        case error: MigrateErrorResult =>
+          val errorMsg = s"Migration failed: ${error.error.message()}"
+          logger.error(errorMsg)
+          IO.raiseError(new RuntimeException(errorMsg))
 
-          // Truncate all tables
-          tables.foreach { table =>
-            stmt.execute(s"TRUNCATE TABLE $table CASCADE")
-          }
-
-          // Re-enable foreign key checks
-          stmt.execute("SET session_replication_role = 'origin'"): Unit
-        finally stmt.close()
-      finally connection.close()
+        case success =>
+          logger.info(s"Migrations completed successfully: ${success.migrationsExecuted} migrations executed")
+          IO.unit
+      }
     }
+
+  /** Clean all tables in the database using Flyway clean */
+  def cleanDatabase(dbModule: DatabaseModule): IO[Unit] =
+    logger.info("Cleaning database...")
+    createFlyway(dbModule)
+      .use { fly4s =>
+        fly4s.clean.void
+      }
+      .flatTap(_ => IO(logger.info("Database cleaned successfully")))
 
   /** Run a test with a clean database (migrations applied, then cleaned after test) */
   def withCleanDatabase[A](dbModule: DatabaseModule)(test: => IO[A]): IO[A] =

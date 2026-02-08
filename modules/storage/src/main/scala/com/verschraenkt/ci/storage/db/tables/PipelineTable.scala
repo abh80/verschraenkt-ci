@@ -3,6 +3,7 @@ package com.verschraenkt.ci.storage.db.tables
 import com.verschraenkt.ci.core.model.{ Pipeline, PipelineId }
 import com.verschraenkt.ci.storage.db.codecs.ColumnTypes.given
 import com.verschraenkt.ci.storage.db.codecs.User
+import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.circeJsonTypeMapper
 import io.circe.syntax.*
 import io.circe.{ Encoder, Json }
 import slick.jdbc.PostgresProfile.api.*
@@ -63,7 +64,7 @@ class PipelineTable(tag: Tag) extends Table[PipelineRow](tag, "pipelines"):
 
   def definition = column[Json]("definition")
 
-  def version = column[Int]("version")
+  def version = column[Int]("current_version")
 
   def createdAt = column[Instant]("created_at")
 

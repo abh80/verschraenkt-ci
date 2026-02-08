@@ -5,9 +5,17 @@ import com.verschraenkt.ci.core.model.*
 import com.verschraenkt.ci.storage.db.codecs.User
 
 import scala.concurrent.duration.*
+import scala.language.postfixOps
 
 /** Reusable test data for storage tests */
 object TestPipelines:
+
+  // Using this to get a separate id for each test pipeline to avoid scenarios to run fresh db for each test
+  private var counter = 0
+
+  private def getCounter: String =
+    counter += 1
+    counter.toString
 
   val testUser: User    = User("test-user")
   val anotherUser: User = User("another-user")
@@ -19,7 +27,7 @@ object TestPipelines:
     val workflow = Workflow.one("simple-workflow", job)
 
     Pipeline(
-      id = PipelineId("simple-pipeline"),
+      id = PipelineId(s"simple-pipeline-$getCounter"),
       workflows = NonEmptyVector.one(workflow),
       labels = Set.empty,
       timeout = None,
@@ -33,7 +41,7 @@ object TestPipelines:
     val workflow = Workflow.one("test-workflow", job)
 
     Pipeline(
-      id = PipelineId("labeled-pipeline"),
+      id = PipelineId(s"labeled-pipeline-$getCounter"),
       workflows = NonEmptyVector.one(workflow),
       labels = Set("production", "automated", "critical"),
       timeout = Some(30.minutes),
@@ -52,7 +60,7 @@ object TestPipelines:
     val testWorkflow  = Workflow.one("test-workflow", testJob)
 
     Pipeline(
-      id = PipelineId("multi-workflow-pipeline"),
+      id = PipelineId(s"multi-workflow-pipeline-$getCounter"),
       workflows = NonEmptyVector.of(buildWorkflow, testWorkflow),
       labels = Set("integration"),
       timeout = Some(1.hour),
@@ -94,7 +102,7 @@ object TestPipelines:
     )
 
     Pipeline(
-      id = PipelineId("complex-pipeline"),
+      id = PipelineId(s"complex-pipeline-$getCounter"),
       workflows = NonEmptyVector.one(workflow),
       labels = Set("docker", "build"),
       timeout = Some(2.hours),

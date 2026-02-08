@@ -28,6 +28,16 @@ lint:
 
 build_and_test:
   stage: build
+  services:
+    - docker:27-dind
+  variables:
+    # Docker-in-Docker configuration
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_DRIVER: overlay2
+    # Testcontainers configuration
+    TESTCONTAINERS_RYUK_DISABLED: "true"
+    TESTCONTAINERS_CHECKS_DISABLE: "true"
   script:
     - sbt compile test
   rules:

@@ -15,8 +15,9 @@ lazy val commonSettings = Seq(
     "-Wunused:imports"
   ),
   resolvers += "Akka library repository".at("https://repo.akka.io/maven"),
-  semanticdbEnabled := true,
-  semanticdbVersion := scalafixSemanticdb.revision
+  semanticdbEnabled                 := true,
+  semanticdbVersion                 := scalafixSemanticdb.revision,
+  libraryDependencies += "org.slf4j" % "slf4j-simple" % "2.0.12"
 )
 
 /* =========================
@@ -40,10 +41,11 @@ lazy val V = new {
   val scalapb        = "0.11.20"
   val jwt            = "11.0.3"
   val logback        = "1.5.20"
-  val testcontainers = "0.43.6"
+  val testcontainers = "0.44.1"
   val scalaTest      = "3.2.19"
   val munit          = "2.1.0"
   val mockito        = "5.11.0"
+  val fly            = "1.1.1"
 }
 
 /* =========================
@@ -71,13 +73,14 @@ lazy val configDeps = Seq(
 )
 
 lazy val storageDeps = Seq(
-  "com.typesafe.slick"    %% "slick"          % "3.5.1",
-  "com.typesafe.slick"    %% "slick-hikaricp" % "3.5.1",
-  "org.postgresql"         % "postgresql"     % "42.7.8",
-  "com.github.tminglei"    % "slick-pg_3"     % "0.22.2",
-  "software.amazon.awssdk" % "s3"             % V.awsSdk,
-  "io.minio"               % "minio"          % V.minio,
-  "org.typelevel"         %% "cats-effect"    % V.catsEffect
+  "com.typesafe.slick"    %% "slick"                 % "3.5.1",
+  "com.typesafe.slick"    %% "slick-hikaricp"        % "3.5.1",
+  "org.postgresql"         % "postgresql"            % "42.7.8",
+  "com.github.tminglei"    % "slick-pg_3"            % "0.22.2",
+  "com.github.tminglei"    % "slick-pg_circe-json_3" % "0.22.2",
+  "software.amazon.awssdk" % "s3"                    % V.awsSdk,
+  "io.minio"               % "minio"                 % V.minio,
+  "org.typelevel"         %% "cats-effect"           % V.catsEffect
 )
 
 lazy val executorDeps = Seq(
@@ -100,8 +103,11 @@ lazy val testDeps = Seq(
 )
 
 lazy val integrationTestDeps = Seq(
-  "com.dimafeng" %% "testcontainers-scala-postgresql" % V.testcontainers % "it,test",
-  "com.dimafeng" %% "testcontainers-scala-munit"      % V.testcontainers % "it,test"
+  "com.dimafeng"      %% "testcontainers-scala-postgresql" % V.testcontainers % "it,test",
+  "com.dimafeng"      %% "testcontainers-scala-munit"      % V.testcontainers % "it,test",
+  "com.github.geirolz" % "fly4s_3"                         % V.fly            % "it,test",
+  // fly4s 1.1.1 depends on flyway-core 10.9.1, so PostgreSQL support must match
+  "org.flywaydb" % "flyway-database-postgresql" % "10.9.1" % "it,test"
 )
 
 /* =========================
