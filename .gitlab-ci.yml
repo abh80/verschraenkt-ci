@@ -6,7 +6,8 @@ variables:
 
 stages:
   - lint
-  - build
+  - compile
+  - test
   - static-analysis
 
 # Cache downloaded dependencies and sbt artifacts using the build.sbt checksum as key
@@ -26,8 +27,128 @@ lint:
     - if: '$CI_COMMIT_BRANCH == "master"'
     - when: manual
 
-build_and_test:
-  stage: build
+# Compile jobs (run in parallel)
+compile:core:
+  stage: compile
+  script:
+    - sbt core/compile
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+    - when: manual
+
+compile:dsl:
+  stage: compile
+  script:
+    - sbt dsl/compile
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+    - when: manual
+
+compile:engineApi:
+  stage: compile
+  script:
+    - sbt engineApi/compile
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+    - when: manual
+
+compile:storage:
+  stage: compile
+  script:
+    - sbt storage/compile
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+    - when: manual
+
+compile:engine:
+  stage: compile
+  script:
+    - sbt engine/compile
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+    - when: manual
+
+#compile:executor:
+#  stage: compile
+#  script:
+#    - sbt executor/compile
+#  rules:
+#    - if: '$CI_COMMIT_BRANCH == "master"'
+#    - when: manual
+#
+#compile:observability:
+#  stage: compile
+#  script:
+#    - sbt observability/compile
+#  rules:
+#    - if: '$CI_COMMIT_BRANCH == "master"'
+#    - when: manual
+#
+#compile:security:
+#  stage: compile
+#  script:
+#    - sbt security/compile
+#  rules:
+#    - if: '$CI_COMMIT_BRANCH == "master"'
+#    - when: manual
+#
+#compile:api:
+#  stage: compile
+#  script:
+#    - sbt api/compile
+#  rules:
+#    - if: '$CI_COMMIT_BRANCH == "master"'
+#    - when: manual
+#
+#compile:server:
+#  stage: compile
+#  script:
+#    - sbt server/compile
+#  rules:
+#    - if: '$CI_COMMIT_BRANCH == "master"'
+#    - when: manual
+#
+#compile:cli:
+#  stage: compile
+#  script:
+#    - sbt cli/compile
+#  rules:
+#    - if: '$CI_COMMIT_BRANCH == "master"'
+#    - when: manual
+
+# Test jobs (run in parallel, depend on their respective compile jobs)
+test:core:
+  stage: test
+  script:
+    - sbt core/test
+  dependencies:
+    - compile:core
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+    - when: manual
+
+test:dsl:
+  stage: test
+  script:
+    - sbt dsl/test
+  dependencies:
+    - compile:dsl
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+    - when: manual
+
+test:engineApi:
+  stage: test
+  script:
+    - sbt engineApi/test
+  dependencies:
+    - compile:engineApi
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+    - when: manual
+
+test:storage:
+  stage: test
   services:
     - docker:27-dind
   variables:
@@ -39,10 +160,82 @@ build_and_test:
     TESTCONTAINERS_RYUK_DISABLED: "true"
     TESTCONTAINERS_CHECKS_DISABLE: "true"
   script:
-    - sbt compile test
+    - sbt storage/test
+  dependencies:
+    - compile:storage
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
     - when: manual
+
+test:engine:
+  stage: test
+  script:
+    - sbt engine/test
+  dependencies:
+    - compile:engine
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+    - when: manual
+
+#test:executor:
+#  stage: test
+#  script:
+#    - sbt executor/test
+#  dependencies:
+#    - compile:executor
+#  rules:
+#    - if: '$CI_COMMIT_BRANCH == "master"'
+#    - when: manual
+#
+#test:observability:
+#  stage: test
+#  script:
+#    - sbt observability/test
+#  dependencies:
+#    - compile:observability
+#  rules:
+#    - if: '$CI_COMMIT_BRANCH == "master"'
+#    - when: manual
+#
+#test:security:
+#  stage: test
+#  script:
+#    - sbt security/test
+#  dependencies:
+#    - compile:security
+#  rules:
+#    - if: '$CI_COMMIT_BRANCH == "master"'
+#    - when: manual
+#
+#test:api:
+#  stage: test
+#  script:
+#    - sbt api/test
+#  dependencies:
+#    - compile:api
+#  rules:
+#    - if: '$CI_COMMIT_BRANCH == "master"'
+#    - when: manual
+#
+#test:server:
+#  stage: test
+#  script:
+#    - sbt server/test
+#  dependencies:
+#    - compile:server
+#  rules:
+#    - if: '$CI_COMMIT_BRANCH == "master"'
+#    - when: manual
+#
+#test:cli:
+#  stage: test
+#  script:
+#    - sbt cli/test
+#  dependencies:
+#    - compile:cli
+#  rules:
+#    - if: '$CI_COMMIT_BRANCH == "master"'
+#    - when: manual
 
 static_analysis:
   stage: static-analysis
