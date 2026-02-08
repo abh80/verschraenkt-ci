@@ -122,7 +122,7 @@ test:core:
       junit: modules/core/target/test-reports/*.xml
       coverage_report:
         coverage_format: cobertura
-        path: modules/core/target/scala-3.8.1/scoverage-report/cobertura.xml
+        path: modules/core/target/scala-3.8.1/coverage-report/cobertura.xml
     expire_in: 30 days
   coverage: '/Statement coverage[A-Za-z\s\.\:]+\s(\d+\.\d+)%/'
 
@@ -142,7 +142,7 @@ test:dsl:
       junit: modules/dsl/target/test-reports/*.xml
       coverage_report:
         coverage_format: cobertura
-        path: modules/dsl/target/scala-3.8.1/scoverage-report/cobertura.xml
+        path: modules/dsl/target/scala-3.8.1/coverage-report/cobertura.xml
     expire_in: 30 days
   coverage: '/Statement coverage[A-Za-z\s\.\:]+\s(\d+\.\d+)%/'
 
@@ -162,7 +162,7 @@ test:engineApi:
       junit: modules/engine-api/target/test-reports/*.xml
       coverage_report:
         coverage_format: cobertura
-        path: modules/engine-api/target/scala-3.8.1/scoverage-report/cobertura.xml
+        path: modules/engine-api/target/scala-3.8.1/coverage-report/cobertura.xml
     expire_in: 30 days
   coverage: '/Statement coverage[A-Za-z\s\.\:]+\s(\d+\.\d+)%/'
 
@@ -192,7 +192,7 @@ test:storage:
       junit: modules/storage/target/test-reports/*.xml
       coverage_report:
         coverage_format: cobertura
-        path: modules/storage/target/scala-3.8.1/scoverage-report/cobertura.xml
+        path: modules/storage/target/scala-3.8.1/coverage-report/cobertura.xml
     expire_in: 30 days
   coverage: '/Statement coverage[A-Za-z\s\.\:]+\s(\d+\.\d+)%/'
 
@@ -212,7 +212,7 @@ test:engine:
       junit: modules/engine/target/test-reports/*.xml
       coverage_report:
         coverage_format: cobertura
-        path: modules/engine/target/scala-3.8.1/scoverage-report/cobertura.xml
+        path: modules/engine/target/scala-3.8.1/coverage-report/cobertura.xml
     expire_in: 30 days
   coverage: '/Statement coverage[A-Za-z\s\.\:]+\s(\d+\.\d+)%/'
 
@@ -299,6 +299,6 @@ coverage_aggregate:
     reports:
       coverage_report:
         coverage_format: cobertura
-        path: target/scala-3.8.1/scoverage-report/cobertura.xml
+        path: target/scala-3.8.1/coverage-report/cobertura.xml
     expire_in: 30 days
   coverage: '/Statement coverage[A-Za-z\s\.\:]+\s(\d+\.\d+)%/'
