@@ -4,10 +4,17 @@ variables:
   # Reduce memory usage for sbt
   SBT_OPTS: "-Xmx2G -Dfile.encoding=UTF-8"
 
+# Workflow-level rules: auto-run on master, manual trigger on other branches
+workflow:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+    - when: manual
+
 stages:
   - lint
   - compile
   - test
+  - coverage-report
   - static-analysis
 
 # Cache downloaded dependencies and sbt artifacts using the build.sbt checksum as key
@@ -23,50 +30,32 @@ lint:
   stage: lint
   script:
     - sbt scalafmtCheckAll scalafmtSbtCheck
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
-    - when: manual
 
 # Compile jobs (run in parallel)
 compile:core:
   stage: compile
   script:
     - sbt core/compile
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
-    - when: manual
 
 compile:dsl:
   stage: compile
   script:
     - sbt dsl/compile
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
-    - when: manual
 
 compile:engineApi:
   stage: compile
   script:
     - sbt engineApi/compile
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
-    - when: manual
 
 compile:storage:
   stage: compile
   script:
     - sbt storage/compile
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
-    - when: manual
 
 compile:engine:
   stage: compile
   script:
     - sbt engine/compile
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
-    - when: manual
 
 #compile:executor:
 #  stage: compile
@@ -120,32 +109,62 @@ compile:engine:
 test:core:
   stage: test
   script:
-    - sbt core/test
+    - sbt coverage core/test coverageReport
   dependencies:
     - compile:core
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
-    - when: manual
+  artifacts:
+    when: always
+    paths:
+      - modules/core/target/test-reports/
+      - modules/core/target/scala-3.8.1/scoverage-report/
+      - modules/core/target/scala-3.8.1/scoverage-data/
+    reports:
+      junit: modules/core/target/test-reports/*.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: modules/core/target/scala-3.8.1/scoverage-report/cobertura.xml
+    expire_in: 30 days
+  coverage: '/Statement coverage[A-Za-z\s\.\:]+\s(\d+\.\d+)%/'
 
 test:dsl:
   stage: test
   script:
-    - sbt dsl/test
+    - sbt coverage dsl/test coverageReport
   dependencies:
     - compile:dsl
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
-    - when: manual
+  artifacts:
+    when: always
+    paths:
+      - modules/dsl/target/test-reports/
+      - modules/dsl/target/scala-3.8.1/scoverage-report/
+      - modules/dsl/target/scala-3.8.1/scoverage-data/
+    reports:
+      junit: modules/dsl/target/test-reports/*.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: modules/dsl/target/scala-3.8.1/scoverage-report/cobertura.xml
+    expire_in: 30 days
+  coverage: '/Statement coverage[A-Za-z\s\.\:]+\s(\d+\.\d+)%/'
 
 test:engineApi:
   stage: test
   script:
-    - sbt engineApi/test
+    - sbt coverage engineApi/test coverageReport
   dependencies:
     - compile:engineApi
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
-    - when: manual
+  artifacts:
+    when: always
+    paths:
+      - modules/engine-api/target/test-reports/
+      - modules/engine-api/target/scala-3.8.1/scoverage-report/
+      - modules/engine-api/target/scala-3.8.1/scoverage-data/
+    reports:
+      junit: modules/engine-api/target/test-reports/*.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: modules/engine-api/target/scala-3.8.1/scoverage-report/cobertura.xml
+    expire_in: 30 days
+  coverage: '/Statement coverage[A-Za-z\s\.\:]+\s(\d+\.\d+)%/'
 
 test:storage:
   stage: test
@@ -160,22 +179,42 @@ test:storage:
     TESTCONTAINERS_RYUK_DISABLED: "true"
     TESTCONTAINERS_CHECKS_DISABLE: "true"
   script:
-    - sbt storage/test
+    - sbt coverage storage/test coverageReport
   dependencies:
     - compile:storage
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
-    - when: manual
+  artifacts:
+    when: always
+    paths:
+      - modules/storage/target/test-reports/
+      - modules/storage/target/scala-3.8.1/scoverage-report/
+      - modules/storage/target/scala-3.8.1/scoverage-data/
+    reports:
+      junit: modules/storage/target/test-reports/*.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: modules/storage/target/scala-3.8.1/scoverage-report/cobertura.xml
+    expire_in: 30 days
+  coverage: '/Statement coverage[A-Za-z\s\.\:]+\s(\d+\.\d+)%/'
 
 test:engine:
   stage: test
   script:
-    - sbt engine/test
+    - sbt coverage engine/test coverageReport
   dependencies:
     - compile:engine
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
-    - when: manual
+  artifacts:
+    when: always
+    paths:
+      - modules/engine/target/test-reports/
+      - modules/engine/target/scala-3.8.1/scoverage-report/
+      - modules/engine/target/scala-3.8.1/scoverage-data/
+    reports:
+      junit: modules/engine/target/test-reports/*.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: modules/engine/target/scala-3.8.1/scoverage-report/cobertura.xml
+    expire_in: 30 days
+  coverage: '/Statement coverage[A-Za-z\s\.\:]+\s(\d+\.\d+)%/'
 
 #test:executor:
 #  stage: test
@@ -241,6 +280,25 @@ static_analysis:
   stage: static-analysis
   script:
     - sbt "scalafixAll --check"
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
-    - when: manual
+
+# Aggregate coverage report (combines coverage from all modules)
+coverage_aggregate:
+  stage: coverage-report
+  dependencies:
+    - test:core
+    - test:dsl
+    - test:engineApi
+    - test:storage
+    - test:engine
+  script:
+    - sbt coverageAggregate coverageReport
+  artifacts:
+    when: always
+    paths:
+      - target/scala-3.8.1/scoverage-report/
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: target/scala-3.8.1/scoverage-report/cobertura.xml
+    expire_in: 30 days
+  coverage: '/Statement coverage[A-Za-z\s\.\:]+\s(\d+\.\d+)%/'

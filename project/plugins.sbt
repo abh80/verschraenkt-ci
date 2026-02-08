@@ -6,3 +6,6 @@ libraryDependencies += "com.thesamet.scalapb" %% "compilerplugin"      % "0.11.2
 
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.2")
 addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.12.1")
+
+// Test coverage and reporting
+addSbtPlugin("org.scoverage" % "sbt-scoverage" % "2.4.4")
