@@ -20,13 +20,15 @@ import com.verschraenkt.ci.storage.errors.StorageError
 trait StorageContext:
   /** Define the component name */
   protected def componentName: String = this.getClass.getSimpleName
+  type ContextBlock[A] = ApplicationContext ?=> A
 
   /** Base context for this component - created once */
   protected lazy val baseCtx: ApplicationContext = ApplicationContext(componentName)
 
   /** Scopes context to a specific operation (e.g., "findById", "save") */
-  protected def withOperation(operation: String): ApplicationContext =
-    baseCtx.child(operation)
+  protected def withOperation[A](op: String)(block: ContextBlock[A]): A =
+    given ctx: ApplicationContext = baseCtx.child(op)
+    block
 
   /** Enriches any StorageError with this component's context */
   protected def contextualize[E <: StorageError](error: E)(using ctx: ApplicationContext): E =
@@ -36,12 +38,17 @@ trait StorageContext:
   protected def fail[A](error: StorageError)(using ctx: ApplicationContext): IO[A] =
     IO.raiseError(contextualize(error))
 
+  protected def withDefaultContext[A](block: ContextBlock[A]): A =
+    given ctx: ApplicationContext = baseCtx
+    block
+
   /** Wraps a block that might throw, converting to StorageError */
-  protected[context] def wrapDbError[A](operation: String)(block: ApplicationContext ?=> A): IO[A] =
-    given ctx: ApplicationContext = withOperation(operation)
-    IO.defer(IO(block)).handleErrorWith {
-      case e: java.sql.SQLException =>
-        fail(StorageError.ConnectionFailed(e))
-      case e: Exception =>
-        fail(StorageError.TransactionFailed(e))
+  protected[context] def wrapDbError[A](operation: String)(block: ContextBlock[A]): IO[A] =
+    withOperation(operation) {
+      IO.defer(IO(block)).handleErrorWith {
+        case e: java.sql.SQLException =>
+          fail(StorageError.ConnectionFailed(e))
+        case e: Exception =>
+          fail(StorageError.TransactionFailed(e))
+      }
     }

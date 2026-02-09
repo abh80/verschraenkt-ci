@@ -11,7 +11,6 @@
 package com.verschraenkt.ci.storage.repository
 
 import cats.effect.IO
-import com.verschraenkt.ci.core.context.ApplicationContext
 import com.verschraenkt.ci.core.model.{ Pipeline, PipelineId }
 import com.verschraenkt.ci.storage.context.StorageContext
 import com.verschraenkt.ci.storage.db.DatabaseModule
@@ -66,23 +65,24 @@ class PipelineRepository(
 
   /** Save a new pipeline or create new version */
   override def save(pipeline: Pipeline, createdBy: String): IO[PipelineId] =
-    given ctx: ApplicationContext = withOperation("save")
+    withOperation("save") {
 
-    val user = User(createdBy)
-    val row  = PipelineRow.fromDomain(pipeline, user, version = 1)
+      val user = User(createdBy)
+      val row  = PipelineRow.fromDomain(pipeline, user, version = 1)
 
-    val insertAction = pipelines += row
+      val insertAction = pipelines += row
 
-    transactionally(insertAction)
-      .map(_ => pipeline.id)
-      .handleErrorWith {
-        case e: PSQLException if isDuplicateKeyError(e) =>
-          fail(StorageError.DuplicateKey("Pipeline", pipeline.id.value))
-        case e: java.sql.SQLException =>
-          fail(StorageError.ConnectionFailed(e))
-        case e: Exception =>
-          fail(StorageError.TransactionFailed(e))
-      }
+      transactionally(insertAction)
+        .map(_ => pipeline.id)
+        .handleErrorWith {
+          case e: PSQLException if isDuplicateKeyError(e) =>
+            fail(StorageError.DuplicateKey("Pipeline", pipeline.id.value))
+          case e: java.sql.SQLException =>
+            fail(StorageError.ConnectionFailed(e))
+          case e: Exception =>
+            fail(StorageError.TransactionFailed(e))
+        }
+    }
 
   /** Update pipeline (creates new version) */
   override def update(pipeline: Pipeline, updatedBy: String): IO[Int] = ???
