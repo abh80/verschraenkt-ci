@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/modules/storage/src/main/scala/com/verschraenkt/ci/storage/context/StorageContext.scala" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/modules/storage/src/main/scala/com/verschraenkt/ci/storage/db/codecs/ColumnTypes.scala" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/modules/storage/src/main/scala/com/verschraenkt/ci/storage/errors/StorageError.scala" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/modules/storage/src/main/scala/com/verschraenkt/ci/storage/repository/DatabaseOperations.scala" charset="UTF-8" />
+  </component>
+</project>
