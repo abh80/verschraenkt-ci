@@ -1,0 +1,184 @@
+version: 2.1
+
+# Define executors
+executors:
+  scala-executor:
+    docker:
+      - image: sbtscala/scala-sbt:eclipse-temurin-17.0.15_6_1.12.1_3.8.1
+    environment:
+      SBT_OPTS: "-Xmx2G -Dfile.encoding=UTF-8"
+    resource_class: medium
+
+  scala-with-docker:
+    docker:
+      - image: sbtscala/scala-sbt:eclipse-temurin-17.0.15_6_1.12.1_3.8.1
+      - image: docker:27-dind
+    environment:
+      SBT_OPTS: "-Xmx2G -Dfile.encoding=UTF-8"
+      DOCKER_HOST: tcp://localhost:2375
+      DOCKER_TLS_CERTDIR: ""
+      DOCKER_DRIVER: overlay2
+      TESTCONTAINERS_RYUK_DISABLED: "true"
+      TESTCONTAINERS_CHECKS_DISABLE: "true"
+    resource_class: medium
+
+jobs:
+  lint:
+    executor: scala-executor
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - sbt-cache-{{ checksum "build.sbt" }}
+            - sbt-cache-
+      - run:
+          name: Check code formatting
+          command: sbt scalafmtCheckAll scalafmtSbtCheck
+      - run:
+          name: Run static analysis with Scalafix
+          command: sbt "scalafixAll --check"
+
+  build-and-test:
+    executor: scala-executor
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - sbt-cache-{{ checksum "build.sbt" }}
+            - sbt-cache-
+
+      # Compile all modules together (respects dependencies)
+      - run:
+          name: Compile all modules
+          command: sbt compile
+
+      # Run all tests with coverage in one go
+      - run:
+          name: Run all tests with coverage
+          command: sbt coverage test coverageReport coverageAggregate
+
+      # Store test results
+      - store_test_results:
+          path: modules/core/target/test-reports
+      - store_test_results:
+          path: modules/dsl/target/test-reports
+      - store_test_results:
+          path: modules/engine-api/target/test-reports
+      - store_test_results:
+          path: modules/storage/target/test-reports
+      - store_test_results:
+          path: modules/engine/target/test-reports
+
+      # Store test artifacts
+      - store_artifacts:
+          path: modules/core/target/test-reports
+          destination: test-reports/core
+      - store_artifacts:
+          path: modules/dsl/target/test-reports
+          destination: test-reports/dsl
+      - store_artifacts:
+          path: modules/engine-api/target/test-reports
+          destination: test-reports/engine-api
+      - store_artifacts:
+          path: modules/storage/target/test-reports
+          destination: test-reports/storage
+      - store_artifacts:
+          path: modules/engine/target/test-reports
+          destination: test-reports/engine
+
+      # Store coverage reports
+      - store_artifacts:
+          path: target/scala-3.8.1/scoverage-report
+          destination: coverage-reports/aggregate
+      - store_artifacts:
+          path: target/scala-3.8.1/coverage-report/cobertura.xml
+          destination: coverage-reports/cobertura.xml
+
+      # Save cache once at the end
+      - save_cache:
+          key: sbt-cache-{{ checksum "build.sbt" }}
+          paths:
+            - ~/.cache/coursier
+            - ~/.sbt
+            - ~/.ivy2/cache
+
+  build-and-test-docker:
+    executor: scala-with-docker
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - sbt-cache-{{ checksum "build.sbt" }}
+            - sbt-cache-
+      - setup_remote_docker:
+          docker_layer_caching: true
+
+      # Compile all modules
+      - run:
+          name: Compile all modules
+          command: sbt compile
+
+      # Run only storage tests (requires Docker)
+      - run:
+          name: Run storage tests with coverage
+          command: sbt coverage storage/test coverageReport
+
+      # Store test results and artifacts
+      - store_test_results:
+          path: modules/storage/target/test-reports
+      - store_artifacts:
+          path: modules/storage/target/test-reports
+          destination: test-reports/storage
+      - store_artifacts:
+          path: modules/storage/target/scala-3.8.1/scoverage-report
+          destination: coverage-reports/storage
+
+      # Persist coverage data for aggregation
+      - persist_to_workspace:
+          root: .
+          paths:
+            - modules/storage/target/scala-3.8.1/scoverage-data
+
+  coverage-aggregate:
+    executor: scala-executor
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - sbt-cache-{{ checksum "build.sbt" }}
+            - sbt-cache-
+      - attach_workspace:
+          at: .
+      - run:
+          name: Aggregate all coverage reports
+          command: sbt coverageAggregate
+      - store_artifacts:
+          path: target/scala-3.8.1/scoverage-report
+          destination: coverage-reports/aggregate-final
+      - store_artifacts:
+          path: target/scala-3.8.1/coverage-report/cobertura.xml
+          destination: coverage-reports/cobertura-final.xml
+
+# Single optimized workflow
+workflows:
+  version: 2
+  build:
+    jobs:
+      # Lint first (fast fail)
+      - lint
+
+      # Build and test all non-Docker modules
+      - build-and-test:
+          requires:
+            - lint
+
+      # Build and test Docker-dependent modules in parallel
+      - build-and-test-docker:
+          requires:
+            - lint
+
+      # Aggregate coverage from both jobs
+      - coverage-aggregate:
+          requires:
+            - build-and-test
+            - build-and-test-docker
