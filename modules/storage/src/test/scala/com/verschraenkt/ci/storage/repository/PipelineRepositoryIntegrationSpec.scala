@@ -681,7 +681,7 @@ class PipelineRepositoryIntegrationSpec
     }
   }
 
-  savedPipelineFixture().test("softDelete can be performed multiple times on same pipeline") { pipeline =>
+  savedPipelineFixture().test("softDelete cannot be performed multiple times on same pipeline") { pipeline =>
     withRepo { repo =>
       val user = TestPipelines.testUser
 
@@ -690,7 +690,7 @@ class PipelineRepositoryIntegrationSpec
         result2 <- repo.softDelete(pipeline.id, user)
         _ <- IO {
           assertEquals(result1, true, "First softDelete should succeed")
-          assertEquals(result2, true, "Second softDelete should also succeed")
+          assertEquals(result2, false, "Second softDelete should not succeed")
         }
       yield ()
     }

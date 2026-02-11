@@ -30,6 +30,9 @@ trait StorageContext:
     given ctx: ApplicationContext = baseCtx.child(op)
     block
 
+  /** Scopes context to a specific operation (e.g., "findById", "save") */
+  protected def withOperation(op: String): ApplicationContext = baseCtx.child(op)
+
   /** Enriches any StorageError with this component's context */
   protected def contextualize[E <: StorageError](error: E)(using ctx: ApplicationContext): E =
     ctx.attach(error).asInstanceOf[E]
