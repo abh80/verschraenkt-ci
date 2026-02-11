@@ -7,17 +7,6 @@ executors:
       - image: sbtscala/scala-sbt:eclipse-temurin-17.0.15_6_1.12.1_3.8.1
     environment:
       SBT_OPTS: "-Xmx2G -Dfile.encoding=UTF-8"
-    resource_class: medium
-
-  scala-with-docker:
-    docker:
-      - image: sbtscala/scala-sbt:eclipse-temurin-17.0.15_6_1.12.1_3.8.1
-      - image: docker:27-dind
-    environment:
-      SBT_OPTS: "-Xmx2G -Dfile.encoding=UTF-8"
-      DOCKER_HOST: tcp://localhost:2375
-      DOCKER_TLS_CERTDIR: ""
-      DOCKER_DRIVER: overlay2
       TESTCONTAINERS_RYUK_DISABLED: "true"
       TESTCONTAINERS_CHECKS_DISABLE: "true"
     resource_class: medium
@@ -42,6 +31,9 @@ jobs:
     executor: scala-executor
     steps:
       - checkout
+      - setup_remote_docker:
+          version: 20.10.24
+          docker_layer_caching: true
       - restore_cache:
           keys:
             - sbt-cache-{{ checksum "build.sbt" }}
@@ -102,43 +94,6 @@ jobs:
             - ~/.sbt
             - ~/.ivy2/cache
 
-  build-and-test-docker:
-    executor: scala-with-docker
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - sbt-cache-{{ checksum "build.sbt" }}
-            - sbt-cache-
-      - setup_remote_docker:
-          docker_layer_caching: true
-
-      # Compile all modules
-      - run:
-          name: Compile all modules
-          command: sbt compile
-
-      # Run only storage tests (requires Docker)
-      - run:
-          name: Run storage tests with coverage
-          command: sbt coverage storage/test coverageReport
-
-      # Store test results and artifacts
-      - store_test_results:
-          path: modules/storage/target/test-reports
-      - store_artifacts:
-          path: modules/storage/target/test-reports
-          destination: test-reports/storage
-      - store_artifacts:
-          path: modules/storage/target/scala-3.8.1/scoverage-report
-          destination: coverage-reports/storage
-
-      # Persist coverage data for aggregation
-      - persist_to_workspace:
-          root: .
-          paths:
-            - modules/storage/target/scala-3.8.1/scoverage-data
-
   coverage-aggregate:
     executor: scala-executor
     steps:
@@ -164,16 +119,9 @@ workflows:
   version: 2
   build:
     jobs:
-      # Lint first (fast fail)
       - lint
 
-      # Build and test all non-Docker modules
       - build-and-test:
-          requires:
-            - lint
-
-      # Build and test Docker-dependent modules in parallel
-      - build-and-test-docker:
           requires:
             - lint
 
@@ -181,4 +129,3 @@ workflows:
       - coverage-aggregate:
           requires:
             - build-and-test
-            - build-and-test-docker
