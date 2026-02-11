@@ -20,7 +20,7 @@ class PipelineTableSpec extends FunSuite:
     assertEquals(row.pipelineId, pipeline.id)
     assertEquals(row.version, version)
     assertEquals(row.createdBy, user)
-    assertEquals(row.labels, pipeline.labels)
+    assertEquals(row.labels, pipeline.labels.toList)
     assertEquals(row.isActive, true)
     assertEquals(row.deletedAt, None)
     assertEquals(row.deletedBy, None)
@@ -51,7 +51,7 @@ class PipelineTableSpec extends FunSuite:
 
     val row = PipelineRow.fromDomain(pipeline, user, 1)
 
-    assertEquals(row.labels, Set("production", "automated", "critical"))
+    assertEquals(row.labels, List("production", "automated", "critical"))
   }
 
   test("PipelineRow.fromDomain handles empty labels") {
@@ -60,7 +60,7 @@ class PipelineTableSpec extends FunSuite:
 
     val row = PipelineRow.fromDomain(pipeline, user, 1)
 
-    assertEquals(row.labels, Set.empty[String])
+    assertEquals(row.labels, List.empty[String])
   }
 
   test("PipelineRow.fromDomain sets timestamps") {
@@ -146,6 +146,6 @@ class PipelineTableSpec extends FunSuite:
     val row = PipelineRow.fromDomain(pipeline, user, 1)
 
     assertEquals(row.pipelineId, pipeline.id)
-    assertEquals(row.labels, Set("docker", "build"))
+    assertEquals(row.labels, List("docker", "build"))
     assert(row.definition.noSpaces.contains("docker"))
   }

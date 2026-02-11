@@ -89,3 +89,17 @@ object StorageError:
     def withLocation(l: Location): ObjectStoreError = copy(location = Some(l))
     def withCause(t: Throwable): ObjectStoreError   = copy(cause = t)
     def withMessage(m: String): ObjectStoreError    = this
+  case class DeserializationFailed(
+      cause: Throwable,
+      override val source: Option[String] = None,
+      override val location: Option[Location] = None
+  ) extends StorageError(
+        s"Deserialization for database object failed: ${cause.getMessage}",
+        source,
+        location,
+        Some(cause)
+      ):
+    def withSource(s: String): DeserializationFailed     = copy(source = Some(s))
+    def withLocation(l: Location): DeserializationFailed = copy(location = Some(l))
+    def withCause(t: Throwable): DeserializationFailed   = copy(cause = t)
+    def withMessage(m: String): DeserializationFailed    = this

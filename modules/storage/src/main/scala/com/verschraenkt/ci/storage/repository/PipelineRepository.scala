@@ -11,14 +11,19 @@
 package com.verschraenkt.ci.storage.repository
 
 import cats.effect.IO
+import cats.syntax.traverse.given
 import com.verschraenkt.ci.core.model.{ Pipeline, PipelineId }
 import com.verschraenkt.ci.storage.context.StorageContext
 import com.verschraenkt.ci.storage.db.DatabaseModule
+import com.verschraenkt.ci.storage.db.codecs.ColumnTypes.given
 import com.verschraenkt.ci.storage.db.codecs.JsonCodecs.given
 import com.verschraenkt.ci.storage.db.codecs.{ JsonCodecs, User }
 import com.verschraenkt.ci.storage.db.tables.{ PipelineRow, PipelineTable }
 import com.verschraenkt.ci.storage.errors.StorageError
 import org.postgresql.util.PSQLException
+import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.simpleStrListTypeMapper
+import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.simpleArrayColumnExtensionMethods
+import java.time.Instant
 
 /** Repository for pipeline persistence operations */
 trait IPipelineRepository:
@@ -35,13 +40,10 @@ trait IPipelineRepository:
   def save(pipeline: Pipeline, createdBy: String): IO[PipelineId]
 
   /** Update pipeline (creates new version) */
-  def update(pipeline: Pipeline, updatedBy: String): IO[Int]
+  def update(pipeline: Pipeline, updatedBy: User, version: Int): IO[Int]
 
   /** Soft-delete a pipeline */
-  def softDelete(id: PipelineId, deletedBy: String): IO[Boolean]
-
-  /** Get all versions of a pipeline */
-  def getVersionHistory(id: PipelineId): IO[Vector[PipelineRow]]
+  def softDelete(id: PipelineId, deletedBy: User): IO[Boolean]
 
 /** Slick-based implementation */
 class PipelineRepository(
@@ -54,14 +56,67 @@ class PipelineRepository(
 
   private val pipelines = TableQuery[PipelineTable]
 
+  /** Helper method to run a query and convert the result to domain model */
+  private def runAndConvertToPipelineDomain(query: DBIO[Option[PipelineRow]]): IO[Option[Pipeline]] =
+    run(query).flatMap {
+      case Some(row) =>
+        PipelineRow.toDomain(row) match
+          case Right(p)    => IO.pure(Some(p))
+          case Left(error) => IO.raiseError(StorageError.DeserializationFailed(error))
+      case None => IO.pure(None)
+    }
+
   /** Find a pipeline by ID (only non-deleted) */
-  override def findById(id: PipelineId): IO[Option[Pipeline]] = ???
+  override def findById(id: PipelineId): IO[Option[Pipeline]] =
+    withOperation("findById") {
+      val query = pipelines
+        .filter(_.pipelineId === id)
+        .filter(_.deletedAt.isEmpty)
+        .result
+        .headOption
+
+      runAndConvertToPipelineDomain(query)
+    }
 
   /** Find pipeline by ID including deleted ones */
-  override def findByIdIncludingDeleted(id: PipelineId): IO[Option[Pipeline]] = ???
+  override def findByIdIncludingDeleted(id: PipelineId): IO[Option[Pipeline]] =
+    withOperation("findByIdIncludingDeleted") {
+      val query = pipelines
+        .filter(_.pipelineId === id)
+        .result
+        .headOption
+
+      runAndConvertToPipelineDomain(query)
+    }
 
   /** Find all active pipelines with optional label filter */
-  override def findActive(labels: Option[Set[String]], limit: Int): IO[Vector[Pipeline]] = ???
+  override def findActive(labels: Option[Set[String]], limit: Int): IO[Vector[Pipeline]] =
+    withOperation("findActive") {
+      // Base query: only active, non-deleted pipelines
+      val baseQuery = pipelines
+        .filter(_.isActive === true)
+        .filter(_.deletedAt.isEmpty)
+
+      // Apply label filtering if requested (subset match: pipeline must contain all requested labels)
+      val labelFilteredQuery: Query[PipelineTable, PipelineRow, Seq] = labels match
+        case Some(requestedLabels) if requestedLabels.nonEmpty =>
+          baseQuery.filter(row => row.labels @> requestedLabels.toList)
+        case _ => baseQuery
+
+      // Sort by updated_at descending and apply limit
+      val query = labelFilteredQuery
+        .sortBy(_.updatedAt.desc)
+        .take(limit)
+        .result
+
+      run(query).flatMap { (seq: Seq[PipelineRow]) =>
+        seq.toVector.traverse(row =>
+          PipelineRow.toDomain(row) match
+            case Right(p)    => IO.pure(p)
+            case Left(error) => IO.raiseError(StorageError.DeserializationFailed(error))
+        )
+      }
+    }
 
   /** Save a new pipeline or create new version */
   override def save(pipeline: Pipeline, createdBy: String): IO[PipelineId] =
@@ -85,13 +140,26 @@ class PipelineRepository(
     }
 
   /** Update pipeline (creates new version) */
-  override def update(pipeline: Pipeline, updatedBy: String): IO[Int] = ???
+  override def update(pipeline: Pipeline, updatedBy: User, version: Int): IO[Int] =
+    withOperation("update") {
+      val q = pipelines
+        .filter(_.pipelineId === pipeline.id)
+        .filter(_.deletedAt.isEmpty)
+        .update(PipelineRow.fromDomain(pipeline, updatedBy, version))
+      run(q)
+    }
 
   /** Soft-delete a pipeline */
-  override def softDelete(id: PipelineId, deletedBy: String): IO[Boolean] = ???
+  override def softDelete(id: PipelineId, deletedBy: User): IO[Boolean] =
+    withOperation("softDelete") {
+      val q = pipelines
+        .filter(_.pipelineId === id)
+        .filter(_.deletedAt.isEmpty)
+        .map(p => (p.deletedAt, p.deletedBy))
+        .update((Some(Instant.now()), Some(deletedBy)))
 
-  /** Get all versions of a pipeline */
-  override def getVersionHistory(id: PipelineId): IO[Vector[PipelineRow]] = ???
+      run(q).map(_ == 1)
+    }
 
   /** Helper method to check if exception is a duplicate key error */
   private def isDuplicateKeyError(e: PSQLException): Boolean =

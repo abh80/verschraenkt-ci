@@ -11,6 +11,7 @@
 package com.verschraenkt.ci.storage.db
 
 import com.github.tminglei.slickpg.*
+import com.github.tminglei.slickpg.array.PgArrayExtensions
 import slick.basic.Capability
 import slick.jdbc.JdbcCapabilities
 
@@ -23,6 +24,7 @@ import slick.jdbc.JdbcCapabilities
 trait MyPostgresProfile
     extends ExPostgresProfile
     with PgArraySupport
+    with PgArrayExtensions
     with PgEnumSupport
     with PgDate2Support
     with PgCirceJsonSupport:
