@@ -15,14 +15,15 @@ import cats.syntax.traverse.given
 import com.verschraenkt.ci.core.model.{ Pipeline, PipelineId }
 import com.verschraenkt.ci.storage.context.StorageContext
 import com.verschraenkt.ci.storage.db.DatabaseModule
+import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.simpleArrayColumnExtensionMethods
+import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.simpleStrListTypeMapper
 import com.verschraenkt.ci.storage.db.codecs.ColumnTypes.given
 import com.verschraenkt.ci.storage.db.codecs.JsonCodecs.given
 import com.verschraenkt.ci.storage.db.codecs.{ JsonCodecs, User }
 import com.verschraenkt.ci.storage.db.tables.{ PipelineRow, PipelineTable }
 import com.verschraenkt.ci.storage.errors.StorageError
 import org.postgresql.util.PSQLException
-import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.simpleStrListTypeMapper
-import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.simpleArrayColumnExtensionMethods
+
 import java.time.Instant
 
 /** Repository for pipeline persistence operations */
