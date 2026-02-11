@@ -307,3 +307,13 @@
 workflow:
   rules:
     - when: never
+
+stages:
+  - noop
+
+noop-job:
+  stage: noop
+  script:
+    - echo "This will never run"
+  rules:
+    - when: never    
