@@ -124,59 +124,59 @@ object JsonCodecs:
 
   // Command Encoders/Decoders (ADT with enum)
 
-  given commandEncoder: Encoder[Command] = Encoder.instance {
-    case Command.Exec(program, args, env, cwd, timeoutSec) =>
-      Json.obj(
-        "type"       -> Json.fromString("Exec"),
-        "program"    -> Json.fromString(program),
-        "args"       -> Encoder[List[String]].apply(args),
-        "env"        -> Encoder[Map[String, String]].apply(env),
-        "cwd"        -> Encoder[Option[String]].apply(cwd),
-        "timeoutSec" -> Encoder[Option[Int]].apply(timeoutSec)
-      )
-    case Command.Shell(script, shell, env, cwd, timeoutSec) =>
-      Json.obj(
-        "type"       -> Json.fromString("Shell"),
-        "script"     -> Json.fromString(script),
-        "shell"      -> shellKindEncoder(shell),
-        "env"        -> Encoder[Map[String, String]].apply(env),
-        "cwd"        -> Encoder[Option[String]].apply(cwd),
-        "timeoutSec" -> Encoder[Option[Int]].apply(timeoutSec)
-      )
-    case Command.Composite(steps) =>
-      Json.obj(
-        "type"  -> Json.fromString("Composite"),
-        "steps" -> nevEncoder[Command](using commandEncoder).apply(steps)
-      )
-  }
+  given commandEncoder: Encoder[Command] = new Encoder[Command]:
+    def apply(cmd: Command): Json = cmd match
+      case Command.Exec(program, args, env, cwd, timeoutSec) =>
+        Json.obj(
+          "type"       -> Json.fromString("Exec"),
+          "program"    -> Json.fromString(program),
+          "args"       -> Encoder[List[String]].apply(args),
+          "env"        -> Encoder[Map[String, String]].apply(env),
+          "cwd"        -> Encoder[Option[String]].apply(cwd),
+          "timeoutSec" -> Encoder[Option[Int]].apply(timeoutSec)
+        )
+      case Command.Shell(script, shell, env, cwd, timeoutSec) =>
+        Json.obj(
+          "type"       -> Json.fromString("Shell"),
+          "script"     -> Json.fromString(script),
+          "shell"      -> shellKindEncoder(shell),
+          "env"        -> Encoder[Map[String, String]].apply(env),
+          "cwd"        -> Encoder[Option[String]].apply(cwd),
+          "timeoutSec" -> Encoder[Option[Int]].apply(timeoutSec)
+        )
+      case Command.Composite(steps) =>
+        Json.obj(
+          "type"  -> Json.fromString("Composite"),
+          "steps" -> nevEncoder[Command](using this).apply(steps)
+        )
 
-  given commandDecoder: Decoder[Command] = Decoder.instance { cursor =>
-    cursor.downField("type").as[String].flatMap {
-      case "Exec" =>
-        for
-          program    <- cursor.downField("program").as[String]
-          args       <- cursor.downField("args").as[List[String]]
-          env        <- cursor.downField("env").as[Map[String, String]]
-          cwd        <- cursor.downField("cwd").as[Option[String]]
-          timeoutSec <- cursor.downField("timeoutSec").as[Option[Int]]
-        yield Command.Exec(program, args, env, cwd, timeoutSec)
-      case "Shell" =>
-        for
-          script     <- cursor.downField("script").as[String]
-          shell      <- cursor.downField("shell").as[ShellKind]
-          env        <- cursor.downField("env").as[Map[String, String]]
-          cwd        <- cursor.downField("cwd").as[Option[String]]
-          timeoutSec <- cursor.downField("timeoutSec").as[Option[Int]]
-        yield Command.Shell(script, shell, env, cwd, timeoutSec)
-      case "Composite" =>
-        for steps <- cursor
-            .downField("steps")
-            .as[NonEmptyVector[Command]](using nevDecoder[Command](using commandDecoder))
-        yield Command.Composite(steps)
-      case other =>
-        Left(io.circe.DecodingFailure(s"Invalid Command type: $other", cursor.history))
-    }
-  }
+  given commandDecoder: Decoder[Command] = new Decoder[Command]:
+    def apply(cursor: io.circe.HCursor): io.circe.Decoder.Result[Command] =
+      cursor.downField("type").as[String].flatMap {
+        case "Exec" =>
+          for
+            program    <- cursor.downField("program").as[String]
+            args       <- cursor.downField("args").as[List[String]]
+            env        <- cursor.downField("env").as[Map[String, String]]
+            cwd        <- cursor.downField("cwd").as[Option[String]]
+            timeoutSec <- cursor.downField("timeoutSec").as[Option[Int]]
+          yield Command.Exec(program, args, env, cwd, timeoutSec)
+        case "Shell" =>
+          for
+            script     <- cursor.downField("script").as[String]
+            shell      <- cursor.downField("shell").as[ShellKind]
+            env        <- cursor.downField("env").as[Map[String, String]]
+            cwd        <- cursor.downField("cwd").as[Option[String]]
+            timeoutSec <- cursor.downField("timeoutSec").as[Option[Int]]
+          yield Command.Shell(script, shell, env, cwd, timeoutSec)
+        case "Composite" =>
+          for steps <- cursor
+              .downField("steps")
+              .as[NonEmptyVector[Command]](using nevDecoder[Command](using this))
+          yield Command.Composite(steps)
+        case other =>
+          Left(io.circe.DecodingFailure(s"Invalid Command type: $other", cursor.history))
+      }
 
   // Condition Encoders/Decoders (large ADT with enum)
 
@@ -185,80 +185,80 @@ object JsonCodecs:
 
   // Step Encoders/Decoders (ADT with enum)
 
-  given stepEncoder: Encoder[Step] = Encoder.instance {
-    case s: Step.Checkout =>
-      Json.obj(
-        "type" -> Json.fromString("Checkout"),
-        "meta" -> stepMetaEncoder(s.meta)
-      )
-    case s: Step.Run =>
-      Json.obj(
-        "type"    -> Json.fromString("Run"),
-        "command" -> commandEncoder(s.command.asCommand),
-        "meta"    -> stepMetaEncoder(s.meta)
-      )
-    case s: Step.RestoreCache =>
-      Json.obj(
-        "type" -> Json.fromString("RestoreCache"),
-        "cache" -> Json.obj(
-          "key"   -> cacheKeyEncoder(s.cache.key),
-          "scope" -> cacheScopeEncoder(s.cache.scope)
-        ),
-        "paths" -> nelEncoder[String].apply(s.paths),
-        "meta"  -> stepMetaEncoder(s.meta)
-      )
-    case s: Step.SaveCache =>
-      Json.obj(
-        "type" -> Json.fromString("SaveCache"),
-        "cache" -> Json.obj(
-          "key"   -> cacheKeyEncoder(s.cache.key),
-          "scope" -> cacheScopeEncoder(s.cache.scope)
-        ),
-        "paths" -> nelEncoder[String].apply(s.paths),
-        "meta"  -> stepMetaEncoder(s.meta)
-      )
-    case Step.Composite(steps) =>
-      Json.obj(
-        "type"  -> Json.fromString("Composite"),
-        "steps" -> nevEncoder[Step](using stepEncoder).apply(steps)
-      )
-  }
+  given stepEncoder: Encoder[Step] = new Encoder[Step]:
+    def apply(step: Step): Json = step match
+      case s: Step.Checkout =>
+        Json.obj(
+          "type" -> Json.fromString("Checkout"),
+          "meta" -> stepMetaEncoder(s.meta)
+        )
+      case s: Step.Run =>
+        Json.obj(
+          "type"    -> Json.fromString("Run"),
+          "command" -> commandEncoder(s.command.asCommand),
+          "meta"    -> stepMetaEncoder(s.meta)
+        )
+      case s: Step.RestoreCache =>
+        Json.obj(
+          "type" -> Json.fromString("RestoreCache"),
+          "cache" -> Json.obj(
+            "key"   -> cacheKeyEncoder(s.cache.key),
+            "scope" -> cacheScopeEncoder(s.cache.scope)
+          ),
+          "paths" -> nelEncoder[String].apply(s.paths),
+          "meta"  -> stepMetaEncoder(s.meta)
+        )
+      case s: Step.SaveCache =>
+        Json.obj(
+          "type" -> Json.fromString("SaveCache"),
+          "cache" -> Json.obj(
+            "key"   -> cacheKeyEncoder(s.cache.key),
+            "scope" -> cacheScopeEncoder(s.cache.scope)
+          ),
+          "paths" -> nelEncoder[String].apply(s.paths),
+          "meta"  -> stepMetaEncoder(s.meta)
+        )
+      case Step.Composite(steps) =>
+        Json.obj(
+          "type"  -> Json.fromString("Composite"),
+          "steps" -> nevEncoder[Step](using this).apply(steps)
+        )
 
-  given stepDecoder: Decoder[Step] = Decoder.instance { cursor =>
-    cursor.downField("type").as[String].flatMap {
-      case "Checkout" =>
-        for meta <- cursor.downField("meta").as[StepMeta]
-        yield Step.Checkout()(using meta)
-      case "Run" =>
-        for
-          command <- cursor.downField("command").as[Command]
-          meta    <- cursor.downField("meta").as[StepMeta]
-        yield Step.Run(command)(using meta)
-      case "RestoreCache" =>
-        for
-          cacheKey <- cursor.downField("cache").downField("key").as[CacheKey]
-          scope    <- cursor.downField("cache").downField("scope").as[CacheScope]
-          paths    <- cursor.downField("paths").as[NonEmptyList[String]]
-          meta     <- cursor.downField("meta").as[StepMeta]
-          cache = Cache.RestoreCache(cacheKey, paths, scope)
-        yield Step.RestoreCache(cache, paths)(using meta)
-      case "SaveCache" =>
-        for
-          cacheKey <- cursor.downField("cache").downField("key").as[CacheKey]
-          scope    <- cursor.downField("cache").downField("scope").as[CacheScope]
-          paths    <- cursor.downField("paths").as[NonEmptyList[String]]
-          meta     <- cursor.downField("meta").as[StepMeta]
-          cache = Cache.SaveCache(cacheKey, paths, scope)
-        yield Step.SaveCache(cache, paths)(using meta)
-      case "Composite" =>
-        for steps <- cursor
-            .downField("steps")
-            .as[NonEmptyVector[Step]](using nevDecoder[Step](using stepDecoder))
-        yield Step.Composite(steps)
-      case other =>
-        Left(io.circe.DecodingFailure(s"Invalid Step type: $other", cursor.history))
-    }
-  }
+  given stepDecoder: Decoder[Step] = new Decoder[Step]:
+    def apply(cursor: io.circe.HCursor): io.circe.Decoder.Result[Step] =
+      cursor.downField("type").as[String].flatMap {
+        case "Checkout" =>
+          for meta <- cursor.downField("meta").as[StepMeta]
+          yield Step.Checkout()(using meta)
+        case "Run" =>
+          for
+            command <- cursor.downField("command").as[Command]
+            meta    <- cursor.downField("meta").as[StepMeta]
+          yield Step.Run(command)(using meta)
+        case "RestoreCache" =>
+          for
+            cacheKey <- cursor.downField("cache").downField("key").as[CacheKey]
+            scope    <- cursor.downField("cache").downField("scope").as[CacheScope]
+            paths    <- cursor.downField("paths").as[NonEmptyList[String]]
+            meta     <- cursor.downField("meta").as[StepMeta]
+            cache = Cache.RestoreCache(cacheKey, paths, scope)
+          yield Step.RestoreCache(cache, paths)(using meta)
+        case "SaveCache" =>
+          for
+            cacheKey <- cursor.downField("cache").downField("key").as[CacheKey]
+            scope    <- cursor.downField("cache").downField("scope").as[CacheScope]
+            paths    <- cursor.downField("paths").as[NonEmptyList[String]]
+            meta     <- cursor.downField("meta").as[StepMeta]
+            cache = Cache.SaveCache(cacheKey, paths, scope)
+          yield Step.SaveCache(cache, paths)(using meta)
+        case "Composite" =>
+          for steps <- cursor
+              .downField("steps")
+              .as[NonEmptyVector[Step]](using nevDecoder[Step](using this))
+          yield Step.Composite(steps)
+        case other =>
+          Left(io.circe.DecodingFailure(s"Invalid Step type: $other", cursor.history))
+      }
 
   // Job Encoder/Decoder
 
