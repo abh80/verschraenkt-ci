@@ -1,12 +1,10 @@
 package com.verschraenkt.ci.storage.util
 
-
 import cats.effect.IO
 import com.verschraenkt.ci.core.context.ApplicationContext
 import com.verschraenkt.ci.storage.db.PostgresProfile.api.*
 import com.verschraenkt.ci.storage.errors.StorageError
 import org.postgresql.util.PSQLException
-
 
 trait TableCast[R]:
   protected def table: TableQuery[? <: Table[R]]
@@ -21,8 +19,10 @@ trait TableCast[R]:
     protected def isDuplicateKeyError(e: PSQLException): Boolean =
       e.getSQLState == "23505"
 
-    def insert(domain: D, metadata: M)(using enc: io.circe.Encoder[D])(using applicationContext: ApplicationContext): IO[D] =
-      val row = mapper.fromDomain(domain, metadata)
+    def insert(domain: D, metadata: M)(using enc: io.circe.Encoder[D])(using
+        applicationContext: ApplicationContext
+    ): IO[D] =
+      val row          = mapper.fromDomain(domain, metadata)
       val insertAction = table += row
 
       transactionally(insertAction)

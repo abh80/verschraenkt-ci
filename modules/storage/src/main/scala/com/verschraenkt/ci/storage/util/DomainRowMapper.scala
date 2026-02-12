@@ -1,6 +1,6 @@
 package com.verschraenkt.ci.storage.util
 
-import io.circe.{Decoder, Encoder}
+import io.circe.{ Decoder, Encoder }
 
 trait DomainRowMapper[Domain, Row, Metadata]:
   /** Convert domain model to database row */
