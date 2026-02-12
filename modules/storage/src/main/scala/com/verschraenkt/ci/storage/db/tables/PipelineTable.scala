@@ -15,6 +15,7 @@ import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.{ circeJsonTypeMappe
 import com.verschraenkt.ci.storage.db.PostgresProfile.api.*
 import com.verschraenkt.ci.storage.db.codecs.ColumnTypes.given
 import com.verschraenkt.ci.storage.db.codecs.User
+import com.verschraenkt.ci.storage.util.DomainRowMapper
 import io.circe.syntax.*
 import io.circe.{ Decoder, Encoder, Json }
 
@@ -59,7 +60,7 @@ final case class PipelineRow(
     deletedBy: Option[User] = None
 )
 
-object PipelineRow:
+object PipelineRow extends DomainRowMapper[Pipeline, PipelineRow, (User, Int)]:
   /** Convert a domain Pipeline to a database row
     *
     * @param pipeline
@@ -97,7 +98,7 @@ object PipelineRow:
     * @return
     *   Either a decoding error or the domain Pipeline object
     */
-  def toDomain(row: PipelineRow)(using Decoder[Pipeline]): Either[io.circe.Error, Pipeline] =
+  override def toDomain(row: PipelineRow)(using Decoder[Pipeline]): Either[io.circe.Error, Pipeline] =
     row.definition.as[Pipeline]
 
   /** Extract the pipeline name from the first workflow
@@ -109,6 +110,10 @@ object PipelineRow:
     */
   private def extractPipelineName(pipeline: Pipeline): String =
     pipeline.workflows.head.name
+
+  /** Convert domain model to database row */
+  override def fromDomain(domain: Pipeline, metadata: (User, Int))(using Encoder[Pipeline]): PipelineRow =
+    fromDomain(domain, metadata._1, metadata._2)
 
 /** Slick table definition for the pipelines table
   *

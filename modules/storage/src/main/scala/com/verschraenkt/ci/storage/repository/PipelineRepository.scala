@@ -12,17 +12,20 @@ package com.verschraenkt.ci.storage.repository
 
 import cats.effect.IO
 import cats.syntax.traverse.given
+import com.verschraenkt.ci.core.context.ApplicationContext
 import com.verschraenkt.ci.core.model.{ Pipeline, PipelineId }
 import com.verschraenkt.ci.storage.context.StorageContext
-import com.verschraenkt.ci.storage.db.DatabaseModule
-import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.simpleArrayColumnExtensionMethods
-import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.simpleStrListTypeMapper
+import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.{
+  simpleArrayColumnExtensionMethods,
+  simpleStrListTypeMapper
+}
 import com.verschraenkt.ci.storage.db.codecs.ColumnTypes.given
 import com.verschraenkt.ci.storage.db.codecs.JsonCodecs.given
 import com.verschraenkt.ci.storage.db.codecs.{ JsonCodecs, User }
 import com.verschraenkt.ci.storage.db.tables.{ PipelineRow, PipelineTable }
+import com.verschraenkt.ci.storage.db.{ DatabaseModule, PostgresProfile }
 import com.verschraenkt.ci.storage.errors.StorageError
-import org.postgresql.util.PSQLException
+import com.verschraenkt.ci.storage.util.TableCast
 
 import java.time.Instant
 
@@ -51,11 +54,10 @@ class PipelineRepository(
     protected val dbModule: DatabaseModule
 ) extends IPipelineRepository
     with StorageContext
-    with DatabaseOperations:
+    with DatabaseOperations
+    with TableCast[PipelineRow]:
 
   import profile.api.*
-
-  private val pipelines = TableQuery[PipelineTable]
 
   /** Helper method to run a query and convert the result to domain model */
   private def runAndConvertToPipelineDomain(query: DBIO[Option[PipelineRow]]): IO[Option[Pipeline]] =
@@ -70,7 +72,7 @@ class PipelineRepository(
   /** Find a pipeline by ID (only non-deleted) */
   override def findById(id: PipelineId): IO[Option[Pipeline]] =
     withContext("findById") {
-      val query = pipelines
+      val query = table
         .filter(_.pipelineId === id)
         .filter(_.deletedAt.isEmpty)
         .result
@@ -82,7 +84,7 @@ class PipelineRepository(
   /** Find pipeline by ID including deleted ones */
   override def findByIdIncludingDeleted(id: PipelineId): IO[Option[Pipeline]] =
     withContext("findByIdIncludingDeleted") {
-      val query = pipelines
+      val query = table
         .filter(_.pipelineId === id)
         .result
         .headOption
@@ -90,11 +92,11 @@ class PipelineRepository(
       runAndConvertToPipelineDomain(query)
     }
 
-  /** Find all active pipelines with optional label filter */
+  /** Find all active table with optional label filter */
   override def findActive(labels: Option[Set[String]], limit: Int): IO[Vector[Pipeline]] =
     withContext("findActive") {
-      // Base query: only active, non-deleted pipelines
-      val baseQuery = pipelines
+      // Base query: only active, non-deleted table
+      val baseQuery = table
         .filter(_.isActive === true)
         .filter(_.deletedAt.isEmpty)
 
@@ -122,28 +124,14 @@ class PipelineRepository(
   /** Save a new pipeline or create new version */
   override def save(pipeline: Pipeline, createdBy: String): IO[PipelineId] =
     withContext("save") {
-
       val user = User(createdBy)
-      val row  = PipelineRow.fromDomain(pipeline, user, version = 1)
-
-      val insertAction = pipelines += row
-
-      transactionally(insertAction)
-        .map(_ => pipeline.id)
-        .handleErrorWith {
-          case e: PSQLException if isDuplicateKeyError(e) =>
-            fail(StorageError.DuplicateKey("Pipeline", pipeline.id.value))
-          case e: java.sql.SQLException =>
-            fail(StorageError.ConnectionFailed(e))
-          case e: Exception =>
-            fail(StorageError.TransactionFailed(e))
-        }
+      PipelineInsert.insert(pipeline, (user, 1)).map(_.id)
     }
 
   /** Update pipeline (creates new version) */
   override def update(pipeline: Pipeline, updatedBy: User, version: Int): IO[Int] =
     withContext("update") {
-      val q = pipelines
+      val q = table
         .filter(_.pipelineId === pipeline.id)
         .filter(_.deletedAt.isEmpty)
         .update(PipelineRow.fromDomain(pipeline, updatedBy, version))
@@ -153,7 +141,7 @@ class PipelineRepository(
   /** Soft-delete a pipeline */
   override def softDelete(id: PipelineId, deletedBy: User): IO[Boolean] =
     withContext("softDelete") {
-      val q = pipelines
+      val q = table
         .filter(_.pipelineId === id)
         .filter(_.deletedAt.isEmpty)
         .map(p => (p.deletedAt, p.deletedBy))
@@ -162,6 +150,17 @@ class PipelineRepository(
       run(q).map(_ == 1)
     }
 
-  /** Helper method to check if exception is a duplicate key error */
-  private def isDuplicateKeyError(e: PSQLException): Boolean =
-    e.getSQLState == "23505" // PostgreSQL unique violation error code
+  override protected def table: TableQuery[PipelineTable] = TableQuery[PipelineTable]
+
+  private object PipelineInsert extends InsertAction[Pipeline, (User, Int)]:
+    protected def mapper = PipelineRow
+
+    protected def entityName = "Pipeline"
+
+    protected def getId(domain: Pipeline) = domain.id.value
+
+    protected def transactionally[T](action: DBIO[T]): IO[T] =
+      PipelineRepository.this.transactionally(action)
+
+    protected def fail[T](error: StorageError)(using applicationContext: ApplicationContext): IO[T] =
+      PipelineRepository.this.fail(error)
