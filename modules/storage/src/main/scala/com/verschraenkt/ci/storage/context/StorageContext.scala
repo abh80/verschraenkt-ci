@@ -46,12 +46,15 @@ trait StorageContext:
     block
 
   /** Wraps a block that might throw, converting to StorageError */
-  protected[context] def wrapDbError[A](operation: String)(block: ContextBlock[A]): IO[A] =
+  protected[context] def withContext[A](operation: String)(block: ContextBlock[IO[A]]): IO[A] =
     withOperation(operation) {
-      IO.defer(IO(block)).handleErrorWith {
+      block.handleErrorWith {
+        case e: StorageError =>
+          // Preserve specific storage errors raised within the block.
+          IO.raiseError(contextualize(e))
         case e: java.sql.SQLException =>
           fail(StorageError.ConnectionFailed(e))
-        case e: Exception =>
+        case scala.util.control.NonFatal(e) =>
           fail(StorageError.TransactionFailed(e))
       }
     }

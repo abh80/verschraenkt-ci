@@ -67,11 +67,11 @@ class StorageContextSpec extends FunSuite:
   test("wrapDbError converts SQLException to StorageError") {
     val sqlException = new java.sql.SQLException("Connection failed")
 
-    val block: ApplicationContext ?=> String =
-      throw sqlException
+    val block: ApplicationContext ?=> IO[String] =
+      IO(throw sqlException)
 
     val result = testComponent
-      .wrapDbError("query")(block)
+      .withContext("query")(block)
       .attempt
       .unsafeRunSync()
 
