@@ -49,6 +49,9 @@ trait StorageContext:
   protected[context] def withContext[A](operation: String)(block: ContextBlock[IO[A]]): IO[A] =
     withOperation(operation) {
       block.handleErrorWith {
+        case e: StorageError =>
+          // Preserve specific storage errors raised within the block.
+          IO.raiseError(contextualize(e))
         case e: java.sql.SQLException =>
           fail(StorageError.ConnectionFailed(e))
         case scala.util.control.NonFatal(e) =>

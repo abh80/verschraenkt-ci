@@ -69,7 +69,7 @@ class PipelineRepository(
 
   /** Find a pipeline by ID (only non-deleted) */
   override def findById(id: PipelineId): IO[Option[Pipeline]] =
-    withOperation("findById") {
+    withContext("findById") {
       val query = pipelines
         .filter(_.pipelineId === id)
         .filter(_.deletedAt.isEmpty)
@@ -81,7 +81,7 @@ class PipelineRepository(
 
   /** Find pipeline by ID including deleted ones */
   override def findByIdIncludingDeleted(id: PipelineId): IO[Option[Pipeline]] =
-    withOperation("findByIdIncludingDeleted") {
+    withContext("findByIdIncludingDeleted") {
       val query = pipelines
         .filter(_.pipelineId === id)
         .result
@@ -92,7 +92,7 @@ class PipelineRepository(
 
   /** Find all active pipelines with optional label filter */
   override def findActive(labels: Option[Set[String]], limit: Int): IO[Vector[Pipeline]] =
-    withOperation("findActive") {
+    withContext("findActive") {
       // Base query: only active, non-deleted pipelines
       val baseQuery = pipelines
         .filter(_.isActive === true)
@@ -121,7 +121,7 @@ class PipelineRepository(
 
   /** Save a new pipeline or create new version */
   override def save(pipeline: Pipeline, createdBy: String): IO[PipelineId] =
-    withOperation("save") {
+    withContext("save") {
 
       val user = User(createdBy)
       val row  = PipelineRow.fromDomain(pipeline, user, version = 1)
@@ -142,7 +142,7 @@ class PipelineRepository(
 
   /** Update pipeline (creates new version) */
   override def update(pipeline: Pipeline, updatedBy: User, version: Int): IO[Int] =
-    withOperation("update") {
+    withContext("update") {
       val q = pipelines
         .filter(_.pipelineId === pipeline.id)
         .filter(_.deletedAt.isEmpty)
@@ -152,7 +152,7 @@ class PipelineRepository(
 
   /** Soft-delete a pipeline */
   override def softDelete(id: PipelineId, deletedBy: User): IO[Boolean] =
-    withOperation("softDelete") {
+    withContext("softDelete") {
       val q = pipelines
         .filter(_.pipelineId === id)
         .filter(_.deletedAt.isEmpty)

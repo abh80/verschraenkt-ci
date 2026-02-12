@@ -108,7 +108,7 @@ class PipelineVersionsRepository(protected val dbModule: DatabaseModule)
   /** Count total versions for a pipeline */
   override def countVersionsByPipelineId(id: PipelineId): IO[Int] =
     withContext("countVersionsByPipelineId") {
-      run(byPipelineId(id).countDistinct.result)
+      run(byPipelineId(id).length.result)
     }
 
   /** Check if a specific version exists */
