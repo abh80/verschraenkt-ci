@@ -304,3 +304,16 @@
 #        path: target/scala-3.8.1/coverage-report/cobertura.xml
 #    expire_in: 30 days
 #  coverage: '/Statement coverage[A-Za-z\s\.\:]+\s(\d+\.\d+)%/'
+workflow:
+  rules:
+    - when: never
+
+stages:
+  - noop
+
+noop-job:
+  stage: noop
+  script:
+    - echo "This will never run"
+  rules:
+    - when: never    
