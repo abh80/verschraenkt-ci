@@ -43,18 +43,7 @@ object ColumnTypes:
 
   given stepIdMapper: BaseColumnType[StepId] =
     MappedColumnType.base[StepId, String](_.value, StepId.apply)
-
-  // ============================================================================
-  // UUID-based Identifiers
-  // ============================================================================
-
-  /** UUID v7 mapper (time-ordered UUIDs)
-    *
-    * Note: The database uses uuid_generate_v7() function for default values. This mapper just handles the
-    * UUID type.
-    */
-  given uuidMapper: BaseColumnType[UUID] =
-    MappedColumnType.base[UUID, UUID](identity, identity)
+  
 
   // ============================================================================
   // PostgreSQL ENUM Type Mappers
