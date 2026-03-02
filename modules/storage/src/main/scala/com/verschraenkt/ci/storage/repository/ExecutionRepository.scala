@@ -13,11 +13,12 @@ package com.verschraenkt.ci.storage.repository
 import cats.effect.IO
 import com.verschraenkt.ci.core.model.PipelineId
 import com.verschraenkt.ci.storage.context.StorageContext
-import com.verschraenkt.ci.storage.db.DatabaseModule
+import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.executionStatusMapper
 import com.verschraenkt.ci.storage.db.codecs.ColumnTypes.given
 import com.verschraenkt.ci.storage.db.codecs.Enums.ExecutionStatus
 import com.verschraenkt.ci.storage.db.codecs.User
 import com.verschraenkt.ci.storage.db.tables.{ ExecutionRow, ExecutionTable }
+import com.verschraenkt.ci.storage.db.{ DatabaseModule, PostgresProfile }
 import com.verschraenkt.ci.storage.errors.StorageError
 import com.verschraenkt.ci.storage.util.TableCast
 
