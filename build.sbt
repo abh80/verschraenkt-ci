@@ -15,9 +15,9 @@ lazy val commonSettings = Seq(
     "-Wunused:imports"
   ),
   resolvers += "Akka library repository".at("https://repo.akka.io/maven"),
-  semanticdbEnabled                 := true,
-  semanticdbVersion                 := scalafixSemanticdb.revision,
-  libraryDependencies += "org.slf4j" % "slf4j-simple" % "2.0.12",
+  semanticdbEnabled                      := true,
+  semanticdbVersion                      := scalafixSemanticdb.revision,
+  libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.5.32",
   // Test reporting configuration
   Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports"),
   Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-o"),
