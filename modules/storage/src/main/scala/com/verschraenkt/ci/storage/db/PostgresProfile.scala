@@ -12,6 +12,7 @@ package com.verschraenkt.ci.storage.db
 
 import com.github.tminglei.slickpg.*
 import com.github.tminglei.slickpg.array.PgArrayExtensions
+import com.verschraenkt.ci.storage.db.codecs.Enums.{ ExecutionStatus, TriggerType }
 import slick.basic.Capability
 import slick.jdbc.JdbcCapabilities
 
@@ -35,12 +36,29 @@ trait MyPostgresProfile
   override protected def computeCapabilities: Set[Capability] =
     super.computeCapabilities + JdbcCapabilities.insertOrUpdate
 
+  val executionStatusMapper = createEnumJdbcType[ExecutionStatus](
+    "execution_status",
+    _.toDbString,
+    ExecutionStatus.fromString,
+    quoteName = false
+  )
+  val triggerTypeMapper = createEnumJdbcType[TriggerType](
+    "trigger_type",
+    _.toDbString,
+    TriggerType.fromString,
+    quoteName = false
+  )
+
   override val api = MyAPI
 
   object MyAPI
       extends ExtPostgresAPI
       with ArrayImplicits
       with Date2DateTimeImplicitsDuration
-      with JsonImplicits
+      with JsonImplicits:
+    implicit val executionStatusMapper: BaseColumnType[ExecutionStatus] =
+      MyPostgresProfile.this.executionStatusMapper
+    implicit val triggerTypeMapper: BaseColumnType[TriggerType] =
+      MyPostgresProfile.this.triggerTypeMapper
 
 object PostgresProfile extends MyPostgresProfile

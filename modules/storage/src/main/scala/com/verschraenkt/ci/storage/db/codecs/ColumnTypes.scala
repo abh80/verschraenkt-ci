@@ -46,20 +46,6 @@ object ColumnTypes:
   // PostgreSQL ENUM Type Mappers
   // ============================================================================
 
-  given executionStatusMapper: BaseColumnType[ExecutionStatus] =
-    createEnumJdbcType[ExecutionStatus](
-      sqlEnumTypeName = "execution_status",
-      enumToString = _.toDbString,
-      stringToEnum = ExecutionStatus.fromString,
-      quoteName = false
-    )
-
-  given triggerTypeMapper: BaseColumnType[TriggerType] =
-    MappedColumnType.base[TriggerType, String](
-      _.toDbString,
-      TriggerType.fromString
-    )
-
   given stepTypeMapper: BaseColumnType[StepType] =
     MappedColumnType.base[StepType, String](
       _.toDbString,
