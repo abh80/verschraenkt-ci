@@ -16,7 +16,7 @@
         <parameter value="-Wunused:imports" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
-        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\core\target\scala-3.8.1\test-meta" />
+        <parameter value="D:\profiles\abh80\dev\ci\modules\core\target\scala-3.8.1\test-meta" />
       </parameters>
     </profile>
     <profile name="sbt 11" modules="verschraenkt-ci.verschraenkt-ci-core.main">
@@ -32,7 +32,7 @@
         <parameter value="-Wunused:imports" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
-        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\core\target\scala-3.8.1\meta" />
+        <parameter value="D:\profiles\abh80\dev\ci\modules\core\target\scala-3.8.1\meta" />
       </parameters>
     </profile>
     <profile name="sbt 12" modules="verschraenkt-ci.verschraenkt-ci-dsl.test">
@@ -48,7 +48,7 @@
         <parameter value="-Wunused:imports" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
-        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\dsl\target\scala-3.8.1\test-meta" />
+        <parameter value="D:\profiles\abh80\dev\ci\modules\dsl\target\scala-3.8.1\test-meta" />
       </parameters>
     </profile>
     <profile name="sbt 13" modules="verschraenkt-ci.verschraenkt-ci-dsl.main">
@@ -64,7 +64,7 @@
         <parameter value="-Wunused:imports" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
-        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\dsl\target\scala-3.8.1\meta" />
+        <parameter value="D:\profiles\abh80\dev\ci\modules\dsl\target\scala-3.8.1\meta" />
       </parameters>
     </profile>
     <profile name="sbt 14" modules="verschraenkt-ci.verschraenkt-ci-engine.test">
@@ -80,7 +80,7 @@
         <parameter value="-Wunused:imports" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
-        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\engine\target\scala-3.8.1\test-meta" />
+        <parameter value="D:\profiles\abh80\dev\ci\modules\engine\target\scala-3.8.1\test-meta" />
       </parameters>
     </profile>
     <profile name="sbt 15" modules="verschraenkt-ci.verschraenkt-ci-engine.main">
@@ -96,7 +96,7 @@
         <parameter value="-Wunused:imports" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
-        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\engine\target\scala-3.8.1\meta" />
+        <parameter value="D:\profiles\abh80\dev\ci\modules\engine\target\scala-3.8.1\meta" />
       </parameters>
     </profile>
     <profile name="sbt 16" modules="verschraenkt-ci.verschraenkt-ci-engine-api.test">
@@ -112,7 +112,7 @@
         <parameter value="-Wunused:imports" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
-        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\engine-api\target\scala-3.8.1\test-meta" />
+        <parameter value="D:\profiles\abh80\dev\ci\modules\engine-api\target\scala-3.8.1\test-meta" />
       </parameters>
     </profile>
     <profile name="sbt 17" modules="verschraenkt-ci.verschraenkt-ci-engine-api.main">
@@ -128,7 +128,7 @@
         <parameter value="-Wunused:imports" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
-        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\engine-api\target\scala-3.8.1\meta" />
+        <parameter value="D:\profiles\abh80\dev\ci\modules\engine-api\target\scala-3.8.1\meta" />
       </parameters>
     </profile>
     <profile name="sbt 18" modules="verschraenkt-ci.verschraenkt-ci-executor.test">
@@ -144,7 +144,7 @@
         <parameter value="-Wunused:imports" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
-        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\executor\target\scala-3.8.1\test-meta" />
+        <parameter value="D:\profiles\abh80\dev\ci\modules\executor\target\scala-3.8.1\test-meta" />
       </parameters>
     </profile>
     <profile name="sbt 19" modules="verschraenkt-ci.verschraenkt-ci-executor.main">
@@ -160,7 +160,7 @@
         <parameter value="-Wunused:imports" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
-        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\executor\target\scala-3.8.1\meta" />
+        <parameter value="D:\profiles\abh80\dev\ci\modules\executor\target\scala-3.8.1\meta" />
       </parameters>
     </profile>
     <profile name="sbt 2" modules="verschraenkt-ci.verschraenkt-ci-plugin.main,verschraenkt-ci.verschraenkt-ci-plugin.test">
@@ -188,7 +188,7 @@
         <parameter value="-Wunused:imports" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
-        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\observability\target\scala-3.8.1\test-meta" />
+        <parameter value="D:\profiles\abh80\dev\ci\modules\observability\target\scala-3.8.1\test-meta" />
       </parameters>
     </profile>
     <profile name="sbt 21" modules="verschraenkt-ci.verschraenkt-ci-observability.main">
@@ -204,7 +204,7 @@
         <parameter value="-Wunused:imports" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
-        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\observability\target\scala-3.8.1\meta" />
+        <parameter value="D:\profiles\abh80\dev\ci\modules\observability\target\scala-3.8.1\meta" />
       </parameters>
     </profile>
     <profile name="sbt 22" modules="verschraenkt-ci.verschraenkt-ci-security.test">
@@ -220,7 +220,7 @@
         <parameter value="-Wunused:imports" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
-        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\security\target\scala-3.8.1\test-meta" />
+        <parameter value="D:\profiles\abh80\dev\ci\modules\security\target\scala-3.8.1\test-meta" />
       </parameters>
     </profile>
     <profile name="sbt 23" modules="verschraenkt-ci.verschraenkt-ci-security.main">
@@ -236,7 +236,7 @@
         <parameter value="-Wunused:imports" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
-        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\security\target\scala-3.8.1\meta" />
+        <parameter value="D:\profiles\abh80\dev\ci\modules\security\target\scala-3.8.1\meta" />
       </parameters>
     </profile>
     <profile name="sbt 24" modules="verschraenkt-ci.verschraenkt-ci-server.test">
@@ -252,7 +252,7 @@
         <parameter value="-Wunused:imports" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
-        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\server\target\scala-3.8.1\test-meta" />
+        <parameter value="D:\profiles\abh80\dev\ci\modules\server\target\scala-3.8.1\test-meta" />
       </parameters>
     </profile>
     <profile name="sbt 25" modules="verschraenkt-ci.verschraenkt-ci-server.main">
@@ -268,7 +268,7 @@
         <parameter value="-Wunused:imports" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
-        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\server\target\scala-3.8.1\meta" />
+        <parameter value="D:\profiles\abh80\dev\ci\modules\server\target\scala-3.8.1\meta" />
       </parameters>
     </profile>
     <profile name="sbt 26" modules="verschraenkt-ci.verschraenkt-ci-storage.test">
@@ -284,7 +284,7 @@
         <parameter value="-Wunused:imports" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
-        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\storage\target\scala-3.8.1\test-meta" />
+        <parameter value="D:\profiles\abh80\dev\ci\modules\storage\target\scala-3.8.1\test-meta" />
       </parameters>
     </profile>
     <profile name="sbt 3" modules="verschraenkt-ci.verschraenkt-ci-storage.main">
@@ -300,7 +300,7 @@
         <parameter value="-Wunused:imports" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
-        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\storage\target\scala-3.8.1\meta" />
+        <parameter value="D:\profiles\abh80\dev\ci\modules\storage\target\scala-3.8.1\meta" />
       </parameters>
     </profile>
     <profile name="sbt 4" modules="verschraenkt-ci.test">
@@ -316,7 +316,7 @@
         <parameter value="-Wunused:imports" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
-        <parameter value="C:\Users\abh80\dev\VerschraenktCI\target\scala-3.8.1\test-meta" />
+        <parameter value="D:\profiles\abh80\dev\ci\target\scala-3.8.1\test-meta" />
       </parameters>
     </profile>
     <profile name="sbt 5" modules="verschraenkt-ci.main">
@@ -332,7 +332,7 @@
         <parameter value="-Wunused:imports" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
-        <parameter value="C:\Users\abh80\dev\VerschraenktCI\target\scala-3.8.1\meta" />
+        <parameter value="D:\profiles\abh80\dev\ci\target\scala-3.8.1\meta" />
       </parameters>
     </profile>
     <profile name="sbt 6" modules="verschraenkt-ci.verschraenkt-ci-api.test">
@@ -348,7 +348,7 @@
         <parameter value="-Wunused:imports" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
-        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\api\target\scala-3.8.1\test-meta" />
+        <parameter value="D:\profiles\abh80\dev\ci\modules\api\target\scala-3.8.1\test-meta" />
       </parameters>
     </profile>
     <profile name="sbt 7" modules="verschraenkt-ci.verschraenkt-ci-api.main">
@@ -364,7 +364,7 @@
         <parameter value="-Wunused:imports" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
-        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\api\target\scala-3.8.1\meta" />
+        <parameter value="D:\profiles\abh80\dev\ci\modules\api\target\scala-3.8.1\meta" />
       </parameters>
     </profile>
     <profile name="sbt 8" modules="verschraenkt-ci.verschraenkt-ci-cli.test">
@@ -380,7 +380,7 @@
         <parameter value="-Wunused:imports" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
-        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\cli\target\scala-3.8.1\test-meta" />
+        <parameter value="D:\profiles\abh80\dev\ci\modules\cli\target\scala-3.8.1\test-meta" />
       </parameters>
     </profile>
     <profile name="sbt 9" modules="verschraenkt-ci.verschraenkt-ci-cli.main">
@@ -396,7 +396,7 @@
         <parameter value="-Wunused:imports" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
-        <parameter value="C:\Users\abh80\dev\VerschraenktCI\modules\cli\target\scala-3.8.1\meta" />
+        <parameter value="D:\profiles\abh80\dev\ci\modules\cli\target\scala-3.8.1\meta" />
       </parameters>
     </profile>
   </component>

@@ -3,6 +3,5 @@
   <component name="ScalaProjectSettings">
     <option name="dontShowConversionDialog" value="true" />
     <option name="migrateConfigurationsNotificationShown" value="true" />
-    <option name="scala3DisclaimerShown" value="true" />
   </component>
 </project>

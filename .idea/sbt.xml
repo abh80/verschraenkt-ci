@@ -7,19 +7,19 @@
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="modules">
           <set>
-            <option value="C:\Users\abh80\dev\VerschraenktCI" />
-            <option value="C:\Users\abh80\dev\VerschraenktCI\modules\api" />
-            <option value="C:\Users\abh80\dev\VerschraenktCI\modules\cli" />
-            <option value="C:\Users\abh80\dev\VerschraenktCI\modules\core" />
-            <option value="C:\Users\abh80\dev\VerschraenktCI\modules\dsl" />
-            <option value="C:\Users\abh80\dev\VerschraenktCI\modules\engine" />
-            <option value="C:\Users\abh80\dev\VerschraenktCI\modules\engine-api" />
-            <option value="C:\Users\abh80\dev\VerschraenktCI\modules\executor" />
-            <option value="C:\Users\abh80\dev\VerschraenktCI\modules\observability" />
-            <option value="C:\Users\abh80\dev\VerschraenktCI\modules\security" />
-            <option value="C:\Users\abh80\dev\VerschraenktCI\modules\server" />
-            <option value="C:\Users\abh80\dev\VerschraenktCI\modules\storage" />
-            <option value="C:\Users\abh80\dev\VerschraenktCI\project" />
+            <option value="D:\profiles\abh80\dev\ci" />
+            <option value="D:\profiles\abh80\dev\ci\modules\api" />
+            <option value="D:\profiles\abh80\dev\ci\modules\cli" />
+            <option value="D:\profiles\abh80\dev\ci\modules\core" />
+            <option value="D:\profiles\abh80\dev\ci\modules\dsl" />
+            <option value="D:\profiles\abh80\dev\ci\modules\engine" />
+            <option value="D:\profiles\abh80\dev\ci\modules\engine-api" />
+            <option value="D:\profiles\abh80\dev\ci\modules\executor" />
+            <option value="D:\profiles\abh80\dev\ci\modules\observability" />
+            <option value="D:\profiles\abh80\dev\ci\modules\security" />
+            <option value="D:\profiles\abh80\dev\ci\modules\server" />
+            <option value="D:\profiles\abh80\dev\ci\modules\storage" />
+            <option value="D:\profiles\abh80\dev\ci\project" />
           </set>
         </option>
         <option name="resolveSbtClassifiers" value="true" />
