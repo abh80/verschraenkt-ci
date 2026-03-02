@@ -15,8 +15,6 @@ import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.simpleStrListTypeMap
 import com.verschraenkt.ci.storage.db.PostgresProfile.api.*
 import com.verschraenkt.ci.storage.db.codecs.Enums.*
 
-import java.util.UUID
-
 /** Column type mappers for Slick
   *
   * This object provides implicit column type mappings for:
@@ -43,16 +41,17 @@ object ColumnTypes:
 
   given stepIdMapper: BaseColumnType[StepId] =
     MappedColumnType.base[StepId, String](_.value, StepId.apply)
-  
 
   // ============================================================================
   // PostgreSQL ENUM Type Mappers
   // ============================================================================
 
   given executionStatusMapper: BaseColumnType[ExecutionStatus] =
-    MappedColumnType.base[ExecutionStatus, String](
-      _.toDbString,
-      ExecutionStatus.fromString
+    createEnumJdbcType[ExecutionStatus](
+      sqlEnumTypeName = "execution_status",
+      enumToString = _.toDbString,
+      stringToEnum = ExecutionStatus.fromString,
+      quoteName = false
     )
 
   given triggerTypeMapper: BaseColumnType[TriggerType] =

@@ -42,7 +42,7 @@ CREATE TABLE executions (
   total_memory_mib_seconds BIGINT DEFAULT 0 CHECK (total_memory_mib_seconds >= 0),
   
   -- Metadata
-  labels JSONB DEFAULT '{}',
+  labels TEXT[] DEFAULT '{}',
   error_message TEXT,
   
   -- Soft-delete

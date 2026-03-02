@@ -20,7 +20,7 @@ CREATE TABLE executors (
   disk_mib INT NOT NULL CHECK (disk_mib > 0),
   
   -- Labels for job matching
-  labels JSONB DEFAULT '{}',
+  labels TEXT[] DEFAULT '{}',
   
   -- State
   status executor_status NOT NULL DEFAULT 'online',
