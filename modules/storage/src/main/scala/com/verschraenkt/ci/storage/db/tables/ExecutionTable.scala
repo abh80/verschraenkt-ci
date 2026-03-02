@@ -1,7 +1,7 @@
 package com.verschraenkt.ci.storage.db.tables
 
 import com.verschraenkt.ci.core.model.PipelineId
-import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.{ circeJsonTypeMapper, simpleStrListTypeMapper }
+import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.{ circeJsonTypeMapper, simpleStrListTypeMapper, triggerTypeMapper, executionStatusMapper }
 import com.verschraenkt.ci.storage.db.PostgresProfile.api.*
 import com.verschraenkt.ci.storage.db.codecs.ColumnTypes.given
 import com.verschraenkt.ci.storage.db.codecs.Enums.{ ExecutionStatus, TriggerType }
@@ -85,10 +85,10 @@ class ExecutionTable(tag: Tag) extends Table[ExecutionRow](tag, "executions"):
   def pipelineVersion = column[Int]("pipeline_version")
 
   /** Execution status enum */
-  def status = column[ExecutionStatus]("status", O.SqlType("execution_status"))
+  def status = column[ExecutionStatus]("status")
 
   /** Trigger type enum */
-  def trigger = column[TriggerType]("trigger", O.SqlType("trigger_type"))
+  def trigger = column[TriggerType]("trigger")
 
   /** Who/what triggered this execution */
   def triggerBy = column[User]("trigger_by")
