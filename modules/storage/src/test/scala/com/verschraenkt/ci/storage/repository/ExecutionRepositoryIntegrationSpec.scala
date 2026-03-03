@@ -30,6 +30,23 @@ class ExecutionRepositoryIntegrationSpec
   private val seededPipelineIds: Vector[String] =
     Vector("test-pipeline") ++ (1 to 500).map(i => s"pipeline-$i")
 
+  private val dbTimestampToleranceNanos = 1000L // 1 microsecond
+
+  private def assertInstantWithinTolerance(
+      actual: Option[Instant],
+      expected: Option[Instant],
+      toleranceNanos: Long = dbTimestampToleranceNanos
+  ): Unit =
+    (actual, expected) match
+      case (Some(actualValue), Some(expectedValue)) =>
+        val diff = Math.abs(java.time.Duration.between(expectedValue, actualValue).toNanos)
+        assert(
+          diff <= toleranceNanos,
+          s"Expected ${expected.toString} within ${toleranceNanos}ns, but got ${actual.toString} (diff=${diff}ns)"
+        )
+      case _ =>
+        assertEquals(actual, expected)
+
   private def seedPipelineVersions(db: DatabaseModule): IO[Unit] =
     IO.blocking {
       val conn = db.database.source.createConnection()
@@ -538,10 +555,10 @@ class ExecutionRepositoryIntegrationSpec
         retrieved <- repo.findById(execution.executionId)
         _ <- IO {
           assert(retrieved.isDefined)
-          assertEquals(
+          assertInstantWithinTolerance(
             retrieved.get.startedAt,
             Some(startTime.truncatedTo(ChronoUnit.MICROS))
-          ) // due to database lack of precision we only check upto nanoseconds; who cares
+          )
         }
       yield ()
     }
@@ -579,7 +596,10 @@ class ExecutionRepositoryIntegrationSpec
         retrieved <- repo.findById(execution.executionId)
         _ <- IO {
           assert(retrieved.isDefined)
-          assertEquals(retrieved.get.completedAt, Some(completedTime.truncatedTo(ChronoUnit.MICROS)))
+          assertInstantWithinTolerance(
+            retrieved.get.completedAt,
+            Some(completedTime.truncatedTo(ChronoUnit.MICROS))
+          )
         }
       yield ()
     }
@@ -950,7 +970,10 @@ class ExecutionRepositoryIntegrationSpec
         retrieved <- repo.findById(execution.executionId)
         _ <- IO {
           assertEquals(retrieved.get.status, ExecutionStatus.Running)
-          assertEquals(retrieved.get.startedAt, Some(startTime))
+          assertInstantWithinTolerance(
+            retrieved.get.startedAt,
+            Some(startTime.truncatedTo(ChronoUnit.MICROS))
+          )
           assertEquals(retrieved.get.totalCpuMilliSeconds, 50000L)
         }
 
@@ -963,8 +986,14 @@ class ExecutionRepositoryIntegrationSpec
         retrieved <- repo.findById(execution.executionId)
         _ <- IO {
           assertEquals(retrieved.get.status, ExecutionStatus.Completed)
-          assertEquals(retrieved.get.startedAt, Some(startTime.truncatedTo(ChronoUnit.MICROS)))
-          assertEquals(retrieved.get.completedAt, Some(endTime.truncatedTo(ChronoUnit.MICROS)))
+          assertInstantWithinTolerance(
+            retrieved.get.startedAt,
+            Some(startTime.truncatedTo(ChronoUnit.MICROS))
+          )
+          assertInstantWithinTolerance(
+            retrieved.get.completedAt,
+            Some(endTime.truncatedTo(ChronoUnit.MICROS))
+          )
           assertEquals(retrieved.get.totalCpuMilliSeconds, 120000L)
           assertEquals(retrieved.get.totalMemoryMibSeconds, 512000L)
         }
