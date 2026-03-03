@@ -15,6 +15,7 @@ import com.github.tminglei.slickpg.array.PgArrayExtensions
 import com.verschraenkt.ci.storage.db.codecs.Enums.{ ExecutionStatus, TriggerType }
 import slick.basic.Capability
 import slick.jdbc.JdbcCapabilities
+import slick.jdbc.JdbcType
 
 /** Enhanced PostgreSQL profile with support for:
   *   - PostgreSQL ENUM types
@@ -36,13 +37,13 @@ trait MyPostgresProfile
   override protected def computeCapabilities: Set[Capability] =
     super.computeCapabilities + JdbcCapabilities.insertOrUpdate
 
-  val executionStatusMapper = createEnumJdbcType[ExecutionStatus](
+  private val executionStatusJdbcType: JdbcType[ExecutionStatus] = createEnumJdbcType[ExecutionStatus](
     "execution_status",
     _.toDbString,
     ExecutionStatus.fromString,
     quoteName = false
   )
-  val triggerTypeMapper = createEnumJdbcType[TriggerType](
+  private val triggerTypeJdbcType: JdbcType[TriggerType] = createEnumJdbcType[TriggerType](
     "trigger_type",
     _.toDbString,
     TriggerType.fromString,
@@ -57,8 +58,8 @@ trait MyPostgresProfile
       with Date2DateTimeImplicitsDuration
       with JsonImplicits:
     implicit val executionStatusMapper: BaseColumnType[ExecutionStatus] =
-      MyPostgresProfile.this.executionStatusMapper
+      MyPostgresProfile.this.executionStatusJdbcType
     implicit val triggerTypeMapper: BaseColumnType[TriggerType] =
-      MyPostgresProfile.this.triggerTypeMapper
+      MyPostgresProfile.this.triggerTypeJdbcType
 
 object PostgresProfile extends MyPostgresProfile
