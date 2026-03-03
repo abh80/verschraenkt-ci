@@ -178,10 +178,264 @@ object JsonCodecs:
           Left(io.circe.DecodingFailure(s"Invalid Command type: $other", cursor.history))
       }
 
-  // Condition Encoders/Decoders (large ADT with enum)
+  // Condition Encoders/Decoders (recursive ADT)
+  // NOTE: Manual codecs avoid a Scala 3.8.1 staging crash in semiauto derivation for recursive enums.
 
-  given conditionEncoder: Encoder[Condition] = deriveEncoder[Condition]
-  given conditionDecoder: Decoder[Condition] = deriveDecoder[Condition]
+  private lazy val conditionEncoderImpl: Encoder[Condition] = Encoder.instance {
+    case Condition.Always => Json.obj("type" -> Json.fromString("Always"))
+    case Condition.Never  => Json.obj("type" -> Json.fromString("Never"))
+    case Condition.OnBranch(pattern, kind) =>
+      Json.obj(
+        "type"    -> Json.fromString("OnBranch"),
+        "pattern" -> Json.fromString(pattern),
+        "kind"    -> patternKindEncoder(kind)
+      )
+    case Condition.NotOnBranch(pattern, kind) =>
+      Json.obj(
+        "type"    -> Json.fromString("NotOnBranch"),
+        "pattern" -> Json.fromString(pattern),
+        "kind"    -> patternKindEncoder(kind)
+      )
+    case Condition.OnEvent(event) =>
+      Json.obj(
+        "type"  -> Json.fromString("OnEvent"),
+        "event" -> Json.fromString(event)
+      )
+    case Condition.NotOnEvent(event) =>
+      Json.obj(
+        "type"  -> Json.fromString("NotOnEvent"),
+        "event" -> Json.fromString(event)
+      )
+    case Condition.OnTag(pattern, kind) =>
+      Json.obj(
+        "type"    -> Json.fromString("OnTag"),
+        "pattern" -> Json.fromString(pattern),
+        "kind"    -> patternKindEncoder(kind)
+      )
+    case Condition.NotOnTag(pattern, kind) =>
+      Json.obj(
+        "type"    -> Json.fromString("NotOnTag"),
+        "pattern" -> Json.fromString(pattern),
+        "kind"    -> patternKindEncoder(kind)
+      )
+    case Condition.OnPathsChanged(paths) =>
+      Json.obj(
+        "type"  -> Json.fromString("OnPathsChanged"),
+        "paths" -> nevEncoder[String].apply(paths)
+      )
+    case Condition.OnPathsNotChanged(paths) =>
+      Json.obj(
+        "type"  -> Json.fromString("OnPathsNotChanged"),
+        "paths" -> nevEncoder[String].apply(paths)
+      )
+    case Condition.OnSuccess   => Json.obj("type" -> Json.fromString("OnSuccess"))
+    case Condition.OnFailure   => Json.obj("type" -> Json.fromString("OnFailure"))
+    case Condition.OnCancelled => Json.obj("type" -> Json.fromString("OnCancelled"))
+    case Condition.EnvEquals(key, value) =>
+      Json.obj(
+        "type"  -> Json.fromString("EnvEquals"),
+        "key"   -> Json.fromString(key),
+        "value" -> Json.fromString(value)
+      )
+    case Condition.EnvNotEquals(key, value) =>
+      Json.obj(
+        "type"  -> Json.fromString("EnvNotEquals"),
+        "key"   -> Json.fromString(key),
+        "value" -> Json.fromString(value)
+      )
+    case Condition.EnvExists(key) =>
+      Json.obj(
+        "type" -> Json.fromString("EnvExists"),
+        "key"  -> Json.fromString(key)
+      )
+    case Condition.EnvNotExists(key) =>
+      Json.obj(
+        "type" -> Json.fromString("EnvNotExists"),
+        "key"  -> Json.fromString(key)
+      )
+    case Condition.OnCommitMessage(pattern, kind) =>
+      Json.obj(
+        "type"    -> Json.fromString("OnCommitMessage"),
+        "pattern" -> Json.fromString(pattern),
+        "kind"    -> patternKindEncoder(kind)
+      )
+    case Condition.OnAuthor(author) =>
+      Json.obj(
+        "type"   -> Json.fromString("OnAuthor"),
+        "author" -> Json.fromString(author)
+      )
+    case Condition.NotOnAuthor(author) =>
+      Json.obj(
+        "type"   -> Json.fromString("NotOnAuthor"),
+        "author" -> Json.fromString(author)
+      )
+    case Condition.OnPullRequest => Json.obj("type" -> Json.fromString("OnPullRequest"))
+    case Condition.OnDraft       => Json.obj("type" -> Json.fromString("OnDraft"))
+    case Condition.NotOnDraft    => Json.obj("type" -> Json.fromString("NotOnDraft"))
+    case Condition.OnSchedule(cron) =>
+      Json.obj("type" -> Json.fromString("OnSchedule"), "cron" -> Json.fromString(cron))
+    case Condition.OnManualTrigger => Json.obj("type" -> Json.fromString("OnManualTrigger"))
+    case Condition.OnWorkflowDispatch =>
+      Json.obj("type" -> Json.fromString("OnWorkflowDispatch"))
+    case Condition.OnWorkflowCall => Json.obj("type" -> Json.fromString("OnWorkflowCall"))
+    case Condition.OnRepository(repo) =>
+      Json.obj(
+        "type" -> Json.fromString("OnRepository"),
+        "repo" -> Json.fromString(repo)
+      )
+    case Condition.IsFork    => Json.obj("type" -> Json.fromString("IsFork"))
+    case Condition.IsNotFork => Json.obj("type" -> Json.fromString("IsNotFork"))
+    case Condition.IsPrivate => Json.obj("type" -> Json.fromString("IsPrivate"))
+    case Condition.IsPublic  => Json.obj("type" -> Json.fromString("IsPublic"))
+    case Condition.HasLabel(label) =>
+      Json.obj(
+        "type"  -> Json.fromString("HasLabel"),
+        "label" -> Json.fromString(label)
+      )
+    case Condition.HasAllLabels(labels) =>
+      Json.obj(
+        "type"   -> Json.fromString("HasAllLabels"),
+        "labels" -> nevEncoder[String].apply(labels)
+      )
+    case Condition.HasAnyLabel(labels) =>
+      Json.obj(
+        "type"   -> Json.fromString("HasAnyLabel"),
+        "labels" -> nevEncoder[String].apply(labels)
+      )
+    case Condition.NotHasLabel(label) =>
+      Json.obj(
+        "type"  -> Json.fromString("NotHasLabel"),
+        "label" -> Json.fromString(label)
+      )
+    case Condition.ActorIs(username) =>
+      Json.obj(
+        "type"     -> Json.fromString("ActorIs"),
+        "username" -> Json.fromString(username)
+      )
+    case Condition.ActorIsNot(username) =>
+      Json.obj(
+        "type"     -> Json.fromString("ActorIsNot"),
+        "username" -> Json.fromString(username)
+      )
+    case Condition.ActorInTeam(team) =>
+      Json.obj(
+        "type" -> Json.fromString("ActorInTeam"),
+        "team" -> Json.fromString(team)
+      )
+    case Condition.HasPermission(permission) =>
+      Json.obj(
+        "type"       -> Json.fromString("HasPermission"),
+        "permission" -> Json.fromString(permission)
+      )
+    case Condition.And(conditions) =>
+      Json.obj(
+        "type"       -> Json.fromString("And"),
+        "conditions" -> nevEncoder[Condition](using conditionEncoderImpl).apply(conditions)
+      )
+    case Condition.Or(conditions) =>
+      Json.obj(
+        "type"       -> Json.fromString("Or"),
+        "conditions" -> nevEncoder[Condition](using conditionEncoderImpl).apply(conditions)
+      )
+    case Condition.Not(condition) =>
+      Json.obj(
+        "type"      -> Json.fromString("Not"),
+        "condition" -> conditionEncoderImpl(condition)
+      )
+    case Condition.Expression(expr) =>
+      Json.obj(
+        "type" -> Json.fromString("Expression"),
+        "expr" -> Json.fromString(expr)
+      )
+  }
+
+  private lazy val conditionDecoderImpl: Decoder[Condition] = Decoder.instance { cursor =>
+    cursor.downField("type").as[String].flatMap {
+      case "Always" => Right(Condition.Always)
+      case "Never"  => Right(Condition.Never)
+      case "OnBranch" =>
+        for
+          pattern <- cursor.downField("pattern").as[String]; kind <- cursor.downField("kind").as[PatternKind]
+        yield Condition.OnBranch(pattern, kind)
+      case "NotOnBranch" =>
+        for
+          pattern <- cursor.downField("pattern").as[String]; kind <- cursor.downField("kind").as[PatternKind]
+        yield Condition.NotOnBranch(pattern, kind)
+      case "OnEvent"    => cursor.downField("event").as[String].map(Condition.OnEvent.apply)
+      case "NotOnEvent" => cursor.downField("event").as[String].map(Condition.NotOnEvent.apply)
+      case "OnTag" =>
+        for
+          pattern <- cursor.downField("pattern").as[String]; kind <- cursor.downField("kind").as[PatternKind]
+        yield Condition.OnTag(pattern, kind)
+      case "NotOnTag" =>
+        for
+          pattern <- cursor.downField("pattern").as[String]; kind <- cursor.downField("kind").as[PatternKind]
+        yield Condition.NotOnTag(pattern, kind)
+      case "OnPathsChanged" =>
+        cursor.downField("paths").as[NonEmptyVector[String]].map(Condition.OnPathsChanged.apply)
+      case "OnPathsNotChanged" =>
+        cursor.downField("paths").as[NonEmptyVector[String]].map(Condition.OnPathsNotChanged.apply)
+      case "OnSuccess"   => Right(Condition.OnSuccess)
+      case "OnFailure"   => Right(Condition.OnFailure)
+      case "OnCancelled" => Right(Condition.OnCancelled)
+      case "EnvEquals" =>
+        for key <- cursor.downField("key").as[String]; value <- cursor.downField("value").as[String]
+        yield Condition.EnvEquals(key, value)
+      case "EnvNotEquals" =>
+        for key <- cursor.downField("key").as[String]; value <- cursor.downField("value").as[String]
+        yield Condition.EnvNotEquals(key, value)
+      case "EnvExists"    => cursor.downField("key").as[String].map(Condition.EnvExists.apply)
+      case "EnvNotExists" => cursor.downField("key").as[String].map(Condition.EnvNotExists.apply)
+      case "OnCommitMessage" =>
+        for
+          pattern <- cursor.downField("pattern").as[String]; kind <- cursor.downField("kind").as[PatternKind]
+        yield Condition.OnCommitMessage(pattern, kind)
+      case "OnAuthor"           => cursor.downField("author").as[String].map(Condition.OnAuthor.apply)
+      case "NotOnAuthor"        => cursor.downField("author").as[String].map(Condition.NotOnAuthor.apply)
+      case "OnPullRequest"      => Right(Condition.OnPullRequest)
+      case "OnDraft"            => Right(Condition.OnDraft)
+      case "NotOnDraft"         => Right(Condition.NotOnDraft)
+      case "OnSchedule"         => cursor.downField("cron").as[String].map(Condition.OnSchedule.apply)
+      case "OnManualTrigger"    => Right(Condition.OnManualTrigger)
+      case "OnWorkflowDispatch" => Right(Condition.OnWorkflowDispatch)
+      case "OnWorkflowCall"     => Right(Condition.OnWorkflowCall)
+      case "OnRepository"       => cursor.downField("repo").as[String].map(Condition.OnRepository.apply)
+      case "IsFork"             => Right(Condition.IsFork)
+      case "IsNotFork"          => Right(Condition.IsNotFork)
+      case "IsPrivate"          => Right(Condition.IsPrivate)
+      case "IsPublic"           => Right(Condition.IsPublic)
+      case "HasLabel"           => cursor.downField("label").as[String].map(Condition.HasLabel.apply)
+      case "HasAllLabels" =>
+        cursor.downField("labels").as[NonEmptyVector[String]].map(Condition.HasAllLabels.apply)
+      case "HasAnyLabel" =>
+        cursor.downField("labels").as[NonEmptyVector[String]].map(Condition.HasAnyLabel.apply)
+      case "NotHasLabel"   => cursor.downField("label").as[String].map(Condition.NotHasLabel.apply)
+      case "ActorIs"       => cursor.downField("username").as[String].map(Condition.ActorIs.apply)
+      case "ActorIsNot"    => cursor.downField("username").as[String].map(Condition.ActorIsNot.apply)
+      case "ActorInTeam"   => cursor.downField("team").as[String].map(Condition.ActorInTeam.apply)
+      case "HasPermission" => cursor.downField("permission").as[String].map(Condition.HasPermission.apply)
+      case "And" =>
+        cursor
+          .downField("conditions")
+          .as[NonEmptyVector[Condition]](using nevDecoder[Condition](using conditionDecoderImpl))
+          .map(Condition.And.apply)
+      case "Or" =>
+        cursor
+          .downField("conditions")
+          .as[NonEmptyVector[Condition]](using nevDecoder[Condition](using conditionDecoderImpl))
+          .map(Condition.Or.apply)
+      case "Not" =>
+        cursor
+          .downField("condition")
+          .as[Condition](using conditionDecoderImpl)
+          .map(Condition.Not.apply)
+      case "Expression" => cursor.downField("expr").as[String].map(Condition.Expression.apply)
+      case other        => Left(io.circe.DecodingFailure(s"Invalid Condition type: $other", cursor.history))
+    }
+  }
+
+  given conditionEncoder: Encoder[Condition] = conditionEncoderImpl
+  given conditionDecoder: Decoder[Condition] = conditionDecoderImpl
 
   // Step Encoders/Decoders (ADT with enum)
 
