@@ -177,7 +177,7 @@ class ExecutionTableSpec extends FunSuite:
   }
 
   test("ExecutionRow handles multiple label fields") {
-    val labels = List("env:production", "version:1.0.0", "region:us-east-1")
+    val labels    = List("env:production", "version:1.0.0", "region:us-east-1")
     val execution = TestExecutions.queuedExecution().copy(labels = labels)
 
     assertEquals(execution.labels, labels)

@@ -70,14 +70,14 @@ class ExecutionRepositorySpec extends FunSuite:
   }
 
   test("findByPipelineId method signature with no status filter") {
-    val pipelineId                   = PipelineId("test-pipeline")
+    val pipelineId                    = PipelineId("test-pipeline")
     val findOp: IO[Seq[ExecutionRow]] = repo.findByPipelineId(pipelineId, None, 100)
 
     assertNotEquals(findOp, null)
   }
 
   test("findByPipelineId method signature with status filter") {
-    val pipelineId                   = PipelineId("test-pipeline")
+    val pipelineId                    = PipelineId("test-pipeline")
     val findOp: IO[Seq[ExecutionRow]] = repo.findByPipelineId(pipelineId, Some(ExecutionStatus.Running), 50)
 
     assertNotEquals(findOp, null)
@@ -264,7 +264,7 @@ class ExecutionRepositorySpec extends FunSuite:
   }
 
   test("updateStatus works with different statuses") {
-    val id = UUID.randomUUID()
+    val id  = UUID.randomUUID()
     val op1 = repo.updateStatus(id, ExecutionStatus.Pending, None)
     val op2 = repo.updateStatus(id, ExecutionStatus.Running, None)
     val op3 = repo.updateStatus(id, ExecutionStatus.Completed, None)

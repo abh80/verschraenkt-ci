@@ -3,6 +3,7 @@ package com.verschraenkt.ci.storage.repository
 import cats.effect.{ IO, Resource }
 import cats.implicits.toTraverseOps
 import com.verschraenkt.ci.core.model.PipelineId
+import com.verschraenkt.ci.storage.db.DatabaseModule
 import com.verschraenkt.ci.storage.db.codecs.Enums.ExecutionStatus
 import com.verschraenkt.ci.storage.db.tables.ExecutionRow
 import com.verschraenkt.ci.storage.errors.StorageError
@@ -10,6 +11,7 @@ import com.verschraenkt.ci.storage.fixtures.{ DatabaseContainerFixture, TestData
 import munit.CatsEffectSuite
 
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 /** Integration tests for ExecutionRepository with real PostgreSQL database
@@ -25,9 +27,50 @@ class ExecutionRepositoryIntegrationSpec
   autoMigrate(true)
   sharing(true)
 
+  private val seededPipelineIds: Vector[String] =
+    Vector("test-pipeline") ++ (1 to 500).map(i => s"pipeline-$i")
+
+  private def seedPipelineVersions(db: DatabaseModule): IO[Unit] =
+    IO.blocking {
+      val conn = db.database.source.createConnection()
+      try
+        val pipelineSql =
+          """INSERT INTO pipelines (pipeline_id, name, definition, created_by)
+             VALUES (?, ?, '{"workflows":[]}'::jsonb, 'test-user')
+             ON CONFLICT (pipeline_id) DO NOTHING"""
+
+        val versionSql =
+          """INSERT INTO pipeline_versions (pipeline_id, version, definition, created_by, change_summary)
+             VALUES (?, 1, '{"workflows":[]}'::jsonb, 'test-user', 'Seeded for execution integration tests')
+             ON CONFLICT (pipeline_id, version) DO NOTHING"""
+
+        val pipelineStmt = conn.prepareStatement(pipelineSql)
+        val versionStmt  = conn.prepareStatement(versionSql)
+        try
+          seededPipelineIds.foreach { pipelineId =>
+            pipelineStmt.setString(1, pipelineId)
+            pipelineStmt.setString(2, s"Pipeline $pipelineId")
+            pipelineStmt.addBatch()
+
+            versionStmt.setString(1, pipelineId)
+            versionStmt.addBatch()
+          }
+          pipelineStmt.executeBatch()
+          versionStmt.executeBatch(): Unit
+        finally
+          pipelineStmt.close()
+          versionStmt.close()
+      finally conn.close()
+    }
+
+  private def withSeededDatabase[A](f: DatabaseModule => IO[A]): IO[A] =
+    withDatabase { db =>
+      seedPipelineVersions(db) *> f(db)
+    }
+
   // Helper to provide repository instance
   private def withRepo[A](f: ExecutionRepository => IO[A]): IO[A] =
-    withDatabase { db => f(new ExecutionRepository(db)) }
+    withSeededDatabase { db => f(new ExecutionRepository(db)) }
 
   // Use this function to create a saved execution before the test run
   private def savedExecutionFixture(execution: ExecutionRow = TestExecutions.queuedExecution()) =
@@ -120,7 +163,7 @@ class ExecutionRepositoryIntegrationSpec
   }
 
   test("create persists all metadata correctly") {
-    withDatabase { db =>
+    withSeededDatabase { db =>
       val repo      = new ExecutionRepository(db)
       val execution = TestExecutions.runningExecution()
 
@@ -136,8 +179,8 @@ class ExecutionRepositoryIntegrationSpec
             stmt.setObject(1, execution.executionId)
             val rs = stmt.executeQuery()
             if rs.next() then
-              assertEquals(rs.getString("status"), "RUNNING")
-              assertEquals(rs.getString("trigger"), "MANUAL")
+              assertEquals(rs.getString("status"), "running")
+              assertEquals(rs.getString("trigger"), "manual")
               assertEquals(rs.getString("trigger_by"), TestExecutions.testUser.unwrap)
               assertEquals(rs.getInt("pipeline_version"), 1)
               assert(rs.getTimestamp("timeout_at") != null)
@@ -201,7 +244,7 @@ class ExecutionRepositoryIntegrationSpec
       for
         _       <- executions.toVector.traverse(repo.create(_))
         results <- repo.findByPipelineId(pipelineId, None, 5)
-        _       <- IO(assert(results.length <= 5, s"Should return at most 5 executions, got ${results.length}"))
+        _ <- IO(assert(results.length <= 5, s"Should return at most 5 executions, got ${results.length}"))
       yield ()
     }
   }
@@ -252,7 +295,7 @@ class ExecutionRepositoryIntegrationSpec
       for
         _       <- executions.toVector.traverse(repo.create(_))
         results <- repo.findQueued(5)
-        _       <- IO(assert(results.length <= 5, s"Should return at most 5 executions, got ${results.length}"))
+        _ <- IO(assert(results.length <= 5, s"Should return at most 5 executions, got ${results.length}"))
       yield ()
     }
   }
@@ -280,8 +323,14 @@ class ExecutionRepositoryIntegrationSpec
             exec2.executionId -> relevantResults.indexWhere(_.executionId == exec2.executionId),
             exec3.executionId -> relevantResults.indexWhere(_.executionId == exec3.executionId)
           )
-          assert(positions(exec1.executionId) < positions(exec2.executionId), "exec1 (oldest) should come before exec2")
-          assert(positions(exec2.executionId) < positions(exec3.executionId), "exec2 should come before exec3 (newest)")
+          assert(
+            positions(exec1.executionId) < positions(exec2.executionId),
+            "exec1 (oldest) should come before exec2"
+          )
+          assert(
+            positions(exec2.executionId) < positions(exec3.executionId),
+            "exec2 should come before exec3 (newest)"
+          )
         }
       yield ()
     }
@@ -317,7 +366,7 @@ class ExecutionRepositoryIntegrationSpec
       for
         _       <- executions.toVector.traverse(repo.create(_))
         results <- repo.findRunning(5)
-        _       <- IO(assert(results.length <= 5, s"Should return at most 5 executions, got ${results.length}"))
+        _ <- IO(assert(results.length <= 5, s"Should return at most 5 executions, got ${results.length}"))
       yield ()
     }
   }
@@ -364,8 +413,14 @@ class ExecutionRepositoryIntegrationSpec
             exec2.executionId -> relevantResults.indexWhere(_.executionId == exec2.executionId),
             exec3.executionId -> relevantResults.indexWhere(_.executionId == exec3.executionId)
           )
-          assert(positions(exec2.executionId) < positions(exec3.executionId), "exec2 (pos 1) should come before exec3 (pos 2)")
-          assert(positions(exec3.executionId) < positions(exec1.executionId), "exec3 (pos 2) should come before exec1 (pos 3)")
+          assert(
+            positions(exec2.executionId) < positions(exec3.executionId),
+            "exec2 (pos 1) should come before exec3 (pos 2)"
+          )
+          assert(
+            positions(exec3.executionId) < positions(exec1.executionId),
+            "exec3 (pos 2) should come before exec1 (pos 3)"
+          )
         }
       yield ()
     }
@@ -483,7 +538,10 @@ class ExecutionRepositoryIntegrationSpec
         retrieved <- repo.findById(execution.executionId)
         _ <- IO {
           assert(retrieved.isDefined)
-          assertEquals(retrieved.get.startedAt, Some(startTime))
+          assertEquals(
+            retrieved.get.startedAt,
+            Some(startTime.truncatedTo(ChronoUnit.MICROS))
+          ) // due to database lack of precision we only check upto nanoseconds; who cares
         }
       yield ()
     }
@@ -521,7 +579,7 @@ class ExecutionRepositoryIntegrationSpec
         retrieved <- repo.findById(execution.executionId)
         _ <- IO {
           assert(retrieved.isDefined)
-          assertEquals(retrieved.get.completedAt, Some(completedTime))
+          assertEquals(retrieved.get.completedAt, Some(completedTime.truncatedTo(ChronoUnit.MICROS)))
         }
       yield ()
     }
@@ -597,7 +655,7 @@ class ExecutionRepositoryIntegrationSpec
   }
 
   test("softDelete marks execution as deleted") {
-    withDatabase { db =>
+    withSeededDatabase { db =>
       val repo      = new ExecutionRepository(db)
       val execution = TestExecutions.queuedExecution()
 
@@ -624,7 +682,7 @@ class ExecutionRepositoryIntegrationSpec
   }
 
   test("softDelete sets deleted_at timestamp") {
-    withDatabase { db =>
+    withSeededDatabase { db =>
       val repo         = new ExecutionRepository(db)
       val execution    = TestExecutions.queuedExecution()
       val beforeDelete = Instant.now()
@@ -718,9 +776,18 @@ class ExecutionRepositoryIntegrationSpec
         _       <- repo.create(queuedTimeout)
         results <- repo.findTimedOut(now, 100)
         _ <- IO {
-          assert(results.exists(_.executionId == timedOutExec.executionId), "Should include timed out running execution")
-          assert(results.exists(_.executionId == queuedTimeout.executionId), "Should include timed out queued execution")
-          assert(!results.exists(_.executionId == notTimedOut.executionId), "Should not include executions with future timeout")
+          assert(
+            results.exists(_.executionId == timedOutExec.executionId),
+            "Should include timed out running execution"
+          )
+          assert(
+            results.exists(_.executionId == queuedTimeout.executionId),
+            "Should include timed out queued execution"
+          )
+          assert(
+            !results.exists(_.executionId == notTimedOut.executionId),
+            "Should not include executions with future timeout"
+          )
         }
       yield ()
     }
@@ -728,10 +795,10 @@ class ExecutionRepositoryIntegrationSpec
 
   test("findTimedOut only returns running or pending executions") {
     withRepo { repo =>
-      val now        = Instant.now()
-      val timedOut1  = TestExecutions.runningExecution().copy(timeoutAt = Some(now.minusSeconds(10)))
-      val timedOut2  = TestExecutions.queuedExecution().copy(timeoutAt = Some(now.minusSeconds(10)))
-      val completed  = TestExecutions.completedExecution().copy(timeoutAt = Some(now.minusSeconds(10)))
+      val now       = Instant.now()
+      val timedOut1 = TestExecutions.runningExecution().copy(timeoutAt = Some(now.minusSeconds(10)))
+      val timedOut2 = TestExecutions.queuedExecution().copy(timeoutAt = Some(now.minusSeconds(10)))
+      val completed = TestExecutions.completedExecution().copy(timeoutAt = Some(now.minusSeconds(10)))
 
       for
         _       <- repo.create(timedOut1)
@@ -749,13 +816,14 @@ class ExecutionRepositoryIntegrationSpec
 
   test("findTimedOut respects limit parameter") {
     withRepo { repo =>
-      val now        = Instant.now()
-      val executions = (1 to 10).map(_ => TestExecutions.runningExecution().copy(timeoutAt = Some(now.minusSeconds(10))))
+      val now = Instant.now()
+      val executions =
+        (1 to 10).map(_ => TestExecutions.runningExecution().copy(timeoutAt = Some(now.minusSeconds(10))))
 
       for
         _       <- executions.toVector.traverse(repo.create(_))
         results <- repo.findTimedOut(now, 5)
-        _       <- IO(assert(results.length <= 5, s"Should return at most 5 executions, got ${results.length}"))
+        _ <- IO(assert(results.length <= 5, s"Should return at most 5 executions, got ${results.length}"))
       yield ()
     }
   }
@@ -780,7 +848,7 @@ class ExecutionRepositoryIntegrationSpec
   }
 
   test("transaction rollback on error") {
-    withDatabase { db =>
+    withSeededDatabase { db =>
       val repo      = new ExecutionRepository(db)
       val execution = TestExecutions.queuedExecution()
 
@@ -895,8 +963,8 @@ class ExecutionRepositoryIntegrationSpec
         retrieved <- repo.findById(execution.executionId)
         _ <- IO {
           assertEquals(retrieved.get.status, ExecutionStatus.Completed)
-          assertEquals(retrieved.get.startedAt, Some(startTime))
-          assertEquals(retrieved.get.completedAt, Some(endTime))
+          assertEquals(retrieved.get.startedAt, Some(startTime.truncatedTo(ChronoUnit.MICROS)))
+          assertEquals(retrieved.get.completedAt, Some(endTime.truncatedTo(ChronoUnit.MICROS)))
           assertEquals(retrieved.get.totalCpuMilliSeconds, 120000L)
           assertEquals(retrieved.get.totalMemoryMibSeconds, 512000L)
         }

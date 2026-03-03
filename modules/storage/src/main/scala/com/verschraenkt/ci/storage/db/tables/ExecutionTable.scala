@@ -1,7 +1,12 @@
 package com.verschraenkt.ci.storage.db.tables
 
 import com.verschraenkt.ci.core.model.PipelineId
-import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.{ circeJsonTypeMapper, simpleStrListTypeMapper, triggerTypeMapper, executionStatusMapper }
+import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.{
+  circeJsonTypeMapper,
+  simpleStrListTypeMapper,
+  triggerTypeMapper,
+  executionStatusMapper
+}
 import com.verschraenkt.ci.storage.db.PostgresProfile.api.*
 import com.verschraenkt.ci.storage.db.codecs.ColumnTypes.given
 import com.verschraenkt.ci.storage.db.codecs.Enums.{ ExecutionStatus, TriggerType }
