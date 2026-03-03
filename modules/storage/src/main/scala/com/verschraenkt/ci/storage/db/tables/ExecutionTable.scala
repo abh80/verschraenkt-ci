@@ -3,9 +3,9 @@ package com.verschraenkt.ci.storage.db.tables
 import com.verschraenkt.ci.core.model.PipelineId
 import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.{
   circeJsonTypeMapper,
+  executionStatusMapper,
   simpleStrListTypeMapper,
-  triggerTypeMapper,
-  executionStatusMapper
+  triggerTypeMapper
 }
 import com.verschraenkt.ci.storage.db.PostgresProfile.api.*
 import com.verschraenkt.ci.storage.db.codecs.ColumnTypes.given

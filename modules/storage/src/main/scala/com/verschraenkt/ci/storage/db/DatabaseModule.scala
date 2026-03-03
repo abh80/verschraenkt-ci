@@ -13,7 +13,7 @@ package com.verschraenkt.ci.storage.db
 import cats.effect.{ IO, Resource }
 import com.typesafe.config.ConfigFactory
 import com.verschraenkt.ci.storage.config.DatabaseConfig
-import com.zaxxer.hikari.{ HikariConfig as HConfig, HikariDataSource }
+import com.zaxxer.hikari.{HikariConfig as HConfig, HikariDataSource}
 import slick.jdbc.JdbcBackend.Database
 
 import scala.concurrent.duration.*
