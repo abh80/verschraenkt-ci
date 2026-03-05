@@ -14,7 +14,7 @@
 -- -----------------------------------------------------------------------------
 
 CREATE TABLE executions (
-  execution_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+  execution_id BIGINT PRIMARY KEY,
   pipeline_id VARCHAR(255) NOT NULL,
   pipeline_version INT NOT NULL,
   status execution_status NOT NULL DEFAULT 'pending',
@@ -74,8 +74,8 @@ CREATE INDEX idx_executions_timeout ON executions(timeout_at)
 -- -----------------------------------------------------------------------------
 
 CREATE TABLE workflow_executions (
-  workflow_execution_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
-  execution_id UUID NOT NULL,
+  workflow_execution_id BIGINT PRIMARY KEY,
+  execution_id BIGINT NOT NULL,
   workflow_id VARCHAR(255) NOT NULL,
   workflow_name VARCHAR(500) NOT NULL,
   
@@ -111,9 +111,9 @@ CREATE INDEX idx_workflow_executions_started ON workflow_executions(started_at D
 -- -----------------------------------------------------------------------------
 
 CREATE TABLE job_executions (
-  job_execution_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
-  workflow_execution_id UUID NOT NULL,
-  execution_id UUID NOT NULL,  -- Denormalized so we don't have to join 5 tables to find the parent
+  job_execution_id BIGINT PRIMARY KEY DEFAULT,
+  workflow_execution_id BIGINT NOT NULL,
+  execution_id BIGINT NOT NULL,  -- Denormalized so we don't have to join 5 tables to find the parent
   
   job_id VARCHAR(255) NOT NULL,
   job_name VARCHAR(500) NOT NULL,
@@ -126,7 +126,7 @@ CREATE TABLE job_executions (
   scheduled_at TIMESTAMPTZ,
   
   -- Execution
-  executor_id UUID,
+  executor_id BIGINT,
   assigned_at TIMESTAMPTZ,
   started_at TIMESTAMPTZ,
   completed_at TIMESTAMPTZ,
@@ -185,8 +185,8 @@ CREATE INDEX idx_job_executions_timeout ON job_executions(timeout_at)
 -- -----------------------------------------------------------------------------
 
 CREATE TABLE step_executions (
-  step_execution_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
-  job_execution_id UUID NOT NULL,
+  step_execution_id BIGINT PRIMARY KEY,
+  job_execution_id BIGINT NOT NULL,
   
   step_id VARCHAR(255) NOT NULL,
   step_kind step_type NOT NULL,  -- Using enum type
