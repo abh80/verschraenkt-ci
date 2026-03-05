@@ -151,7 +151,8 @@ lazy val engineApi = (project in file("modules/engine-api"))
   .dependsOn(core)
   .settings(commonSettings)
   .settings(
-    name := "verschraenkt-ci-engine-api"
+    name := "verschraenkt-ci-engine-api",
+    libraryDependencies ++= testDeps
   )
 
 /* =========================
@@ -159,7 +160,7 @@ lazy val engineApi = (project in file("modules/engine-api"))
  * ========================= */
 
 lazy val storage = (project in file("modules/storage"))
-  .dependsOn(core)
+  .dependsOn(core, engineApi)
   .configs(IntegrationTest)
   .settings(commonSettings)
   .settings(Defaults.itSettings)
