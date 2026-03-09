@@ -265,3 +265,27 @@ class EnumsSpec extends FunSuite:
       assertEquals(parsed, pt)
     }
   }
+
+  // Architecture Tests
+
+  test("Architecture.fromString parses all valid values") {
+    assertEquals(Architecture.fromString("x86"), Architecture.X86)
+    assertEquals(Architecture.fromString("x86_64"), Architecture.X86_64)
+    assertEquals(Architecture.fromString("arm"), Architecture.Arm)
+    assertEquals(Architecture.fromString("arm64"), Architecture.Arm64)
+  }
+
+  test("Architecture.toDbString converts to database string") {
+    assertEquals(Architecture.X86.toDbString, "x86")
+    assertEquals(Architecture.X86_64.toDbString, "x86_64")
+    assertEquals(Architecture.Arm.toDbString, "arm")
+    assertEquals(Architecture.Arm64.toDbString, "arm64")
+  }
+
+  test("Architecture round-trip conversion") {
+    Architecture.values.foreach { arch =>
+      val dbString = arch.toDbString
+      val parsed   = Architecture.fromString(dbString)
+      assertEquals(parsed, arch)
+    }
+  }

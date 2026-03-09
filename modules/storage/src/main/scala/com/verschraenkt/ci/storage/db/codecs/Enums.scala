@@ -16,8 +16,8 @@ trait PgEnum[E]:
   protected def mapping: Seq[(E, String)]
 
   private lazy val toStringMap: Map[E, String]   = mapping.toMap
-  private lazy val fromStringMap: Map[String, E]  = mapping.map(_.swap).toMap
-  private lazy val typeName: String               = getClass.getSimpleName.stripSuffix("$")
+  private lazy val fromStringMap: Map[String, E] = mapping.map(_.swap).toMap
+  private lazy val typeName: String              = getClass.getSimpleName.stripSuffix("$")
 
   def fromString(s: String): E =
     fromStringMap.getOrElse(
@@ -156,4 +156,16 @@ object Enums:
       Windows64b -> "win-x64",
       Windows32b -> "win-x86",
       MacOS      -> "darwin"
+    )
+
+  /** Architecture Type */
+  enum Architecture:
+    case X86, X86_64, Arm, Arm64
+
+  object Architecture extends PgEnum[Architecture]:
+    override protected val mapping: Seq[(Architecture, String)] = Seq(
+      X86    -> "x86",
+      X86_64 -> "x86_64",
+      Arm    -> "arm",
+      Arm64  -> "arm64"
     )
