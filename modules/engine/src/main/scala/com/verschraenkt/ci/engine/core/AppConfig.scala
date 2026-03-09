@@ -1,6 +1,7 @@
 package com.verschraenkt.ci.engine.core
 
 import com.verschraenkt.ci.engine.api.Snowflake
+
 import java.net.InetAddress
 import scala.util.Try
 
