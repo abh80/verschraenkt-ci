@@ -6,7 +6,8 @@
  */
 
 -- Enable pgcrypto extension for UUID generation and cryptographic functions
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+CREATE
+EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- Execution status tracking across all execution levels
 CREATE TYPE execution_status AS ENUM (
@@ -84,3 +85,14 @@ CREATE TYPE actor_type AS ENUM (
   'system',
   'api_token'
 );
+
+-- Platform on which executor runs
+CREATE TYPE platform_type as ENUM (
+    'linux',
+    'win-x64',
+    'win-x86',
+    'darwin'
+)
+
+-- Architecture type
+CREATE TYPE architecture_type AS ENUM ('x86', 'x86_64', 'arm', 'arm64');
