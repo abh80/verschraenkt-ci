@@ -3,6 +3,7 @@ package com.verschraenkt.ci.storage.repository
 import cats.effect.IO
 import com.verschraenkt.ci.core.context.ApplicationContext
 import com.verschraenkt.ci.core.model.PipelineId
+import com.verschraenkt.ci.engine.api.SnowflakeProvider
 import com.verschraenkt.ci.storage.db.DatabaseModule
 import com.verschraenkt.ci.storage.db.codecs.Enums.ExecutionStatus
 import com.verschraenkt.ci.storage.db.tables.ExecutionRow
@@ -12,13 +13,16 @@ import munit.FunSuite
 import org.mockito.Mockito.mock
 
 import java.time.Instant
-import java.util.UUID
 
 class ExecutionRepositorySpec extends FunSuite:
 
   val dbModule: DatabaseModule = mock(classOf[DatabaseModule])
   val repo                     = new ExecutionRepository(dbModule)
 
+  private val snowflakeProvider = SnowflakeProvider.make(65)
+
+  private def getNextSnowflake = snowflakeProvider.nextId()
+  
   test("ExecutionRepository instantiation") {
     assertNotEquals(repo, null)
   }
@@ -109,55 +113,55 @@ class ExecutionRepositorySpec extends FunSuite:
 
   test("create method signature") {
     val execution          = TestExecutions.queuedExecution()
-    val createOp: IO[UUID] = repo.create(execution)
+    val createOp: IO[Long] = repo.create(execution)
 
     assertNotEquals(createOp, null)
   }
 
   test("updateStatus method signature") {
-    val id                    = UUID.randomUUID()
+    val id                    = getNextSnowflake.value
     val updateOp: IO[Boolean] = repo.updateStatus(id, ExecutionStatus.Running, None)
 
     assertNotEquals(updateOp, null)
   }
 
   test("updateStatus with error message method signature") {
-    val id                    = UUID.randomUUID()
+    val id                    = getNextSnowflake.value
     val updateOp: IO[Boolean] = repo.updateStatus(id, ExecutionStatus.Failed, Some("Error occurred"))
 
     assertNotEquals(updateOp, null)
   }
 
   test("updateStartedAt method signature") {
-    val id                    = UUID.randomUUID()
+    val id                    = getNextSnowflake.value
     val updateOp: IO[Boolean] = repo.updateStartedAt(id, Instant.now())
 
     assertNotEquals(updateOp, null)
   }
 
   test("updateCompletedAt method signature") {
-    val id                    = UUID.randomUUID()
+    val id                    = getNextSnowflake.value
     val updateOp: IO[Boolean] = repo.updateCompletedAt(id, Instant.now())
 
     assertNotEquals(updateOp, null)
   }
 
   test("updateResourceUsage method signature") {
-    val id                    = UUID.randomUUID()
+    val id                    = getNextSnowflake.value
     val updateOp: IO[Boolean] = repo.updateResourceUsage(id, 100000L, 512000L)
 
     assertNotEquals(updateOp, null)
   }
 
   test("updateConcurrencyQueuePosition method signature") {
-    val id                    = UUID.randomUUID()
+    val id                    = getNextSnowflake.value
     val updateOp: IO[Boolean] = repo.updateConcurrencyQueuePosition(id, 5)
 
     assertNotEquals(updateOp, null)
   }
 
   test("softDelete method signature") {
-    val id                    = UUID.randomUUID()
+    val id                    = getNextSnowflake.value
     val deleteOp: IO[Boolean] = repo.softDelete(id, TestExecutions.testUser)
 
     assertNotEquals(deleteOp, null)
@@ -264,7 +268,7 @@ class ExecutionRepositorySpec extends FunSuite:
   }
 
   test("updateStatus works with different statuses") {
-    val id  = UUID.randomUUID()
+    val id  = getNextSnowflake.value
     val op1 = repo.updateStatus(id, ExecutionStatus.Pending, None)
     val op2 = repo.updateStatus(id, ExecutionStatus.Running, None)
     val op3 = repo.updateStatus(id, ExecutionStatus.Completed, None)
@@ -288,7 +292,7 @@ class ExecutionRepositorySpec extends FunSuite:
   }
 
   test("custom execution IDs work correctly") {
-    val customId  = UUID.randomUUID()
+    val customId  = getNextSnowflake.value
     val execution = TestExecutions.withId(customId)
 
     assertEquals(execution.executionId, customId)
