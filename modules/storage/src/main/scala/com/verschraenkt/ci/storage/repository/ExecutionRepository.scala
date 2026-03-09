@@ -23,15 +23,14 @@ import com.verschraenkt.ci.storage.errors.StorageError
 import com.verschraenkt.ci.storage.util.TableCast
 
 import java.time.Instant
-import java.util.UUID
 
 /** Repository for execution persistence operations */
 trait IExecutionRepository:
   /** Find an execution by ID (only non-deleted) */
-  def findById(id: UUID): IO[Option[ExecutionRow]]
+  def findById(id: Long): IO[Option[ExecutionRow]]
 
   /** Find execution by ID including deleted ones */
-  def findByIdIncludingDeleted(id: UUID): IO[Option[ExecutionRow]]
+  def findByIdIncludingDeleted(id: Long): IO[Option[ExecutionRow]]
 
   /** Find all executions for a pipeline with optional status filter */
   def findByPipelineId(
@@ -53,25 +52,25 @@ trait IExecutionRepository:
   def findByIdempotencyKey(key: String): IO[Option[ExecutionRow]]
 
   /** Create a new execution */
-  def create(execution: ExecutionRow): IO[UUID]
+  def create(execution: ExecutionRow): IO[Long]
 
   /** Update execution status */
-  def updateStatus(id: UUID, status: ExecutionStatus, errorMessage: Option[String] = None): IO[Boolean]
+  def updateStatus(id: Long, status: ExecutionStatus, errorMessage: Option[String] = None): IO[Boolean]
 
   /** Update execution start time */
-  def updateStartedAt(id: UUID, startedAt: Instant): IO[Boolean]
+  def updateStartedAt(id: Long, startedAt: Instant): IO[Boolean]
 
   /** Update execution completion time */
-  def updateCompletedAt(id: UUID, completedAt: Instant): IO[Boolean]
+  def updateCompletedAt(id: Long, completedAt: Instant): IO[Boolean]
 
   /** Update execution resource usage */
-  def updateResourceUsage(id: UUID, cpuMilliSeconds: Long, memoryMibSeconds: Long): IO[Boolean]
+  def updateResourceUsage(id: Long, cpuMilliSeconds: Long, memoryMibSeconds: Long): IO[Boolean]
 
   /** Update concurrency queue position */
-  def updateConcurrencyQueuePosition(id: UUID, position: Int): IO[Boolean]
+  def updateConcurrencyQueuePosition(id: Long, position: Int): IO[Boolean]
 
   /** Soft-delete an execution */
-  def softDelete(id: UUID, deletedBy: User): IO[Boolean]
+  def softDelete(id: Long, deletedBy: User): IO[Boolean]
 
   /** Find executions that have timed out */
   def findTimedOut(at: Instant = Instant.now(), limit: Int = 100): IO[Seq[ExecutionRow]]
@@ -87,7 +86,7 @@ class ExecutionRepository(
   import profile.api.*
 
   /** Find an execution by ID (only non-deleted) */
-  override def findById(id: UUID): IO[Option[ExecutionRow]] =
+  override def findById(id: Long): IO[Option[ExecutionRow]] =
     withContext("findById") {
       val query = table
         .filter(_.executionId === id)
@@ -99,7 +98,7 @@ class ExecutionRepository(
     }
 
   /** Find execution by ID including deleted ones */
-  override def findByIdIncludingDeleted(id: UUID): IO[Option[ExecutionRow]] =
+  override def findByIdIncludingDeleted(id: Long): IO[Option[ExecutionRow]] =
     withContext("findByIdIncludingDeleted") {
       val query = table
         .filter(_.executionId === id)
@@ -187,7 +186,7 @@ class ExecutionRepository(
     }
 
   /** Create a new execution */
-  override def create(execution: ExecutionRow): IO[UUID] =
+  override def create(execution: ExecutionRow): IO[Long] =
     withContext("create") {
       val insertAction = table += execution
 
@@ -204,7 +203,7 @@ class ExecutionRepository(
     }
 
   /** Update execution status */
-  override def updateStatus(id: UUID, status: ExecutionStatus, errorMessage: Option[String]): IO[Boolean] =
+  override def updateStatus(id: Long, status: ExecutionStatus, errorMessage: Option[String]): IO[Boolean] =
     withContext("updateStatus") {
       val q = table
         .filter(_.executionId === id)
@@ -216,7 +215,7 @@ class ExecutionRepository(
     }
 
   /** Update execution start time */
-  override def updateStartedAt(id: UUID, startedAt: Instant): IO[Boolean] =
+  override def updateStartedAt(id: Long, startedAt: Instant): IO[Boolean] =
     withContext("updateStartedAt") {
       val q = table
         .filter(_.executionId === id)
@@ -228,7 +227,7 @@ class ExecutionRepository(
     }
 
   /** Update execution completion time */
-  override def updateCompletedAt(id: UUID, completedAt: Instant): IO[Boolean] =
+  override def updateCompletedAt(id: Long, completedAt: Instant): IO[Boolean] =
     withContext("updateCompletedAt") {
       val q = table
         .filter(_.executionId === id)
@@ -240,7 +239,7 @@ class ExecutionRepository(
     }
 
   /** Update execution resource usage */
-  override def updateResourceUsage(id: UUID, cpuMilliSeconds: Long, memoryMibSeconds: Long): IO[Boolean] =
+  override def updateResourceUsage(id: Long, cpuMilliSeconds: Long, memoryMibSeconds: Long): IO[Boolean] =
     withContext("updateResourceUsage") {
       val q = table
         .filter(_.executionId === id)
@@ -252,7 +251,7 @@ class ExecutionRepository(
     }
 
   /** Update concurrency queue position */
-  override def updateConcurrencyQueuePosition(id: UUID, position: Int): IO[Boolean] =
+  override def updateConcurrencyQueuePosition(id: Long, position: Int): IO[Boolean] =
     withContext("updateConcurrencyQueuePosition") {
       val q = table
         .filter(_.executionId === id)
@@ -264,7 +263,7 @@ class ExecutionRepository(
     }
 
   /** Soft-delete an execution */
-  override def softDelete(id: UUID, deletedBy: User): IO[Boolean] =
+  override def softDelete(id: Long, deletedBy: User): IO[Boolean] =
     withContext("softDelete") {
       val q = table
         .filter(_.executionId === id)
