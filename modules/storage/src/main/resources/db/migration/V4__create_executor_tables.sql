@@ -12,8 +12,8 @@ CREATE TABLE executors (
   hostname VARCHAR(500),
   
   -- Capabilities
-  platform VARCHAR(50) NOT NULL CHECK (platform IN ('linux', 'windows', 'macos')),
-  architectures TEXT[] NOT NULL CHECK (array_length(architectures, 1) > 0),
+  platform platform_type NOT NULL,
+  architectures architecture_type NOT NULL,
   cpu_milli INT NOT NULL CHECK (cpu_milli > 0),
   memory_mib INT NOT NULL CHECK (memory_mib > 0),
   gpu INT DEFAULT 0 CHECK (gpu >= 0),
@@ -38,6 +38,16 @@ CREATE TABLE executors (
   
   -- Metadata
   version VARCHAR(50),
+  /*
+    Metadata is used to store executor related preferences:
+  - Runtime info: container runtime (docker/podman), supported image registries, installed
+  toolchains/SDKs
+  - Network details: IP address, region/zone, proxy config, network tags
+  - Resource details: specific GPU model, storage type (SSD/HDD), available disk partitions
+  - Custom config: max concurrent jobs, timeout overrides, environment variables, feature
+  flags
+  - Provider info: cloud provider, instance type, auto-scaling group, spot/preemptible flag
+   */
   metadata JSONB DEFAULT '{}',
   
   -- Soft-delete
