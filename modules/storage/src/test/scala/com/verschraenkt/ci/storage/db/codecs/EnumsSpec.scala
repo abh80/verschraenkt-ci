@@ -242,3 +242,26 @@ class EnumsSpec extends FunSuite:
       assertEquals(parsed, actorType)
     }
   }
+  
+  // Platform Tests
+  test("Platform.fromString parses all valid values") {
+    assertEquals(Platform.fromString("linux"), Platform.Linux)
+    assertEquals(Platform.fromString("win-x64"), Platform.Windows64b)
+    assertEquals(Platform.fromString("win-x86"), Platform.Windows32b)
+    assertEquals(Platform.fromString("darwin"), Platform.MacOS)
+  }
+
+  test("Platform.toDbString converts to database string") {
+    assertEquals(Platform.Linux.toDbString, "linux")
+    assertEquals(Platform.Windows64b.toDbString, "win-x64")
+    assertEquals(Platform.Windows32b.toDbString, "win-x86")
+    assertEquals(Platform.MacOS.toDbString, "darwin")
+  }
+
+  test("Platform round-trip conversion") {
+    Platform.values.foreach { pt =>
+      val dbString = pt.toDbString
+      val parsed = Platform.fromString(dbString)
+      assertEquals(parsed, pt)
+    }
+  }
