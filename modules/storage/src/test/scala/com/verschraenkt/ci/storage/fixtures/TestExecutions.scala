@@ -19,12 +19,11 @@ object TestExecutions:
     counter += 1
     counter.toString
 
-  val testUser: User    = User("test-user")
-  val anotherUser: User = User("another-user")
+  val testUser: User            = User("test-user")
+  val anotherUser: User         = User("another-user")
   private val snowflakeProvider = SnowflakeProvider.make(68)
 
-  private def getNextSnowflake   = snowflakeProvider.nextId()
-
+  private def getNextSnowflake = snowflakeProvider.nextId()
 
   /** Simple queued execution */
   def queuedExecution(pipelineId: PipelineId = PipelineId(s"pipeline-$getCounter")): ExecutionRow =

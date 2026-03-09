@@ -65,7 +65,7 @@ class SnowflakeProviderSpec extends FunSuite:
 
     provider.tryNextId() match
       case Left(SnowflakeError.SequenceExhausted(_)) => ()
-      case other                                  => fail("expected SequenceExhausted, got " + other.toString)
+      case other => fail("expected SequenceExhausted, got " + other.toString)
   }
 
   test("tryNextId reports clock moved backwards beyond tolerance") {
@@ -123,8 +123,8 @@ class SnowflakeProviderSpec extends FunSuite:
     val t1 = t0 + 1L
     val t2 = t1 + 1L
     // init at t0, then stay at t1 for MaxSequence+1 calls, then advance to t2
-    val times = Array(t0) ++ Array.fill(Snowflake.MaxSequence + 1)(t1) ++ Array.fill(2)(t2)
-    val clock = TestClock(times)
+    val times    = Array(t0) ++ Array.fill(Snowflake.MaxSequence + 1)(t1) ++ Array.fill(2)(t2)
+    val clock    = TestClock(times)
     val provider = SnowflakeProvider.make(1, clock = () => clock.now())
 
     // exhaust the sequence at t1

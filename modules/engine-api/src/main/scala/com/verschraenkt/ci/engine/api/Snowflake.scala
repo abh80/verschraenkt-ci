@@ -33,39 +33,36 @@ final case class Snowflake(
     s"Snowflake(id=$value, machine=$machineId, seq=$sequence, ts=$timestamp)"
 
 object Snowflake:
-  val Epoch: Long = 1700000000000L // 2023-11-14 – keep stable forever
-  val SequenceBits = 12
-  val MachineIdBits = 10
-  val TimestampBits = 41
-  val TimestampShift: Int = SequenceBits + MachineIdBits // 22
-  val MachineShift: Int = SequenceBits // 12
-  val MaxMachineId: Int = (1 << MachineIdBits) - 1 // 1023
-  val MaxSequence: Int = (1 << SequenceBits) - 1 // 4095
-  val MaxTimestampDelta: Long = (1L << TimestampBits) - 1 // ~69 years in ms
+  val Epoch: Long             = 1700000000000L               // 2023-11-14 – keep stable forever
+  val SequenceBits            = 12
+  val MachineIdBits           = 10
+  val TimestampBits           = 41
+  val TimestampShift: Int     = SequenceBits + MachineIdBits // 22
+  val MachineShift: Int       = SequenceBits                 // 12
+  val MaxMachineId: Int       = (1 << MachineIdBits) - 1     // 1023
+  val MaxSequence: Int        = (1 << SequenceBits) - 1      // 4095
+  val MaxTimestampDelta: Long = (1L << TimestampBits) - 1    // ~69 years in ms
 
   /** Decode a raw Long.  Returns Left(error) for obviously invalid values. */
-  def fromLong(value: Long): Either[String, Snowflake] = {
-    if (value < 0) return Left(s"Negative snowflake value: $value")
+  def fromLong(value: Long): Either[String, Snowflake] =
+    if value < 0 then return Left(s"Negative snowflake value: $value")
     val delta = value >> TimestampShift
-    if (delta > MaxTimestampDelta)
-      return Left(s"Timestamp delta $delta exceeds 41-bit range")
-    val ts = delta + Epoch
+    if delta > MaxTimestampDelta then return Left(s"Timestamp delta $delta exceeds 41-bit range")
+    val ts  = delta + Epoch
     val mid = ((value >> MachineShift) & MaxMachineId).toInt
     val seq = (value & MaxSequence).toInt
     Right(Snowflake(value, mid, seq, ts))
-  }
 
   /** Unsafe decode – throws on bad input.  Prefer fromLong in production. */
   def unsafeFromLong(value: Long): Snowflake =
     fromLong(value).fold(msg => throw new IllegalArgumentException(msg), identity)
 
-  def toLong(machineId: Int, sequence: Int, timestamp: Long): Long = {
+  def toLong(machineId: Int, sequence: Int, timestamp: Long): Long =
     val delta = timestamp - Epoch
     require(delta >= 0 && delta <= MaxTimestampDelta, s"Timestamp out of range: $timestamp")
     require(machineId >= 0 && machineId <= MaxMachineId, s"machineId out of range: $machineId")
     require(sequence >= 0 && sequence <= MaxSequence, s"sequence out of range: $sequence")
     (delta << TimestampShift) | (machineId.toLong << MachineShift) | sequence.toLong
-  }
 
   /** Monotonic ordering is identical to Long ordering. */
   implicit val ordering: Ordering[Snowflake] = Ordering.by(_.value)

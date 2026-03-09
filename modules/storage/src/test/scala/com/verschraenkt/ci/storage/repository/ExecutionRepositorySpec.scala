@@ -22,7 +22,7 @@ class ExecutionRepositorySpec extends FunSuite:
   private val snowflakeProvider = SnowflakeProvider.make(65)
 
   private def getNextSnowflake = snowflakeProvider.nextId()
-  
+
   test("ExecutionRepository instantiation") {
     assertNotEquals(repo, null)
   }

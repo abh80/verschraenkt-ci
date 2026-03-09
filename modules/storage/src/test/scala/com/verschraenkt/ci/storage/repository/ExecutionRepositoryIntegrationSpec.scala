@@ -1,6 +1,6 @@
 package com.verschraenkt.ci.storage.repository
 
-import cats.effect.{IO, Resource}
+import cats.effect.{ IO, Resource }
 import cats.implicits.toTraverseOps
 import com.verschraenkt.ci.core.model.PipelineId
 import com.verschraenkt.ci.engine.api.SnowflakeProvider
@@ -8,7 +8,7 @@ import com.verschraenkt.ci.storage.db.DatabaseModule
 import com.verschraenkt.ci.storage.db.codecs.Enums.ExecutionStatus
 import com.verschraenkt.ci.storage.db.tables.ExecutionRow
 import com.verschraenkt.ci.storage.errors.StorageError
-import com.verschraenkt.ci.storage.fixtures.{DatabaseContainerFixture, TestDatabaseFixture, TestExecutions}
+import com.verschraenkt.ci.storage.fixtures.{ DatabaseContainerFixture, TestDatabaseFixture, TestExecutions }
 import munit.CatsEffectSuite
 
 import java.time.Instant
@@ -26,9 +26,9 @@ class ExecutionRepositoryIntegrationSpec
   // Enable auto-migration for all tests
   autoMigrate(true)
   sharing(true)
-  
+
   private val snowflakeProvider = SnowflakeProvider.make(66)
-  private def getNextSnowflake = snowflakeProvider.nextId()
+  private def getNextSnowflake  = snowflakeProvider.nextId()
 
   private val seededPipelineIds: Vector[String] =
     Vector("test-pipeline") ++ (1 to 500).map(i => s"pipeline-$i")
