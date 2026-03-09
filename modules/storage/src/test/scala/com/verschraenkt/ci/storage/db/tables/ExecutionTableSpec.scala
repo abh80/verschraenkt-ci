@@ -1,15 +1,16 @@
 package com.verschraenkt.ci.storage.db.tables
 
 import com.verschraenkt.ci.core.model.PipelineId
+import com.verschraenkt.ci.engine.api.SnowflakeProvider
 import com.verschraenkt.ci.storage.db.codecs.Enums.{ ExecutionStatus, TriggerType }
 import com.verschraenkt.ci.storage.db.codecs.User
 import com.verschraenkt.ci.storage.fixtures.TestExecutions
 import munit.FunSuite
 
 import java.time.Instant
-import java.util.UUID
 
 class ExecutionTableSpec extends FunSuite:
+  private val snowflakeProvider = SnowflakeProvider.make(67)
 
   test("ExecutionRow creates correct row with all fields") {
     val execution = TestExecutions.queuedExecution()
@@ -75,8 +76,8 @@ class ExecutionTableSpec extends FunSuite:
     assert(execution.labels.isInstanceOf[Seq[String]])
   }
 
-  test("ExecutionRow stores UUID correctly") {
-    val customId  = UUID.randomUUID()
+  test("ExecutionRow stores Snowflake correctly") {
+    val customId  = snowflakeProvider.nextId().value
     val execution = TestExecutions.withId(customId)
 
     assertEquals(execution.executionId, customId)
@@ -191,7 +192,7 @@ class ExecutionTableSpec extends FunSuite:
 
   test("ExecutionRow default values for optional fields") {
     val execution = ExecutionRow(
-      executionId = UUID.randomUUID(),
+      executionId = snowflakeProvider.tryNextId().toOption.get.value,
       pipelineId = PipelineId("test"),
       pipelineVersion = 1,
       status = ExecutionStatus.Pending,

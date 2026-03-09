@@ -14,12 +14,11 @@ import com.verschraenkt.ci.storage.db.codecs.User
 import io.circe.Json
 
 import java.time.Instant
-import java.util.UUID
 
 /** Database row representation of an Execution
   *
   * @param executionId
-  *   Unique time-ordered UUID for this execution instance
+  *   Unique time-ordered Long for this execution instance
   * @param pipelineId
   *   Which pipeline is being executed
   * @param pipelineVersion
@@ -58,7 +57,7 @@ import java.util.UUID
   *   Soft-delete timestamp
   */
 final case class ExecutionRow(
-    executionId: UUID,
+    executionId: Long,
     pipelineId: PipelineId,
     pipelineVersion: Int,
     status: ExecutionStatus,
@@ -80,8 +79,8 @@ final case class ExecutionRow(
 )
 
 class ExecutionTable(tag: Tag) extends Table[ExecutionRow](tag, "executions"):
-  /** Primary key - auto-generated UUID v7 (time-ordered) */
-  def executionId = column[UUID]("execution_id", O.PrimaryKey)
+  /** Primary key - Long v7 (time-ordered) */
+  def executionId = column[Long]("execution_id", O.PrimaryKey)
 
   /** Pipeline identifier */
   def pipelineId = column[PipelineId]("pipeline_id")
