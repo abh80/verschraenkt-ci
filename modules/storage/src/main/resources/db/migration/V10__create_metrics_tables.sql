@@ -8,7 +8,7 @@
 CREATE TABLE metrics_snapshots (
   snapshot_id BIGSERIAL,
   
-  job_execution_id UUID NOT NULL,
+  job_execution_id BIGINT NOT NULL,
   
   timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   

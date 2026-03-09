@@ -111,7 +111,7 @@ CREATE INDEX idx_workflow_executions_started ON workflow_executions(started_at D
 -- -----------------------------------------------------------------------------
 
 CREATE TABLE job_executions (
-  job_execution_id BIGINT PRIMARY KEY DEFAULT,
+  job_execution_id BIGINT PRIMARY KEY,
   workflow_execution_id BIGINT NOT NULL,
   execution_id BIGINT NOT NULL,  -- Denormalized so we don't have to join 5 tables to find the parent
   
@@ -126,7 +126,7 @@ CREATE TABLE job_executions (
   scheduled_at TIMESTAMPTZ,
   
   -- Execution
-  executor_id BIGINT,
+  executor_id UUID,
   assigned_at TIMESTAMPTZ,
   started_at TIMESTAMPTZ,
   completed_at TIMESTAMPTZ,

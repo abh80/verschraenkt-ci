@@ -6,7 +6,7 @@
  */
 
 CREATE TABLE executors (
-  executor_id BIGINT PRIMARY KEY DEFAULT,
+  executor_id UUID PRIMARY KEY,
   
   name VARCHAR(255) NOT NULL,
   hostname VARCHAR(500),

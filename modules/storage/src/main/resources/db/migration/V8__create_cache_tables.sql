@@ -30,7 +30,7 @@ CREATE TABLE cache_entries (
   -- Is it ready yet?
   status cache_status NOT NULL DEFAULT 'creating',
 
-  created_by_execution UUID,
+  created_by_execution BIGINT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   last_accessed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

@@ -49,7 +49,7 @@ CREATE TABLE secret_access_log (
   log_id BIGSERIAL PRIMARY KEY,
   
   secret_id UUID NOT NULL,
-  job_execution_id UUID NOT NULL,
+  job_execution_id BIGINT NOT NULL,
   
   accessed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   executor_id UUID NOT NULL,  -- NOT NULL: always know which executor accessed

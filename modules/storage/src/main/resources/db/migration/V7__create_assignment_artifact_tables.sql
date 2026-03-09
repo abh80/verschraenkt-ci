@@ -12,7 +12,7 @@
 CREATE TABLE executor_assignments (
   assignment_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
   
-  job_execution_id UUID NOT NULL UNIQUE,
+  job_execution_id BIGINT NOT NULL UNIQUE,
   executor_id UUID NOT NULL,
   
   assigned_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -38,8 +38,8 @@ CREATE INDEX idx_assignments_job ON executor_assignments(job_execution_id);
 CREATE TABLE artifacts (
   artifact_id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
   
-  job_execution_id UUID NOT NULL,
-  execution_id UUID NOT NULL,
+  job_execution_id BIGINT NOT NULL,
+  execution_id BIGINT NOT NULL,
   
   name VARCHAR(500) NOT NULL,
   path VARCHAR(1000) NOT NULL,

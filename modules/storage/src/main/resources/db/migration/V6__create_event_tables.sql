@@ -9,10 +9,10 @@ CREATE TABLE execution_events (
   event_id BIGSERIAL,
   event_uuid UUID NOT NULL DEFAULT uuid_generate_v7(),
   
-  execution_id UUID NOT NULL,
-  workflow_execution_id UUID,
-  job_execution_id UUID,
-  step_execution_id UUID,
+  execution_id BIGINT NOT NULL,
+  workflow_execution_id BIGINT,
+  job_execution_id BIGINT,
+  step_execution_id BIGINT,
   
   event_type VARCHAR(100) NOT NULL,
   event_payload JSONB NOT NULL,
