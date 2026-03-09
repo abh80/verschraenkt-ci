@@ -12,7 +12,7 @@ package com.verschraenkt.ci.storage.db
 
 import com.github.tminglei.slickpg.*
 import com.github.tminglei.slickpg.array.PgArrayExtensions
-import com.verschraenkt.ci.storage.db.codecs.Enums.{ ExecutionStatus, TriggerType }
+import com.verschraenkt.ci.storage.db.codecs.Enums.{ ExecutionStatus, StepType, TriggerType }
 import slick.basic.Capability
 import slick.jdbc.JdbcCapabilities
 import slick.jdbc.JdbcType
@@ -49,6 +49,12 @@ trait MyPostgresProfile
     TriggerType.fromString,
     quoteName = false
   )
+  private val stepTypeJdbcType: JdbcType[StepType] = createEnumJdbcType[StepType](
+    "step_type",
+    _.toDbString,
+    StepType.fromString,
+    quoteName = false
+  )
 
   override val api = MyAPI
 
@@ -61,5 +67,7 @@ trait MyPostgresProfile
       MyPostgresProfile.this.executionStatusJdbcType
     implicit val triggerTypeMapper: BaseColumnType[TriggerType] =
       MyPostgresProfile.this.triggerTypeJdbcType
+    implicit val stepTypeMapper: BaseColumnType[StepType] =
+      MyPostgresProfile.this.stepTypeJdbcType
 
 object PostgresProfile extends MyPostgresProfile
