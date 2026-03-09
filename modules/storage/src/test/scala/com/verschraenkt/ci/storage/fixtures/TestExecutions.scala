@@ -1,13 +1,13 @@
 package com.verschraenkt.ci.storage.fixtures
 
 import com.verschraenkt.ci.core.model.PipelineId
+import com.verschraenkt.ci.engine.api.SnowflakeProvider
 import com.verschraenkt.ci.storage.db.codecs.Enums.{ ExecutionStatus, TriggerType }
 import com.verschraenkt.ci.storage.db.codecs.User
 import com.verschraenkt.ci.storage.db.tables.ExecutionRow
 import io.circe.Json
 
 import java.time.Instant
-import java.util.UUID
 
 /** Reusable test data for execution tests */
 object TestExecutions:
@@ -21,11 +21,15 @@ object TestExecutions:
 
   val testUser: User    = User("test-user")
   val anotherUser: User = User("another-user")
+  private val snowflakeProvider = SnowflakeProvider.make(68)
+
+  private def getNextSnowflake   = snowflakeProvider.nextId()
+
 
   /** Simple queued execution */
   def queuedExecution(pipelineId: PipelineId = PipelineId(s"pipeline-$getCounter")): ExecutionRow =
     ExecutionRow(
-      executionId = UUID.randomUUID(),
+      executionId = getNextSnowflake.value,
       pipelineId = pipelineId,
       pipelineVersion = 1,
       status = ExecutionStatus.Pending,
@@ -49,7 +53,7 @@ object TestExecutions:
   /** Running execution */
   def runningExecution(pipelineId: PipelineId = PipelineId(s"pipeline-$getCounter")): ExecutionRow =
     ExecutionRow(
-      executionId = UUID.randomUUID(),
+      executionId = getNextSnowflake.value,
       pipelineId = pipelineId,
       pipelineVersion = 1,
       status = ExecutionStatus.Running,
@@ -73,7 +77,7 @@ object TestExecutions:
   /** Completed execution */
   def completedExecution(pipelineId: PipelineId = PipelineId(s"pipeline-$getCounter")): ExecutionRow =
     ExecutionRow(
-      executionId = UUID.randomUUID(),
+      executionId = getNextSnowflake.value,
       pipelineId = pipelineId,
       pipelineVersion = 1,
       status = ExecutionStatus.Completed,
@@ -97,7 +101,7 @@ object TestExecutions:
   /** Failed execution */
   def failedExecution(pipelineId: PipelineId = PipelineId(s"pipeline-$getCounter")): ExecutionRow =
     ExecutionRow(
-      executionId = UUID.randomUUID(),
+      executionId = getNextSnowflake.value,
       pipelineId = pipelineId,
       pipelineVersion = 1,
       status = ExecutionStatus.Failed,
@@ -125,7 +129,7 @@ object TestExecutions:
       position: Int = 1
   ): ExecutionRow =
     ExecutionRow(
-      executionId = UUID.randomUUID(),
+      executionId = getNextSnowflake.value,
       pipelineId = pipelineId,
       pipelineVersion = 1,
       status = ExecutionStatus.Pending,
@@ -149,7 +153,7 @@ object TestExecutions:
   /** Timed out execution */
   def timedOutExecution(pipelineId: PipelineId = PipelineId(s"pipeline-$getCounter")): ExecutionRow =
     ExecutionRow(
-      executionId = UUID.randomUUID(),
+      executionId = getNextSnowflake.value,
       pipelineId = pipelineId,
       pipelineVersion = 1,
       status = ExecutionStatus.Running,
@@ -171,7 +175,7 @@ object TestExecutions:
     )
 
   /** Custom execution with specific ID */
-  def withId(id: UUID): ExecutionRow =
+  def withId(id: Long): ExecutionRow =
     queuedExecution().copy(executionId = id)
 
   /** Custom execution with specific status */

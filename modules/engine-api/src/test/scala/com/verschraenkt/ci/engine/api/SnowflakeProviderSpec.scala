@@ -64,7 +64,7 @@ class SnowflakeProviderSpec extends FunSuite:
       i += 1
 
     provider.tryNextId() match
-      case Left(SnowflakeError.SequenceExhausted) => ()
+      case Left(SnowflakeError.SequenceExhausted(_)) => ()
       case other                                  => fail("expected SequenceExhausted, got " + other.toString)
   }
 
@@ -92,4 +92,60 @@ class SnowflakeProviderSpec extends FunSuite:
     assertEquals(first.timestamp, t1)
     assertEquals(second.timestamp, t1)
     assertEquals(second.sequence, first.sequence + 1)
+  }
+
+  // ── nextId (blocking) tests ──────────────────────────────────────────
+
+  test("nextId returns a valid Snowflake") {
+    val t0       = Snowflake.Epoch + 5000L
+    val t1       = t0 + 1L
+    val clock    = TestClock(Array(t0, t1))
+    val provider = SnowflakeProvider.make(7, clock = () => clock.now())
+
+    val id = provider.nextId()
+    assertEquals(id.machineId, 7)
+    assertEquals(id.sequence, 0)
+    assertEquals(id.timestamp, t1)
+  }
+
+  test("nextId generates unique monotonic IDs") {
+    val provider = SnowflakeProvider.make(1)
+    val ids      = (1 to 100).map(_ => provider.nextId())
+
+    assertEquals(ids.map(_.value).distinct.size, 100, "All IDs should be unique")
+    ids.sliding(2).foreach { pair =>
+      assert(pair(0).value < pair(1).value, "IDs should be monotonically increasing")
+    }
+  }
+
+  test("nextId spins through sequence exhaustion into next millisecond") {
+    val t0 = Snowflake.Epoch + 6000L
+    val t1 = t0 + 1L
+    val t2 = t1 + 1L
+    // init at t0, then stay at t1 for MaxSequence+1 calls, then advance to t2
+    val times = Array(t0) ++ Array.fill(Snowflake.MaxSequence + 1)(t1) ++ Array.fill(2)(t2)
+    val clock = TestClock(times)
+    val provider = SnowflakeProvider.make(1, clock = () => clock.now())
+
+    // exhaust the sequence at t1
+    var i = 0
+    while i <= Snowflake.MaxSequence do
+      provider.nextId(): Unit
+      i += 1
+
+    // next call should spin and land on t2 with sequence 0
+    val afterExhaust = provider.nextId()
+    assertEquals(afterExhaust.timestamp, t2)
+    assertEquals(afterExhaust.sequence, 0)
+  }
+
+  test("nextId throws on clock moved backwards beyond tolerance") {
+    val t0    = Snowflake.Epoch + 7000L
+    val clock = TestClock(Array(t0, t0 - 10L))
+    val provider =
+      SnowflakeProvider.make(1, clock = () => clock.now(), maxClockBackwardMs = 5L)
+
+    intercept[SnowflakeError.ClockMovedBackwards] {
+      provider.nextId()
+    }
   }

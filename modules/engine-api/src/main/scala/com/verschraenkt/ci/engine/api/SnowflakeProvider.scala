@@ -12,24 +12,31 @@ package com.verschraenkt.ci.engine.api
 
 import java.util.concurrent.atomic.AtomicLong
 
-sealed trait SnowflakeError
+sealed trait SnowflakeError extends Exception:
+  def msg: String
+
+  override def getMessage: String = msg
 object SnowflakeError:
   /** The system clock moved backwards by more than the configured tolerance. */
-  final case class ClockMovedBackwards(delta: Long) extends SnowflakeError
+  final case class ClockMovedBackwards(
+                                        delta: Long
+                                      ) extends SnowflakeError:
+    override def msg: String = s"System clock moved backwards by $delta ms; refusing to generate Snowflake ID."
 
-  /** Sequence exhausted and we refused to busy-wait (non-blocking mode). */
-  case object SequenceExhausted extends SnowflakeError
+  final case class SequenceExhausted(
+                                      msg: String = "Snowflake sequence exhausted within the current millisecond."
+                                    ) extends SnowflakeError
 
 trait SnowflakeProvider:
-  /** Blocked in production due to unreliability, cannot be implemented nor used by any other class */
-  final def nextId(): Snowflake = throw NoSuchMethodError()
+  /** Blocking variant – spins until an ID is available. May throw on unrecoverable clock drift. */
+  def nextId(): Snowflake
 
   /** Non-blocking variant – returns Left if the sequence is exhausted or the clock went backwards beyond the
     * tolerance window.
     */
   def tryNextId(): Either[SnowflakeError, Snowflake]
 
-object SnowflakeProvider:
+object  SnowflakeProvider:
   /** @param machineId
     *   Node identifier, 0–1023.
     * @param clock
@@ -90,7 +97,7 @@ object SnowflakeProvider:
           else {
             val newSeq = prevSeq + 1
             if newSeq > Snowflake.MaxSequence then
-              if !blocking then result = Left(SnowflakeError.SequenceExhausted)
+              if !blocking then result = Left(SnowflakeError.SequenceExhausted())
               // else spin – another CAS iteration will see a fresh ms shortly
             else {
               val next = pack(prevTs - Snowflake.Epoch, newSeq)
@@ -100,7 +107,7 @@ object SnowflakeProvider:
         else if now == prevTs then
           val newSeq = prevSeq + 1
           if newSeq > Snowflake.MaxSequence then
-            if !blocking then result = Left(SnowflakeError.SequenceExhausted)
+            if !blocking then result = Left(SnowflakeError.SequenceExhausted())
             // else spin until the clock ticks
           else {
             val next = pack(now - Snowflake.Epoch, newSeq)
@@ -116,6 +123,9 @@ object SnowflakeProvider:
     private def build(ts: Long, seq: Int): Snowflake =
       val raw = Snowflake.toLong(machineId, seq, ts)
       Snowflake(raw, machineId, seq, ts)
+
+    override def nextId(): Snowflake =
+      generate(blocking = true).fold(throw _, identity)
 
     override def tryNextId(): Either[SnowflakeError, Snowflake] =
       generate(blocking = false)
