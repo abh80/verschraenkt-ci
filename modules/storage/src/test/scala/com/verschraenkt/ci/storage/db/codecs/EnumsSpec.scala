@@ -242,7 +242,7 @@ class EnumsSpec extends FunSuite:
       assertEquals(parsed, actorType)
     }
   }
-  
+
   // Platform Tests
   test("Platform.fromString parses all valid values") {
     assertEquals(Platform.fromString("linux"), Platform.Linux)
@@ -261,7 +261,7 @@ class EnumsSpec extends FunSuite:
   test("Platform round-trip conversion") {
     Platform.values.foreach { pt =>
       val dbString = pt.toDbString
-      val parsed = Platform.fromString(dbString)
+      val parsed   = Platform.fromString(dbString)
       assertEquals(parsed, pt)
     }
   }

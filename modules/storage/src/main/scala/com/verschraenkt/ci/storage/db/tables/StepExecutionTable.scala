@@ -1,36 +1,47 @@
 package com.verschraenkt.ci.storage.db.tables
 
 import com.verschraenkt.ci.core.model.StepId
-import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.{
-  executionStatusMapper,
-  stepTypeMapper
-}
+import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.{ executionStatusMapper, stepTypeMapper }
 import com.verschraenkt.ci.storage.db.PostgresProfile.api.*
 import com.verschraenkt.ci.storage.db.codecs.ColumnTypes.given
 import com.verschraenkt.ci.storage.db.codecs.Enums.{ ExecutionStatus, StepType }
 
 import java.time.Instant
 
-/**
- * Represents a single step execution entry within {@code step_executions},
- * storing ordering, command metadata, runtime status and IO locations.
- *
- * @param stepExecutionId Primary key identifying this executed step
- * @param jobExecutionId  Owning job execution identifier
- * @param stepId          Logical step identifier from the workflow definition
- * @param stepKind        Type of step (run, uses, etc.)
- * @param stepIndex       0-based ordering within the job
- * @param status          Current execution status for the step
- * @param startedAt       Timestamp when the step began running
- * @param completedAt     Timestamp when execution finished
- * @param commandText     Rendered command/script text sent to the executor
- * @param shell           Shell used to execute the command
- * @param exitCode        Process exit code if the step executed
- * @param stdoutLocation  Storage URI for captured stdout
- * @param stderrLocation  Storage URI for captured stderr
- * @param errorMessage    Error/diagnostic message on failure
- * @param continueOnError Whether the workflow should continue despite failure
- */
+/** Represents a single step execution entry within {@code step_executions} , storing ordering, command
+  * metadata, runtime status and IO locations.
+  *
+  * @param stepExecutionId
+  *   Primary key identifying this executed step
+  * @param jobExecutionId
+  *   Owning job execution identifier
+  * @param stepId
+  *   Logical step identifier from the workflow definition
+  * @param stepKind
+  *   Type of step (run, uses, etc.)
+  * @param stepIndex
+  *   0-based ordering within the job
+  * @param status
+  *   Current execution status for the step
+  * @param startedAt
+  *   Timestamp when the step began running
+  * @param completedAt
+  *   Timestamp when execution finished
+  * @param commandText
+  *   Rendered command/script text sent to the executor
+  * @param shell
+  *   Shell used to execute the command
+  * @param exitCode
+  *   Process exit code if the step executed
+  * @param stdoutLocation
+  *   Storage URI for captured stdout
+  * @param stderrLocation
+  *   Storage URI for captured stderr
+  * @param errorMessage
+  *   Error/diagnostic message on failure
+  * @param continueOnError
+  *   Whether the workflow should continue despite failure
+  */
 final case class StepExecutionRow(
     stepExecutionId: Long,
     jobExecutionId: Long,

@@ -8,23 +8,34 @@ import com.verschraenkt.ci.storage.db.codecs.Enums.ExecutionStatus
 
 import java.time.Instant
 
-/**
- * Captures a workflow execution persisted in {@code workflow_executions},
- * covering queue/start/completion windows, conditional evaluation and failures.
- *
- * @param workflowExecutionId Primary key for this workflow execution instance
- * @param executionId         Denormalized pipeline execution identifier
- * @param workflowId          Identifier of the workflow definition
- * @param workflowName        Human-readable name for observability
- * @param status              Current execution status
- * @param queuedAt            Timestamp when the workflow entered the queue
- * @param startedAt           When execution actually began
- * @param completedAt         When execution finished (success/failure)
- * @param timeoutAt           Deadline after which execution is considered expired
- * @param conditionResult     Result of conditional workflow evaluation (if any)
- * @param conditionExpression Condition expression evaluated for branching
- * @param errorMessage        Failure details when execution ends in error
- */
+/** Captures a workflow execution persisted in {@code workflow_executions} , covering queue/start/completion
+  * windows, conditional evaluation and failures.
+  *
+  * @param workflowExecutionId
+  *   Primary key for this workflow execution instance
+  * @param executionId
+  *   Denormalized pipeline execution identifier
+  * @param workflowId
+  *   Identifier of the workflow definition
+  * @param workflowName
+  *   Human-readable name for observability
+  * @param status
+  *   Current execution status
+  * @param queuedAt
+  *   Timestamp when the workflow entered the queue
+  * @param startedAt
+  *   When execution actually began
+  * @param completedAt
+  *   When execution finished (success/failure)
+  * @param timeoutAt
+  *   Deadline after which execution is considered expired
+  * @param conditionResult
+  *   Result of conditional workflow evaluation (if any)
+  * @param conditionExpression
+  *   Condition expression evaluated for branching
+  * @param errorMessage
+  *   Failure details when execution ends in error
+  */
 final case class WorkflowExecutionRow(
     workflowExecutionId: Long,
     executionId: Long,

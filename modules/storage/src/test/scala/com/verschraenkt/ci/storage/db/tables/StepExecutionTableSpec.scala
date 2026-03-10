@@ -94,9 +94,9 @@ class StepExecutionTableSpec extends FunSuite:
   }
 
   test("StepExecutionRow handles different step types") {
-    val checkout      = TestStepExecutions.checkoutStep()
-    val run           = TestStepExecutions.runStep()
-    val cacheRestore  = TestStepExecutions.cacheRestoreStep()
+    val checkout       = TestStepExecutions.checkoutStep()
+    val run            = TestStepExecutions.runStep()
+    val cacheRestore   = TestStepExecutions.cacheRestoreStep()
     val artifactUpload = TestStepExecutions.artifactUploadStep()
 
     assertEquals(checkout.stepKind, StepType.Checkout)

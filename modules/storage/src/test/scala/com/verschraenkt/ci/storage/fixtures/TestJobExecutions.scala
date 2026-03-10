@@ -184,11 +184,13 @@ object TestJobExecutions:
       maxAttempts = 1,
       exitCode = None,
       errorMessage = None,
-      matrixCoordinates = Some(Json.obj(
-        "os"      -> Json.fromString("ubuntu-22.04"),
-        "scala"   -> Json.fromString("3.3.1"),
-        "jdk"     -> Json.fromInt(17)
-      ))
+      matrixCoordinates = Some(
+        Json.obj(
+          "os"    -> Json.fromString("ubuntu-22.04"),
+          "scala" -> Json.fromString("3.3.1"),
+          "jdk"   -> Json.fromInt(17)
+        )
+      )
     )
 
   def withStatus(status: ExecutionStatus): JobExecutionRow =
