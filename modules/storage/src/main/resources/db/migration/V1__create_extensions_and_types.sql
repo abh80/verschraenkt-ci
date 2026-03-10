@@ -92,7 +92,7 @@ CREATE TYPE platform_type as ENUM (
     'win-x64',
     'win-x86',
     'darwin'
-)
+);
 
 -- Architecture type
 CREATE TYPE architecture_type AS ENUM ('x86', 'x86_64', 'arm', 'arm64');
