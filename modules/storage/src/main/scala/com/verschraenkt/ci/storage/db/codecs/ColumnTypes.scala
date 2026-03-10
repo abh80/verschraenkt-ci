@@ -84,6 +84,18 @@ object ColumnTypes:
       ActorType.fromString
     )
 
+  given platformMapper: BaseColumnType[Platform] =
+    MappedColumnType.base[Platform, String](
+      _.toDbString,
+      Platform.fromString
+    )
+
+  given architectureMapper: BaseColumnType[Architecture] =
+    MappedColumnType.base[Architecture, String](
+      _.toDbString,
+      Architecture.fromString
+    )
+
   // ============================================================================
   // JSONB Mapper (using Circe)
   // ============================================================================

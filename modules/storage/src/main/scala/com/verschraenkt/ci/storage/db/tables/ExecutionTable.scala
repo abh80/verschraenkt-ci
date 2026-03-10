@@ -80,7 +80,7 @@ final case class ExecutionRow(
 
 class ExecutionTable(tag: Tag) extends Table[ExecutionRow](tag, "executions"):
   /** Primary key - Long v7 (time-ordered) */
-  def executionId = column[Long]("execution_id", O.PrimaryKey)
+  def executionId = column[Long]("execution_id", O.PrimaryKey, O.AutoInc)
 
   /** Pipeline identifier */
   def pipelineId = column[PipelineId]("pipeline_id")
@@ -156,7 +156,7 @@ class ExecutionTable(tag: Tag) extends Table[ExecutionRow](tag, "executions"):
     labels,
     errorMessage,
     deletedAt
-  ) <> ((ExecutionRow.apply).tupled, ExecutionRow.unapply)
+  ) <> (ExecutionRow.apply.tupled, ExecutionRow.unapply)
 
   def pipelineVersionFk = foreignKey(
     "executions_pipeline_version_fkey",
