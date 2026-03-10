@@ -25,7 +25,7 @@ import com.verschraenkt.ci.storage.util.TableCast
 import java.time.Instant
 
 /** Repository for execution persistence operations */
-trait IExecutionRepository:
+sealed trait IExecutionRepository:
   /** Find an execution by ID (only non-deleted) */
   def findById(id: Long): IO[Option[ExecutionRow]]
 

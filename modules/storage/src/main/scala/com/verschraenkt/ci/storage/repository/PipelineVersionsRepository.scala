@@ -22,7 +22,7 @@ import com.verschraenkt.ci.storage.db.tables.{ PipelineVersionsRow, PipelineVers
 import com.verschraenkt.ci.storage.errors.StorageError
 import com.verschraenkt.ci.storage.util.TableCast
 
-trait IPipelineVersionsRepository:
+sealed trait IPipelineVersionsRepository:
   /** Find a specific version of a pipeline */
   def findByIdAndVersion(id: PipelineId, version: Int): IO[Option[Pipeline]]
 

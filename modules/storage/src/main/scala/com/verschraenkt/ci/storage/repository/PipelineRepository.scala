@@ -30,7 +30,7 @@ import com.verschraenkt.ci.storage.util.TableCast
 import java.time.Instant
 
 /** Repository for pipeline persistence operations */
-trait IPipelineRepository:
+sealed trait IPipelineRepository:
   /** Find a pipeline by ID (only non-deleted) */
   def findById(id: PipelineId): IO[Option[Pipeline]]
 
