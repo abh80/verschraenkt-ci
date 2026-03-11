@@ -53,10 +53,10 @@ object SnowflakeProvider:
   ): SnowflakeProvider = new Impl(machineId, clock, maxClockBackwardMs)
 
   private final class Impl(
-                            machineId: Int,
-                            clock: () => Long,
-                            maxClockBackwardMs: Long
-                          ) extends SnowflakeProvider:
+      machineId: Int,
+      clock: () => Long,
+      maxClockBackwardMs: Long
+  ) extends SnowflakeProvider:
 
     require(
       machineId >= 0 && machineId <= Snowflake.MaxMachineId,
@@ -94,15 +94,14 @@ object SnowflakeProvider:
         if drift > maxClockBackwardMs then
           // Unacceptable clock regression – fail fast
           Left(SnowflakeError.ClockMovedBackwards(drift))
-
         else
           // Effective timestamp: never go below prevTs (monotonicity guarantee)
           val effectiveTs = math.max(now, prevTs)
-          val prevSeq = prev & Snowflake.MaxSequence
+          val prevSeq     = prev & Snowflake.MaxSequence
 
           val nextSeq =
             if effectiveTs > prevTs then 0
-            else prevSeq + 1                   // same ms / backward skew → increment
+            else prevSeq + 1 // same ms / backward skew → increment
 
           if nextSeq > Snowflake.MaxSequence then
             // Sequence space exhausted for this millisecond
@@ -113,10 +112,8 @@ object SnowflakeProvider:
               loop()
           else
             val next = pack(effectiveTs, nextSeq)
-            if state.compareAndSet(prev, next) then
-              Right(build(effectiveTs, nextSeq))
-            else
-              loop() // Lost the CAS race – retry immediately
+            if state.compareAndSet(prev, next) then Right(build(effectiveTs, nextSeq))
+            else loop() // Lost the CAS race – retry immediately
 
       loop()
 
