@@ -12,7 +12,14 @@ package com.verschraenkt.ci.storage.db
 
 import com.github.tminglei.slickpg.*
 import com.github.tminglei.slickpg.array.PgArrayExtensions
-import com.verschraenkt.ci.storage.db.codecs.Enums.{ ExecutionStatus, StepType, TriggerType }
+import com.verschraenkt.ci.storage.db.codecs.Enums.{
+  Architecture,
+  ExecutionStatus,
+  ExecutorStatus,
+  Platform,
+  StepType,
+  TriggerType
+}
 import slick.basic.Capability
 import slick.jdbc.JdbcCapabilities
 import slick.jdbc.JdbcType
@@ -56,6 +63,27 @@ trait MyPostgresProfile
     quoteName = false
   )
 
+  private val architectureType: JdbcType[Architecture] = createEnumJdbcType[Architecture](
+    "architecture_type",
+    _.toDbString,
+    Architecture.fromString,
+    quoteName = false
+  )
+
+  private val platformType: JdbcType[Platform] = createEnumJdbcType[Platform](
+    "platform_type",
+    _.toDbString,
+    Platform.fromString,
+    quoteName = false
+  )
+
+  private val executorStatusJdbcType: JdbcType[ExecutorStatus] = createEnumJdbcType[ExecutorStatus](
+    "executor_status",
+    _.toDbString,
+    ExecutorStatus.fromString,
+    quoteName = false
+  )
+
   override val api = MyAPI
 
   object MyAPI
@@ -69,5 +97,10 @@ trait MyPostgresProfile
       MyPostgresProfile.this.triggerTypeJdbcType
     implicit val stepTypeMapper: BaseColumnType[StepType] =
       MyPostgresProfile.this.stepTypeJdbcType
+    implicit val architectureTypeMapper: BaseColumnType[Architecture] =
+      MyPostgresProfile.this.architectureType
+    implicit val platformTypeMapper: BaseColumnType[Platform] = MyPostgresProfile.this.platformType
+    implicit val executorStatusMapper: BaseColumnType[ExecutorStatus] =
+      MyPostgresProfile.this.executorStatusJdbcType
 
 object PostgresProfile extends MyPostgresProfile

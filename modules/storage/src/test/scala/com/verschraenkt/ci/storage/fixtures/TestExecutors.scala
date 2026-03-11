@@ -10,7 +10,13 @@ import java.util.UUID
 /** Reusable test data for executor tests */
 object TestExecutors:
 
-  def onlineExecutor(name: String = "executor-1"): ExecutorRow =
+  private var counter = 0
+
+  private def getCounter: String =
+    counter += 1
+    counter.toString
+
+  def onlineExecutor(name: String = s"executor-online-$getCounter"): ExecutorRow =
     ExecutorRow(
       executorId = Some(UUID.randomUUID()),
       name = name,
@@ -26,13 +32,13 @@ object TestExecutors:
       registeredAt = Instant.now().minusSeconds(86400),
       lastHeartbeat = Instant.now().minusSeconds(10),
       lastJobAt = Some(Instant.now().minusSeconds(300)),
-      tokenHash = "sha256:abc123def456",
+      tokenHash = "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
       version = Some("1.0.0"),
       metadata = Json.obj("region" -> Json.fromString("us-east-1")),
       deletedAt = None
     )
 
-  def offlineExecutor(name: String = "executor-2"): ExecutorRow =
+  def offlineExecutor(name: String = s"executor-offline-$getCounter"): ExecutorRow =
     ExecutorRow(
       executorId = Some(UUID.randomUUID()),
       name = name,
@@ -48,13 +54,13 @@ object TestExecutors:
       registeredAt = Instant.now().minusSeconds(172800),
       lastHeartbeat = Instant.now().minusSeconds(3600),
       lastJobAt = Some(Instant.now().minusSeconds(7200)),
-      tokenHash = "sha256:ghi789jkl012",
+      tokenHash = "b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3",
       version = Some("0.9.0"),
       metadata = Json.obj(),
       deletedAt = None
     )
 
-  def drainingExecutor(name: String = "executor-3"): ExecutorRow =
+  def drainingExecutor(name: String = s"executor-draining-$getCounter"): ExecutorRow =
     ExecutorRow(
       executorId = Some(UUID.randomUUID()),
       name = name,
@@ -70,7 +76,7 @@ object TestExecutors:
       registeredAt = Instant.now().minusSeconds(604800),
       lastHeartbeat = Instant.now().minusSeconds(5),
       lastJobAt = Some(Instant.now().minusSeconds(60)),
-      tokenHash = "sha256:mno345pqr678",
+      tokenHash = "c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4",
       version = Some("1.0.0"),
       metadata = Json.obj(
         "region"   -> Json.fromString("eu-west-1"),
@@ -79,7 +85,7 @@ object TestExecutors:
       deletedAt = None
     )
 
-  def newExecutor(name: String = "executor-new"): ExecutorRow =
+  def newExecutor(name: String = s"executor-new-$getCounter"): ExecutorRow =
     ExecutorRow(
       executorId = None,
       name = name,
@@ -95,13 +101,13 @@ object TestExecutors:
       registeredAt = Instant.now(),
       lastHeartbeat = Instant.now(),
       lastJobAt = None,
-      tokenHash = "sha256:stu901vwx234",
+      tokenHash = "d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5",
       version = None,
       metadata = Json.obj(),
       deletedAt = None
     )
 
-  def deletedExecutor(name: String = "executor-deleted"): ExecutorRow =
+  def deletedExecutor(name: String = s"executor-deleted-$getCounter"): ExecutorRow =
     ExecutorRow(
       executorId = Some(UUID.randomUUID()),
       name = name,
@@ -117,7 +123,7 @@ object TestExecutors:
       registeredAt = Instant.now().minusSeconds(604800),
       lastHeartbeat = Instant.now().minusSeconds(86400),
       lastJobAt = Some(Instant.now().minusSeconds(172800)),
-      tokenHash = "sha256:yz0123abc456",
+      tokenHash = "e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6",
       version = Some("0.8.0"),
       metadata = Json.obj(),
       deletedAt = Some(Instant.now().minusSeconds(3600))

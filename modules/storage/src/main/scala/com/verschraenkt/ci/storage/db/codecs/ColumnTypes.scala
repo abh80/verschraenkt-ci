@@ -46,8 +46,6 @@ object ColumnTypes:
   // PostgreSQL ENUM Type Mappers
   // ============================================================================
 
-  // StepType is mapped as a native PostgreSQL ENUM in PostgresProfile
-
   given secretScopeMapper: BaseColumnType[SecretScope] =
     MappedColumnType.base[SecretScope, String](
       _.toDbString,
@@ -58,12 +56,6 @@ object ColumnTypes:
     MappedColumnType.base[StorageBackend, String](
       _.toDbString,
       StorageBackend.fromString
-    )
-
-  given executorStatusMapper: BaseColumnType[ExecutorStatus] =
-    MappedColumnType.base[ExecutorStatus, String](
-      _.toDbString,
-      ExecutorStatus.fromString
     )
 
   given cacheStatusMapper: BaseColumnType[CacheStatus] =
@@ -82,18 +74,6 @@ object ColumnTypes:
     MappedColumnType.base[ActorType, String](
       _.toDbString,
       ActorType.fromString
-    )
-
-  given platformMapper: BaseColumnType[Platform] =
-    MappedColumnType.base[Platform, String](
-      _.toDbString,
-      Platform.fromString
-    )
-
-  given architectureMapper: BaseColumnType[Architecture] =
-    MappedColumnType.base[Architecture, String](
-      _.toDbString,
-      Architecture.fromString
     )
 
   // ============================================================================

@@ -1,9 +1,14 @@
 package com.verschraenkt.ci.storage.db.tables
 
-import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.{ circeJsonTypeMapper, simpleStrListTypeMapper }
+import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.{
+  architectureTypeMapper,
+  circeJsonTypeMapper,
+  executorStatusMapper,
+  platformTypeMapper,
+  simpleStrListTypeMapper
+}
 import com.verschraenkt.ci.storage.db.PostgresProfile.api.*
 import com.verschraenkt.ci.storage.db.codecs.Enums.{ Architecture, ExecutorStatus, Platform }
-import com.verschraenkt.ci.storage.db.codecs.ColumnTypes.given
 import io.circe.Json
 
 import java.time.Instant
