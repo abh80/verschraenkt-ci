@@ -80,7 +80,7 @@ final case class ExecutionRow(
 
 class ExecutionTable(tag: Tag) extends Table[ExecutionRow](tag, "executions"):
   /** Primary key - Long v7 (time-ordered) */
-  def executionId = column[Long]("execution_id", O.PrimaryKey, O.AutoInc)
+  def executionId = column[Long]("execution_id", O.PrimaryKey)
 
   /** Pipeline identifier */
   def pipelineId = column[PipelineId]("pipeline_id")

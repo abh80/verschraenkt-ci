@@ -11,6 +11,7 @@
 package com.verschraenkt.ci.engine.api
 
 import java.util.concurrent.atomic.AtomicLong
+import scala.annotation.tailrec
 
 sealed trait SnowflakeError extends Exception:
   def msg: String
@@ -52,77 +53,77 @@ object SnowflakeProvider:
   ): SnowflakeProvider = new Impl(machineId, clock, maxClockBackwardMs)
 
   private final class Impl(
-      machineId: Int,
-      clock: () => Long,
-      maxClockBackwardMs: Long
-  ) extends SnowflakeProvider:
+                            machineId: Int,
+                            clock: () => Long,
+                            maxClockBackwardMs: Long
+                          ) extends SnowflakeProvider:
 
     require(
       machineId >= 0 && machineId <= Snowflake.MaxMachineId,
       s"machineId must be 0–${Snowflake.MaxMachineId}, got $machineId"
     )
 
-    // packed state: (timestampDelta << 12) | sequence
-    // Initialise with sequence = MaxSequence so the first call immediately
-    // moves to the current millisecond with sequence 0.
+    // packed state: (timestampDelta << SequenceBits) | sequence
+    // Initialise at MaxSequence so the first call rolls over to seq=0 cleanly.
     private val state = new AtomicLong(
       ((clock() - Snowflake.Epoch) << Snowflake.SequenceBits) | Snowflake.MaxSequence
     )
 
-    // ── Shared logic ──────────────────────────────────────────────────────────
+    // ── Packing helpers ───────────────────────────────────────────────────────
 
-    private def unpackTimestamp(packed: Long): Long =
-      (packed >> Snowflake.SequenceBits) + Snowflake.Epoch
+    @inline private def unpackTs(packed: Long): Long =
+      (packed >>> Snowflake.SequenceBits) + Snowflake.Epoch
 
-    private def unpackSequence(packed: Long): Int =
-      (packed & Snowflake.MaxSequence).toInt
+    @inline private def pack(ts: Long, seq: Long): Long =
+      ((ts - Snowflake.Epoch) << Snowflake.SequenceBits) | seq
 
-    private def pack(tsDelta: Long, seq: Int): Long =
-      (tsDelta << Snowflake.SequenceBits) | seq.toLong
+    @inline private def build(ts: Long, seq: Long): Snowflake =
+      Snowflake(Snowflake.toLong(machineId, seq.toInt, ts), machineId, seq.toInt, ts)
 
-    // Core CAS loop – returns a fully-built Snowflake or a SnowflakeError.
-    // `blocking` = true  → spin-wait on sequence exhaustion (nextId path)
-    // `blocking` = false → return Left(SequenceExhausted) immediately
+    // ── Core CAS loop ─────────────────────────────────────────────────────────
+
     private def generate(blocking: Boolean): Either[SnowflakeError, Snowflake] =
-      var result: Either[SnowflakeError, Snowflake] = null
-      while result eq null do
-        val now     = clock()
-        val prev    = state.get()
-        val prevTs  = unpackTimestamp(prev)
-        val prevSeq = unpackSequence(prev)
+      @tailrec
+      def loop(): Either[SnowflakeError, Snowflake] =
+        val now    = clock()
+        val prev   = state.get()
+        val prevTs = unpackTs(prev)
 
-        if now < prevTs then
-          val drift = prevTs - now
-          if drift > maxClockBackwardMs then result = Left(SnowflakeError.ClockMovedBackwards(drift))
-          // else: tiny backward skew – reuse prevTs to stay monotonic
-          else
-            val newSeq = prevSeq + 1
-            if newSeq > Snowflake.MaxSequence then
-              if !blocking then result = Left(SnowflakeError.SequenceExhausted())
-              // else spin – another CAS iteration will see a fresh ms shortly
-            else
-              val next = pack(prevTs - Snowflake.Epoch, newSeq)
-              if state.compareAndSet(prev, next) then result = Right(build(prevTs, newSeq))
-        else if now == prevTs then
-          val newSeq = prevSeq + 1
-          if newSeq > Snowflake.MaxSequence then
-            if !blocking then result = Left(SnowflakeError.SequenceExhausted())
-            // else spin until the clock ticks
-          else
-            val next = pack(now - Snowflake.Epoch, newSeq)
-            if state.compareAndSet(prev, next) then result = Right(build(now, newSeq))
+        val drift = prevTs - now // positive = clock went back
+
+        if drift > maxClockBackwardMs then
+          // Unacceptable clock regression – fail fast
+          Left(SnowflakeError.ClockMovedBackwards(drift))
+
         else
-          // Clock moved forward – reset sequence to 0
-          val next = pack(now - Snowflake.Epoch, 0)
-          if state.compareAndSet(prev, next) then result = Right(build(now, 0))
-      result
+          // Effective timestamp: never go below prevTs (monotonicity guarantee)
+          val effectiveTs = math.max(now, prevTs)
+          val prevSeq = prev & Snowflake.MaxSequence
 
-    private def build(ts: Long, seq: Int): Snowflake =
-      val raw = Snowflake.toLong(machineId, seq, ts)
-      Snowflake(raw, machineId, seq, ts)
+          val nextSeq =
+            if effectiveTs > prevTs then 0
+            else prevSeq + 1                   // same ms / backward skew → increment
+
+          if nextSeq > Snowflake.MaxSequence then
+            // Sequence space exhausted for this millisecond
+            if !blocking then Left(SnowflakeError.SequenceExhausted())
+            else
+              // Yield to give the OS a chance to advance the clock, then retry
+              Thread.sleep(1)
+              loop()
+          else
+            val next = pack(effectiveTs, nextSeq)
+            if state.compareAndSet(prev, next) then
+              Right(build(effectiveTs, nextSeq))
+            else
+              loop() // Lost the CAS race – retry immediately
+
+      loop()
+
+    // ── Public API ────────────────────────────────────────────────────────────
 
     override def nextId(): Snowflake =
-      generate(blocking = true).fold(throw _, identity)
+      generate(blocking = true).fold(e => throw e, identity)
 
     override def tryNextId(): Either[SnowflakeError, Snowflake] =
       generate(blocking = false)

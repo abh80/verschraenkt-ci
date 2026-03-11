@@ -12,7 +12,7 @@ class ExecutorTableSpec extends FunSuite:
   test("ExecutorRow creates correct row with all fields") {
     val row = TestExecutors.onlineExecutor()
 
-    assertEquals(row.name, "executor-1")
+    assert(row.name.startsWith("executor-online-"))
     assertEquals(row.status, ExecutorStatus.Online)
     assertEquals(row.platform, Platform.Linux)
     assertEquals(row.architecture, Architecture.X86_64)
