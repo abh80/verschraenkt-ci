@@ -77,7 +77,7 @@ class ExecutorRepository(
 
   override def save(row: ExecutorRow): IO[ExecutorRow] =
     withContext("save") {
-      val insertAction = (table returning table) += row
+      val insertAction = (table.returning(table)) += row
       run(insertAction)
     }
 
@@ -113,4 +113,3 @@ class ExecutorRepository(
 
       run(q).map(_ == 1)
     }
-

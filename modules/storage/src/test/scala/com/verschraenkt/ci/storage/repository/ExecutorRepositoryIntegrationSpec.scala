@@ -230,21 +230,31 @@ class ExecutorRepositoryIntegrationSpec
 
   test("findActive filters by labels") {
     withRepo { repo =>
-      val gpuExecutor = TestExecutors.drainingExecutor("label-gpu").copy(
-        status = ExecutorStatus.Online,
-        labels = List("linux", "gpu", "high-memory")
-      )
-      val plainExecutor = TestExecutors.onlineExecutor("label-plain").copy(
-        labels = List("linux", "general")
-      )
+      val gpuExecutor = TestExecutors
+        .drainingExecutor("label-gpu")
+        .copy(
+          status = ExecutorStatus.Online,
+          labels = List("linux", "gpu", "high-memory")
+        )
+      val plainExecutor = TestExecutors
+        .onlineExecutor("label-plain")
+        .copy(
+          labels = List("linux", "general")
+        )
 
       for
         savedGpu   <- repo.save(gpuExecutor)
         savedPlain <- repo.save(plainExecutor)
         results    <- repo.findActive(Some(Set("gpu")), 100)
         _ <- IO {
-          assert(results.exists(_.executorId == savedGpu.executorId), "Should include executor with gpu label")
-          assert(!results.exists(_.executorId == savedPlain.executorId), "Should not include executor without gpu label")
+          assert(
+            results.exists(_.executorId == savedGpu.executorId),
+            "Should include executor with gpu label"
+          )
+          assert(
+            !results.exists(_.executorId == savedPlain.executorId),
+            "Should not include executor without gpu label"
+          )
         }
       yield ()
     }
@@ -252,19 +262,26 @@ class ExecutorRepositoryIntegrationSpec
 
   test("findActive with multiple labels requires all labels present") {
     withRepo { repo =>
-      val fullLabels = TestExecutors.onlineExecutor("multi-label-full").copy(
-        labels = List("linux", "gpu", "high-memory")
-      )
-      val partialLabels = TestExecutors.onlineExecutor("multi-label-partial").copy(
-        labels = List("linux", "gpu")
-      )
+      val fullLabels = TestExecutors
+        .onlineExecutor("multi-label-full")
+        .copy(
+          labels = List("linux", "gpu", "high-memory")
+        )
+      val partialLabels = TestExecutors
+        .onlineExecutor("multi-label-partial")
+        .copy(
+          labels = List("linux", "gpu")
+        )
 
       for
         savedFull    <- repo.save(fullLabels)
         savedPartial <- repo.save(partialLabels)
         results      <- repo.findActive(Some(Set("gpu", "high-memory")), 100)
         _ <- IO {
-          assert(results.exists(_.executorId == savedFull.executorId), "Should include executor with all labels")
+          assert(
+            results.exists(_.executorId == savedFull.executorId),
+            "Should include executor with all labels"
+          )
           assert(
             !results.exists(_.executorId == savedPartial.executorId),
             "Should not include executor missing a label"
@@ -510,7 +527,7 @@ class ExecutorRepositoryIntegrationSpec
         _         <- IO(assert(retrieved.isDefined))
 
         // Update heartbeat
-        _ <- repo.updateHeartbeat(ExecutorId(saved.executorId.get), heartbeatTime)
+        _         <- repo.updateHeartbeat(ExecutorId(saved.executorId.get), heartbeatTime)
         retrieved <- repo.findById(ExecutorId(saved.executorId.get))
         _ <- IO {
           assertInstantWithinTolerance(
@@ -520,12 +537,12 @@ class ExecutorRepositoryIntegrationSpec
         }
 
         // Drain executor
-        _ <- repo.updateStatus(ExecutorId(saved.executorId.get), ExecutorStatus.Draining)
+        _         <- repo.updateStatus(ExecutorId(saved.executorId.get), ExecutorStatus.Draining)
         retrieved <- repo.findById(ExecutorId(saved.executorId.get))
         _         <- IO(assertEquals(retrieved.get.status, ExecutorStatus.Draining))
 
         // Set offline
-        _ <- repo.updateStatus(ExecutorId(saved.executorId.get), ExecutorStatus.Offline)
+        _         <- repo.updateStatus(ExecutorId(saved.executorId.get), ExecutorStatus.Offline)
         retrieved <- repo.findById(ExecutorId(saved.executorId.get))
         _         <- IO(assertEquals(retrieved.get.status, ExecutorStatus.Offline))
 
