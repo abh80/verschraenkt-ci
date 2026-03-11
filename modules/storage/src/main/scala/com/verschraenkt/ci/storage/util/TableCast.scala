@@ -38,3 +38,33 @@ trait TableCast[R]:
           case e: Exception =>
             fail(StorageError.TransactionFailed(e))
         }
+
+  abstract class InsertActionRaw:
+    protected def entityName: String
+
+    protected def getId(entry: R): String
+
+    protected final def isDuplicateKeyError(e: PSQLException): Boolean =
+      e.getSQLState == "23505"
+
+    protected def fail[T](error: StorageError)(using applicationContext: ApplicationContext): IO[T]
+
+    protected def transactionally[T](action: DBIO[T]): IO[T]
+
+    final def insert(entry: R)(using applicationContext: ApplicationContext): IO[Unit] =
+      val insertAction = self.table += entry
+      given e: R       = entry
+      runTransactionWithDefaultFailureHandle(transactionally(insertAction).map(_ => ()))
+
+    final def runTransactionWithDefaultFailureHandle[T](transaction: IO[T])(using
+        applicationContext: ApplicationContext,
+        entry: R
+    ): IO[T] =
+      transaction.handleErrorWith {
+        case e: PSQLException if isDuplicateKeyError(e) =>
+          fail(StorageError.DuplicateKey(entityName, getId(entry)))
+        case e: java.sql.SQLException =>
+          fail(StorageError.ConnectionFailed(e))
+        case e: Exception =>
+          fail(StorageError.TransactionFailed(e))
+      }
