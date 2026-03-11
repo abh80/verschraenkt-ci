@@ -1,6 +1,7 @@
 package com.verschraenkt.ci.storage.repository
 
 import cats.effect.IO
+import com.verschraenkt.ci.core.context.ApplicationContext
 import com.verschraenkt.ci.engine.api.ExecutorId
 import com.verschraenkt.ci.storage.context.StorageContext
 import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.{
@@ -11,15 +12,17 @@ import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.{
 import com.verschraenkt.ci.storage.db.codecs.Enums.ExecutorStatus
 import com.verschraenkt.ci.storage.db.tables.{ ExecutorRow, ExecutorTable }
 import com.verschraenkt.ci.storage.db.{ DatabaseModule, PostgresProfile }
+import com.verschraenkt.ci.storage.errors.StorageError
 import com.verschraenkt.ci.storage.util.TableCast
 
 import java.time.Instant
+import java.util.UUID
 
 sealed trait IExecutorRepository:
   def findById(id: ExecutorId): IO[Option[ExecutorRow]]
   def findByStatus(status: ExecutorStatus, limit: Int = 100): IO[Vector[ExecutorRow]]
   def findActive(labels: Option[Set[String]] = None, limit: Int = 100): IO[Vector[ExecutorRow]]
-  def save(row: ExecutorRow): IO[ExecutorRow]
+  def save(row: ExecutorRow): IO[UUID]
   def updateStatus(id: ExecutorId, status: ExecutorStatus): IO[Boolean]
   def updateHeartbeat(id: ExecutorId, heartbeat: Instant): IO[Boolean]
   def softDelete(id: ExecutorId): IO[Boolean]
@@ -75,10 +78,14 @@ class ExecutorRepository(
       run(query).map(_.toVector)
     }
 
-  override def save(row: ExecutorRow): IO[ExecutorRow] =
+  override def save(row: ExecutorRow): IO[UUID] =
     withContext("save") {
-      val insertAction = (table.returning(table)) += row
-      run(insertAction)
+      val applicationContext = summon[ApplicationContext]
+
+      val insertAction = table.returning(table.map(_.executorId)) += row
+      ExecutorInsert.runTransactionWithDefaultFailureHandle(
+        transactionally(insertAction)
+      )(using applicationContext, row)
     }
 
   override def updateStatus(id: ExecutorId, status: ExecutorStatus): IO[Boolean] =
@@ -113,3 +120,15 @@ class ExecutorRepository(
 
       run(q).map(_ == 1)
     }
+
+  private object ExecutorInsert extends InsertActionRaw:
+
+    protected def entityName = "ExecutorDB"
+
+    protected def getId(entry: ExecutorRow): String = entry.executorId.getOrElse("none").toString
+
+    protected def transactionally[T](action: DBIO[T]): IO[T] =
+      ExecutorRepository.this.transactionally(action)
+
+    protected def fail[T](error: StorageError)(using applicationContext: ApplicationContext): IO[T] =
+      ExecutorRepository.this.fail(error)
