@@ -23,7 +23,7 @@ CREATE TABLE execution_events (
   correlation_id UUID,
   
   PRIMARY KEY (event_id, occurred_at),
-  
+  -- Do not add any other foreign key; will be handled during business logics. This is done to support performance gains as events become huge
   FOREIGN KEY (execution_id) REFERENCES executions(execution_id) 
     ON DELETE CASCADE
 ) PARTITION BY RANGE (occurred_at);
