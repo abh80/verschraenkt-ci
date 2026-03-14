@@ -18,6 +18,7 @@ import com.verschraenkt.ci.storage.db.codecs.Enums.{
   ExecutorStatus,
   Platform,
   StepType,
+  StorageBackend,
   TriggerType
 }
 import slick.basic.Capability
@@ -84,6 +85,13 @@ trait MyPostgresProfile
     quoteName = false
   )
 
+  private val storageBackendJdbcType: JdbcType[StorageBackend] = createEnumJdbcType[StorageBackend](
+    "storage_backend",
+    _.toDbString,
+    StorageBackend.fromString,
+    quoteName = false
+  )
+
   override val api = MyAPI
 
   object MyAPI
@@ -102,5 +110,7 @@ trait MyPostgresProfile
     implicit val platformTypeMapper: BaseColumnType[Platform] = MyPostgresProfile.this.platformType
     implicit val executorStatusMapper: BaseColumnType[ExecutorStatus] =
       MyPostgresProfile.this.executorStatusJdbcType
+    implicit val storageBackendMapper: BaseColumnType[StorageBackend] =
+      MyPostgresProfile.this.storageBackendJdbcType
 
 object PostgresProfile extends MyPostgresProfile

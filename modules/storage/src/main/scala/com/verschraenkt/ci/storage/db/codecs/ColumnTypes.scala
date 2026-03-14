@@ -52,12 +52,6 @@ object ColumnTypes:
       SecretScope.fromString
     )
 
-  given storageBackendMapper: BaseColumnType[StorageBackend] =
-    MappedColumnType.base[StorageBackend, String](
-      _.toDbString,
-      StorageBackend.fromString
-    )
-
   given cacheStatusMapper: BaseColumnType[CacheStatus] =
     MappedColumnType.base[CacheStatus, String](
       _.toDbString,
