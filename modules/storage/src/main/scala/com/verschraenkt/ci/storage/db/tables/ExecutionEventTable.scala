@@ -6,6 +6,7 @@ import io.circe.Json
 import java.util.UUID
 import java.time.Instant
 import com.verschraenkt.ci.storage.db.PostgresProfile.api.*
+import slick.model.ForeignKeyAction.Cascade
 
 /** Database row representation of an ExecutionEvent
   *
@@ -17,7 +18,7 @@ import com.verschraenkt.ci.storage.db.PostgresProfile.api.*
   *   Parent execution this event belongs to
   * @param workflowExecutionId
   *   Associated workflow execution, if applicable
-  * @param jobExecution
+  * @param jobExecutionId
   *   Associated job execution, if applicable
   * @param stepExecutionId
   *   Associated step execution, if applicable
@@ -29,7 +30,7 @@ import com.verschraenkt.ci.storage.db.PostgresProfile.api.*
   *   When the event actually happened (partition key)
   * @param receivedAt
   *   When the system received/recorded the event
-  * @param correlation_id
+  * @param correlationId
   *   Optional correlation ID for tracing related events
   */
 case class ExecutionEventRow(
@@ -37,13 +38,13 @@ case class ExecutionEventRow(
     eventUUID: Option[UUID],
     executionId: Long,
     workflowExecutionId: Long,
-    jobExecution: Long,
+    jobExecutionId: Long,
     stepExecutionId: Long,
     eventType: String,
     eventPayload: Json,
     occurredAt: Instant,
     receivedAt: Instant,
-    correlation_id: UUID
+    correlationId: UUID
 )
 
 class ExecutionEventTable(tag: Tag) extends Table[ExecutionEventRow](tag, "execution_events"):
@@ -74,3 +75,6 @@ class ExecutionEventTable(tag: Tag) extends Table[ExecutionEventRow](tag, "execu
   ) <> (ExecutionEventRow.apply.tupled, ExecutionEventRow.unapply)
 
   def pk = primaryKey("event_id_occurred_at_pk", (eventId, occurredAt))
+
+  def fk_executionId =
+    foreignKey("execution_id_fk", executionId, TableQuery[ExecutionTable])(_.executionId, onDelete = Cascade)
