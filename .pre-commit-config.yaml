@@ -1,0 +1,29 @@
+# POSIX/UNIX users you have already given me enough trouble; everything works on linux but terribly fails on windows;
+# Why? F**k you, i will write powershell till my death!
+repos:
+
+  - repo: local
+    hooks:
+      - id: scalafmt-check
+        name: scalafmt check
+        entry: pwsh -Command "sbt scalafmtCheckAll"
+        language: system
+        pass_filenames: false
+
+      - id: scalafmt-fix
+        name: scalafmt fix
+        entry: pwsh -Command "sbt scalafmtAll"
+        language: system
+        pass_filenames: false
+
+      - id: sbt-scalafix
+        name: Scalafix
+        entry: pwsh -Command "sbt scalafixAll"
+        language: system
+        pass_filenames: false
+
+      - id: compile
+        name: scala compile
+        entry: pwsh -Command "sbt compile test:compile"
+        language: system
+        pass_filenames: false
