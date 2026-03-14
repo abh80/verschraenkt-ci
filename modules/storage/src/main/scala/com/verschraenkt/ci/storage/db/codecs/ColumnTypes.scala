@@ -52,18 +52,6 @@ object ColumnTypes:
       SecretScope.fromString
     )
 
-  given cacheStatusMapper: BaseColumnType[CacheStatus] =
-    MappedColumnType.base[CacheStatus, String](
-      _.toDbString,
-      CacheStatus.fromString
-    )
-
-  given cacheScopeTypeMapper: BaseColumnType[CacheScopeType] =
-    MappedColumnType.base[CacheScopeType, String](
-      _.toDbString,
-      CacheScopeType.fromString
-    )
-
   given actorTypeMapper: BaseColumnType[ActorType] =
     MappedColumnType.base[ActorType, String](
       _.toDbString,

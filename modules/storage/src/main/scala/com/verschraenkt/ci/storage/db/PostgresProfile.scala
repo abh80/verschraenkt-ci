@@ -12,18 +12,9 @@ package com.verschraenkt.ci.storage.db
 
 import com.github.tminglei.slickpg.*
 import com.github.tminglei.slickpg.array.PgArrayExtensions
-import com.verschraenkt.ci.storage.db.codecs.Enums.{
-  Architecture,
-  ExecutionStatus,
-  ExecutorStatus,
-  Platform,
-  StepType,
-  StorageBackend,
-  TriggerType
-}
+import com.verschraenkt.ci.storage.db.codecs.Enums.*
 import slick.basic.Capability
-import slick.jdbc.JdbcCapabilities
-import slick.jdbc.JdbcType
+import slick.jdbc.{ JdbcCapabilities, JdbcType }
 
 /** Enhanced PostgreSQL profile with support for:
   *   - PostgreSQL ENUM types
@@ -39,12 +30,7 @@ trait MyPostgresProfile
     with PgDate2Support
     with PgCirceJsonSupport:
 
-  // Use JSONB type (PostgreSQL 9.4+)
-  override def pgjson: String = "jsonb"
-
-  override protected def computeCapabilities: Set[Capability] =
-    super.computeCapabilities + JdbcCapabilities.insertOrUpdate
-
+  override val api = MyAPI
   private val executionStatusJdbcType: JdbcType[ExecutionStatus] = createEnumJdbcType[ExecutionStatus](
     "execution_status",
     _.toDbString,
@@ -63,36 +49,48 @@ trait MyPostgresProfile
     StepType.fromString,
     quoteName = false
   )
-
   private val architectureType: JdbcType[Architecture] = createEnumJdbcType[Architecture](
     "architecture_type",
     _.toDbString,
     Architecture.fromString,
     quoteName = false
   )
-
   private val platformType: JdbcType[Platform] = createEnumJdbcType[Platform](
     "platform_type",
     _.toDbString,
     Platform.fromString,
     quoteName = false
   )
-
   private val executorStatusJdbcType: JdbcType[ExecutorStatus] = createEnumJdbcType[ExecutorStatus](
     "executor_status",
     _.toDbString,
     ExecutorStatus.fromString,
     quoteName = false
   )
-
   private val storageBackendJdbcType: JdbcType[StorageBackend] = createEnumJdbcType[StorageBackend](
     "storage_backend",
     _.toDbString,
     StorageBackend.fromString,
     quoteName = false
   )
+  private val cacheScopeTypeJdbcType: JdbcType[CacheScopeType] = createEnumJdbcType[CacheScopeType](
+    "cache_scope_type",
+    _.toDbString,
+    CacheScopeType.fromString,
+    quoteName = false
+  )
+  private val cacheStatusJdbcType: JdbcType[CacheStatus] = createEnumJdbcType[CacheStatus](
+    "cache_status",
+    _.toDbString,
+    CacheStatus.fromString,
+    quoteName = false
+  )
 
-  override val api = MyAPI
+  // Use JSONB type (PostgreSQL 9.4+)
+  override def pgjson: String = "jsonb"
+
+  override protected def computeCapabilities: Set[Capability] =
+    super.computeCapabilities + JdbcCapabilities.insertOrUpdate
 
   object MyAPI
       extends ExtPostgresAPI
@@ -112,5 +110,9 @@ trait MyPostgresProfile
       MyPostgresProfile.this.executorStatusJdbcType
     implicit val storageBackendMapper: BaseColumnType[StorageBackend] =
       MyPostgresProfile.this.storageBackendJdbcType
+    implicit val cacheScopeTypeMapper: BaseColumnType[CacheScopeType] =
+      MyPostgresProfile.this.cacheScopeTypeJdbcType
+    implicit val cacheStatusMapper: BaseColumnType[CacheStatus] =
+      MyPostgresProfile.this.cacheStatusJdbcType
 
 object PostgresProfile extends MyPostgresProfile
