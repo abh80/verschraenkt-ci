@@ -122,11 +122,13 @@ class CacheEntryTableSpec extends FunSuite:
   }
 
   test("CacheEntryRow handles all scope types") {
-    val global = TestCacheEntries.rowFromInsert(TestCacheEntries.creatingEntry(scopeType = CacheScopeType.Global))
+    val global =
+      TestCacheEntries.rowFromInsert(TestCacheEntries.creatingEntry(scopeType = CacheScopeType.Global))
     val branch = TestCacheEntries.rowFromInsert(TestCacheEntries.branchScopedEntry())
     val pr     = TestCacheEntries.rowFromInsert(TestCacheEntries.creatingEntry(scopeType = CacheScopeType.Pr))
-    val repo   = TestCacheEntries.rowFromInsert(TestCacheEntries.creatingEntry(scopeType = CacheScopeType.Repo))
-    val commit = TestCacheEntries.rowFromInsert(TestCacheEntries.creatingEntry(scopeType = CacheScopeType.Commit))
+    val repo = TestCacheEntries.rowFromInsert(TestCacheEntries.creatingEntry(scopeType = CacheScopeType.Repo))
+    val commit =
+      TestCacheEntries.rowFromInsert(TestCacheEntries.creatingEntry(scopeType = CacheScopeType.Commit))
 
     assertEquals(global.scopeType, CacheScopeType.Global)
     assertEquals(branch.scopeType, CacheScopeType.Branch)
@@ -154,12 +156,14 @@ class CacheEntryTableSpec extends FunSuite:
   test("CacheEntryRow handles optional fields") {
     val withOptionals = TestCacheEntries.rowFromInsert(TestCacheEntries.readyEntry())
     val withoutOptionals = TestCacheEntries.rowFromInsert(
-      TestCacheEntries.creatingEntry().copy(
-        scopeValue = None,
-        contentHash = None,
-        createdByExecutionId = None,
-        expiresAt = None
-      )
+      TestCacheEntries
+        .creatingEntry()
+        .copy(
+          scopeValue = None,
+          contentHash = None,
+          createdByExecutionId = None,
+          expiresAt = None
+        )
     )
 
     assert(withOptionals.contentHash.isDefined)
