@@ -1,7 +1,7 @@
 package com.verschraenkt.ci.storage.db.tables
 
-import com.verschraenkt.ci.storage.db.PostgresProfile.api.*
 import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.storageBackendMapper
+import com.verschraenkt.ci.storage.db.PostgresProfile.api.*
 import com.verschraenkt.ci.storage.db.codecs.Enums.StorageBackend
 import slick.model.ForeignKeyAction.Cascade
 
