@@ -1,12 +1,12 @@
 package com.verschraenkt.ci.storage.db.tables
 
 import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.circeJsonTypeMapper
-import io.circe.Json
-
-import java.util.UUID
-import java.time.Instant
 import com.verschraenkt.ci.storage.db.PostgresProfile.api.*
+import io.circe.Json
 import slick.model.ForeignKeyAction.Cascade
+
+import java.time.Instant
+import java.util.UUID
 
 /** Database row representation of an ExecutionEvent
   *
