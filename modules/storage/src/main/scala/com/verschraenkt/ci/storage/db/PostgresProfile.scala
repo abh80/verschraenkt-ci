@@ -30,6 +30,7 @@ trait MyPostgresProfile
     with PgDate2Support
     with PgCirceJsonSupport:
 
+  override val api = MyAPI
   private val executionStatusJdbcType: JdbcType[ExecutionStatus] = createEnumJdbcType[ExecutionStatus](
     "execution_status",
     _.toDbString,
@@ -72,6 +73,12 @@ trait MyPostgresProfile
     StorageBackend.fromString,
     quoteName = false
   )
+  private val secretScopeJdbcType: JdbcType[SecretScope] = createEnumJdbcType[SecretScope](
+    "secret_scope",
+    _.toDbString,
+    SecretScope.fromString,
+    quoteName = false
+  )
   private val cacheScopeTypeJdbcType: JdbcType[CacheScopeType] = createEnumJdbcType[CacheScopeType](
     "cache_scope_type",
     _.toDbString,
@@ -91,8 +98,6 @@ trait MyPostgresProfile
   override protected def computeCapabilities: Set[Capability] =
     super.computeCapabilities + JdbcCapabilities.insertOrUpdate
 
-  override val api = MyAPI
-
   object MyAPI
       extends ExtPostgresAPI
       with ArrayImplicits
@@ -111,6 +116,8 @@ trait MyPostgresProfile
       MyPostgresProfile.this.executorStatusJdbcType
     implicit val storageBackendMapper: BaseColumnType[StorageBackend] =
       MyPostgresProfile.this.storageBackendJdbcType
+    implicit val secretScopeMapper: BaseColumnType[SecretScope] =
+      MyPostgresProfile.this.secretScopeJdbcType
     implicit val cacheScopeTypeMapper: BaseColumnType[CacheScopeType] =
       MyPostgresProfile.this.cacheScopeTypeJdbcType
     implicit val cacheStatusMapper: BaseColumnType[CacheStatus] =
