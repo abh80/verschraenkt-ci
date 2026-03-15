@@ -30,7 +30,6 @@ trait MyPostgresProfile
     with PgDate2Support
     with PgCirceJsonSupport:
 
-  override val api = MyAPI
   private val executionStatusJdbcType: JdbcType[ExecutionStatus] = createEnumJdbcType[ExecutionStatus](
     "execution_status",
     _.toDbString,
@@ -91,6 +90,8 @@ trait MyPostgresProfile
 
   override protected def computeCapabilities: Set[Capability] =
     super.computeCapabilities + JdbcCapabilities.insertOrUpdate
+
+  override val api = MyAPI
 
   object MyAPI
       extends ExtPostgresAPI
