@@ -15,6 +15,9 @@ import com.verschraenkt.ci.storage.db.PostgresProfile.MyAPI.simpleStrListTypeMap
 import com.verschraenkt.ci.storage.db.PostgresProfile.api.*
 import com.verschraenkt.ci.storage.db.codecs.Enums.*
 
+import java.net.InetAddress
+import scala.util.{ Failure, Success, Try }
+
 /** Column type mappers for Slick
   *
   * This object provides implicit column type mappings for:
@@ -46,12 +49,11 @@ object ColumnTypes:
   // PostgreSQL ENUM Type Mappers
   // ============================================================================
 
-  given secretScopeMapper: BaseColumnType[SecretScope] =
-    MappedColumnType.base[SecretScope, String](
-      _.toDbString,
-      SecretScope.fromString
-    )
-
+  /** Enum column mapper using MappedColumnType
+    *
+    * Note: ENUM support is provided PgEnum trait mixed into PostgresProfile. MyAPI implicits provides proper
+    * column type mapping type for all enums needed for the project.
+    */
   given actorTypeMapper: BaseColumnType[ActorType] =
     MappedColumnType.base[ActorType, String](
       _.toDbString,
@@ -95,3 +97,14 @@ object ColumnTypes:
 
   // Note: Instant mapper is provided by PgDate2Support via Date2DateTimeImplicitsDuration
   // No need to define it here as it would create ambiguous implicits
+
+  // ============================================================================
+  // Inet type mapper
+  // ============================================================================
+  given inetTypeMapper: BaseColumnType[InetAddress] = MappedColumnType.base[InetAddress, String](
+    inet => inet.getHostAddress,
+    str =>
+      Try(InetAddress.getByName(str)) match
+        case Failure(ex)   => throw new IllegalArgumentException(s"Invalid inet value: $str", ex)
+        case Success(addr) => addr
+  )
