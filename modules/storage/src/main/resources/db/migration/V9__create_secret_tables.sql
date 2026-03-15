@@ -58,7 +58,7 @@ CREATE TABLE secret_access_log (
   denial_reason TEXT,
   
   -- Additional audit context
-  request_ip INET,
+  request_ip VARCHAR(39),
   
   FOREIGN KEY (secret_id) REFERENCES secrets(secret_id) ON DELETE CASCADE,
   FOREIGN KEY (job_execution_id) 
