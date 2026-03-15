@@ -1,8 +1,8 @@
 package com.verschraenkt.ci.storage.db.tables
 
 import com.verschraenkt.ci.storage.db.PostgresProfile.api.*
-import slick.model.ForeignKeyAction.Cascade
 import com.verschraenkt.ci.storage.db.codecs.ColumnTypes.inetTypeMapper
+import slick.model.ForeignKeyAction.Cascade
 
 import java.net.InetAddress
 import java.time.Instant
